@@ -488,74 +488,76 @@ export function MeetingRoomPage() {
         )}
 
         {/* Bottom Control Bar */}
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 h-[56px] bg-[var(--color-surface-card)] border border-[var(--color-border-default)] rounded-xl px-4 flex items-center gap-1 sm:gap-2 shadow-2xl z-20 max-w-[calc(100vw-2rem)] overflow-x-auto scrollbar-none">
-          
-          <button 
-            onClick={toggleMic}
-            className={`w-[48px] sm:w-[52px] flex flex-col items-center justify-center gap-1 rounded-lg hover:bg-[var(--color-surface-light)] transition-colors py-1 shrink-0 focus:outline-none ${localIsMuted ? 'text-[#EF4444]' : 'text-[var(--color-text-secondary)] hover:text-white'}`}
-          >
-            {localIsMuted ? <MicOff className="h-4 sm:h-5 w-4 sm:w-5" /> : <Mic className="h-4 sm:h-5 w-4 sm:w-5" />}
-            <span className="text-[9px] font-medium">{localIsMuted ? 'Unmute' : 'Mute'}</span>
-          </button>
+        <div className="h-[76px] bg-[var(--color-bg-secondary)] border-t border-[var(--color-border-default)] flex items-center justify-center px-4 shrink-0 z-20">
+          <div className="flex items-center gap-1 sm:gap-2 max-w-full overflow-x-auto scrollbar-none">
+            
+            <button 
+              onClick={toggleMic}
+              className={`w-[48px] sm:w-[52px] flex flex-col items-center justify-center gap-1 rounded-lg hover:bg-[var(--color-surface-light)] transition-colors py-1 shrink-0 focus:outline-none ${localIsMuted ? 'text-[#EF4444]' : 'text-[var(--color-text-secondary)] hover:text-white'}`}
+            >
+              {localIsMuted ? <MicOff className="h-4 sm:h-5 w-4 sm:w-5" /> : <Mic className="h-4 sm:h-5 w-4 sm:w-5" />}
+              <span className="text-[9px] font-medium">{localIsMuted ? 'Unmute' : 'Mute'}</span>
+            </button>
 
-          <button 
-            onClick={toggleVideo}
-            className={`w-[48px] sm:w-[52px] flex flex-col items-center justify-center gap-1 rounded-lg hover:bg-[var(--color-surface-light)] transition-colors py-1 shrink-0 focus:outline-none ${localIsVideoOff ? 'text-[#EF4444]' : 'text-[var(--color-text-secondary)] hover:text-white'}`}
-          >
-            {localIsVideoOff ? <VideoOff className="h-4 sm:h-5 w-4 sm:w-5" /> : <Video className="h-4 sm:h-5 w-4 sm:w-5" />}
-            <span className="text-[9px] font-medium">{localIsVideoOff ? 'Start Cam' : 'Stop Cam'}</span>
-          </button>
+            <button 
+              onClick={toggleVideo}
+              className={`w-[48px] sm:w-[52px] flex flex-col items-center justify-center gap-1 rounded-lg hover:bg-[var(--color-surface-light)] transition-colors py-1 shrink-0 focus:outline-none ${localIsVideoOff ? 'text-[#EF4444]' : 'text-[var(--color-text-secondary)] hover:text-white'}`}
+            >
+              {localIsVideoOff ? <VideoOff className="h-4 sm:h-5 w-4 sm:w-5" /> : <Video className="h-4 sm:h-5 w-4 sm:w-5" />}
+              <span className="text-[9px] font-medium">{localIsVideoOff ? 'Start Cam' : 'Stop Cam'}</span>
+            </button>
 
-          <button 
-            onClick={toggleScreenShare}
-            className={`w-[48px] sm:w-[52px] flex flex-col items-center justify-center gap-1 rounded-lg transition-colors py-1 shrink-0 focus:outline-none ${localIsScreenSharing ? 'bg-[var(--color-brand-blue)]/20 text-[var(--color-brand-blue)]' : 'hover:bg-[var(--color-surface-light)] text-[var(--color-text-secondary)] hover:text-white'}`}
-          >
-            <MonitorUp className="h-4 sm:h-5 w-4 sm:w-5" />
-            <span className="text-[9px] font-medium">Share</span>
-          </button>
+            <button 
+              onClick={toggleScreenShare}
+              className={`w-[48px] sm:w-[52px] flex flex-col items-center justify-center gap-1 rounded-lg transition-colors py-1 shrink-0 focus:outline-none ${localIsScreenSharing ? 'bg-[var(--color-brand-blue)]/20 text-[var(--color-brand-blue)]' : 'hover:bg-[var(--color-surface-light)] text-[var(--color-text-secondary)] hover:text-white'}`}
+            >
+              <MonitorUp className="h-4 sm:h-5 w-4 sm:w-5" />
+              <span className="text-[9px] font-medium">Share</span>
+            </button>
 
-          <button 
-            onClick={() => toggleSidebar("chat")}
-            className={`w-[48px] sm:w-[52px] flex flex-col items-center justify-center gap-1 rounded-lg transition-colors py-1 relative shrink-0 focus:outline-none ${isSidebarOpen && activeTab === "chat" ? 'bg-[var(--color-brand-blue)]/20 text-[var(--color-brand-blue)]' : 'hover:bg-[var(--color-surface-light)] text-[var(--color-text-secondary)] hover:text-white'}`}
-          >
-            <MessageSquare className="h-4 sm:h-5 w-4 sm:w-5" />
-            <span className="text-[9px] font-medium">Chat</span>
-            {unreadCount > 0 && (
-              <div className="absolute top-0 right-1 h-4 min-w-[16px] bg-[#EF4444] rounded-full border-2 border-[var(--color-surface-card)] text-[8px] text-white flex items-center justify-center font-bold px-1">
-                {unreadCount > 9 ? '9+' : unreadCount}
+            <button 
+              onClick={() => toggleSidebar("chat")}
+              className={`w-[48px] sm:w-[52px] flex flex-col items-center justify-center gap-1 rounded-lg transition-colors py-1 relative shrink-0 focus:outline-none ${isSidebarOpen && activeTab === "chat" ? 'bg-[var(--color-brand-blue)]/20 text-[var(--color-brand-blue)]' : 'hover:bg-[var(--color-surface-light)] text-[var(--color-text-secondary)] hover:text-white'}`}
+            >
+              <MessageSquare className="h-4 sm:h-5 w-4 sm:w-5" />
+              <span className="text-[9px] font-medium">Chat</span>
+              {unreadCount > 0 && (
+                <div className="absolute top-0 right-1 h-4 min-w-[16px] bg-[#EF4444] rounded-full border-2 border-[var(--color-surface-card)] text-[8px] text-white flex items-center justify-center font-bold px-1">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </div>
+              )}
+            </button>
+
+            <button 
+              onClick={() => toggleSidebar("participants")}
+              className={`w-[48px] sm:w-[52px] flex flex-col items-center justify-center gap-1 rounded-lg transition-colors py-1 relative shrink-0 focus:outline-none ${isSidebarOpen && activeTab === "participants" ? 'bg-[var(--color-brand-blue)]/20 text-[var(--color-brand-blue)]' : 'hover:bg-[var(--color-surface-light)] text-[var(--color-text-secondary)] hover:text-white'}`}
+            >
+              <Users className="h-4 sm:h-5 w-4 sm:w-5" />
+              <span className="text-[9px] font-medium">People</span>
+              <div className="absolute top-0 right-1 bg-[var(--color-surface-light)] rounded-full px-1 border-2 border-[var(--color-surface-card)] text-[8px] flex items-center justify-center font-bold text-[var(--color-text-secondary)]">
+                {participants.length}
               </div>
-            )}
-          </button>
+            </button>
 
-          <button 
-            onClick={() => toggleSidebar("participants")}
-            className={`w-[48px] sm:w-[52px] flex flex-col items-center justify-center gap-1 rounded-lg transition-colors py-1 relative shrink-0 focus:outline-none ${isSidebarOpen && activeTab === "participants" ? 'bg-[var(--color-brand-blue)]/20 text-[var(--color-brand-blue)]' : 'hover:bg-[var(--color-surface-light)] text-[var(--color-text-secondary)] hover:text-white'}`}
-          >
-            <Users className="h-4 sm:h-5 w-4 sm:w-5" />
-            <span className="text-[9px] font-medium">People</span>
-            <div className="absolute top-0 right-1 bg-[var(--color-surface-light)] rounded-full px-1 border-2 border-[var(--color-surface-card)] text-[8px] flex items-center justify-center font-bold text-[var(--color-text-secondary)]">
-              {participants.length}
-            </div>
-          </button>
+            <button 
+              onClick={() => setShowLangMenu(!showLangMenu)}
+              className={`w-[48px] sm:w-[52px] flex flex-col items-center justify-center gap-1 rounded-lg transition-colors py-1 shrink-0 focus:outline-none ${showLangMenu ? 'bg-[var(--color-brand-blue)]/20 text-[var(--color-brand-blue)]' : 'hover:bg-[var(--color-surface-light)] text-[var(--color-text-secondary)] hover:text-white'}`}
+            >
+              <Globe2 className="h-4 sm:h-5 w-4 sm:w-5" />
+              <span className="text-[9px] font-medium">Lang</span>
+            </button>
 
-          <button 
-            onClick={() => setShowLangMenu(!showLangMenu)}
-            className={`w-[48px] sm:w-[52px] flex flex-col items-center justify-center gap-1 rounded-lg transition-colors py-1 shrink-0 focus:outline-none ${showLangMenu ? 'bg-[var(--color-brand-blue)]/20 text-[var(--color-brand-blue)]' : 'hover:bg-[var(--color-surface-light)] text-[var(--color-text-secondary)] hover:text-white'}`}
-          >
-            <Globe2 className="h-4 sm:h-5 w-4 sm:w-5" />
-            <span className="text-[9px] font-medium">Lang</span>
-          </button>
+            <div className="w-[1px] h-8 bg-[var(--color-border-default)] mx-1 sm:mx-2 shrink-0" />
 
-          <div className="w-[1px] h-8 bg-[var(--color-border-default)] mx-1 sm:mx-2 shrink-0" />
+            <button 
+              onClick={handleEndCall}
+              className="w-[48px] sm:w-[52px] flex flex-col items-center justify-center gap-1 rounded-lg bg-[#EF4444] hover:bg-[#D92626] transition-colors py-1 text-white ml-1 shadow-md shadow-red-500/10 shrink-0 focus:outline-none"
+            >
+              <PhoneOff className="h-4 sm:h-5 w-4 sm:w-5" />
+              <span className="text-[9px] font-medium">End</span>
+            </button>
 
-          <button 
-            onClick={handleEndCall}
-            className="w-[48px] sm:w-[52px] flex flex-col items-center justify-center gap-1 rounded-lg bg-[#EF4444] hover:bg-[#D92626] transition-colors py-1 text-white ml-1 shadow-md shadow-red-500/10 shrink-0 focus:outline-none"
-          >
-            <PhoneOff className="h-4 sm:h-5 w-4 sm:w-5" />
-            <span className="text-[9px] font-medium">End</span>
-          </button>
-
+          </div>
         </div>
       </div>
 
