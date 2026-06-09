@@ -27,8 +27,8 @@ export function MeetingRoomPage() {
     status, setStatus, leaveMeeting,
     title, elapsedSeconds,
     participants, messages, unreadCount, events,
-    localIsMuted, localIsVideoOff,
-    toggleMic, toggleVideo, sendMessage, clearUnread,
+    localIsMuted, localIsVideoOff, localIsScreenSharing,
+    toggleMic, toggleVideo, toggleScreenShare, sendMessage, clearUnread,
     addEvent, dismissEvent, removeParticipant,
     sourceLang, targetLang,
   } = useMeetingStore()
@@ -43,6 +43,7 @@ export function MeetingRoomPage() {
   const [showRemoveModal, setShowRemoveModal] = useState(false)
   const [removeTarget, setRemoveTarget] = useState<string | null>(null)
   const [chatInput, setChatInput] = useState("")
+  const [showLangMenu, setShowLangMenu] = useState(false)
 
   // Refs
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -179,21 +180,21 @@ export function MeetingRoomPage() {
   // ── Render ────────────────────────────────────────────────────────
 
   return (
-    <div className="flex h-screen w-full bg-[#F8FAFC] text-[#0F172A] font-body overflow-hidden">
+    <div className="flex h-screen w-full bg-[var(--color-bg-primary)] text-[var(--color-text-primary)] font-body overflow-hidden">
       
       {/* Main Content Area */}
-      <div className="flex flex-col flex-1 relative">
+      <div className="flex flex-col flex-1 relative min-w-0">
         
         {/* Top Bar */}
-        <div className="h-[52px] bg-white border-b border-[#E2E8F0] flex items-center justify-between px-4 z-10 shrink-0 shadow-sm">
-          <div className="flex items-center gap-3">
-            <Logo size={24} className="text-black" />
-            <div className="h-4 w-[1px] bg-[#E2E8F0]" />
-            <span className="text-[#64748B] text-[14px] font-medium">{title || 'CPEC Quarterly Review'}</span>
-            <div className="flex items-center gap-1.5 ml-2">
-              <span className="text-[#94A3B8] font-mono text-[12px]">{id || "intellimeet-xk7a-2b9c"}</span>
+        <div className="h-[52px] bg-[var(--color-bg-secondary)] border-b border-[var(--color-border-default)] flex items-center justify-between px-4 z-10 shrink-0 shadow-md">
+          <div className="flex items-center gap-3 min-w-0">
+            <Logo size={24} className="text-white shrink-0" />
+            <div className="h-4 w-[1px] bg-[var(--color-border-default)] shrink-0 hidden sm:block" />
+            <span className="text-[var(--color-text-primary)] text-[14px] font-semibold truncate max-w-[120px] sm:max-w-none">{title || 'CPEC Quarterly Review'}</span>
+            <div className="flex items-center gap-1.5 ml-2 shrink-0">
+              <span className="text-[var(--color-text-secondary)] font-mono text-[11px] sm:text-[12px]">{id || "intellimeet-xk7a-2b9c"}</span>
               <button 
-                className="text-[#64748B] hover:text-[#3B82F6] transition-colors"
+                className="text-[var(--color-text-secondary)] hover:text-[var(--color-border-hover)] transition-colors"
                 onClick={() => navigator.clipboard.writeText(id || '')}
               >
                 <Copy className="h-3 w-3" />
@@ -202,26 +203,29 @@ export function MeetingRoomPage() {
           </div>
           
           <div className="absolute left-1/2 -translate-x-1/2 flex items-center">
-            <span className="text-[#0F172A] font-mono text-[16px] font-semibold">
+            <span className="text-[var(--color-text-primary)] font-mono text-[14px] sm:text-[16px] font-semibold tracking-wider bg-[var(--color-bg-primary)]/40 px-2 py-0.5 rounded">
               {formatElapsed(elapsedSeconds)}
             </span>
           </div>
 
-          <div className="flex items-center gap-4">
-            <div className="flex items-center text-green-500" title="Good Network Quality">
+          <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+            <div className="flex items-center text-[#10B981]" title="Good Network Quality">
               <Signal className="h-4 w-4" />
             </div>
-            <button className="text-[#64748B] hover:text-[#0F172A] transition-colors">
+            <button 
+              onClick={() => setShowLangMenu(!showLangMenu)}
+              className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors p-1"
+            >
               <Globe2 className="h-5 w-5" />
             </button>
-            <div className="h-8 w-8 rounded-full bg-[#EFF6FF] text-[#3B82F6] flex items-center justify-center text-xs font-bold uppercase">
+            <div className="h-8 w-8 rounded-full bg-[var(--color-surface-light)] text-[var(--color-brand-blue)] flex items-center justify-center text-xs font-bold uppercase border border-white/5 shrink-0">
               {localUser?.initials || 'MU'}
             </div>
           </div>
         </div>
 
         {/* In-Meeting Event Notifications */}
-        <div className="absolute top-[60px] left-1/2 -translate-x-1/2 z-30 flex flex-col items-center gap-2 pointer-events-none">
+        <div className="absolute top-[60px] left-1/2 -translate-x-1/2 z-30 flex flex-col items-center gap-2 pointer-events-none w-full max-w-sm px-4">
           <AnimatePresence>
             {events.slice(-3).map((event) => (
               <motion.div
@@ -230,9 +234,9 @@ export function MeetingRoomPage() {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -10, scale: 0.9 }}
                 transition={{ duration: 0.3 }}
-                className="bg-white/95 backdrop-blur-sm border border-[#E2E8F0] rounded-lg px-4 py-2 shadow-lg pointer-events-auto text-[#334155]"
+                className="bg-[var(--color-surface-card)] border border-[var(--color-border-default)] text-[var(--color-text-primary)] rounded-lg px-4 py-2 shadow-lg pointer-events-auto w-full text-center"
               >
-                <span className="text-[13px] font-medium">
+                <span className="text-[13px] font-medium block truncate">
                   {event.type === 'join' && '👋 '}
                   {event.type === 'leave' && '🚪 '}
                   {event.type === 'mute' && '🔇 '}
@@ -247,42 +251,108 @@ export function MeetingRoomPage() {
         </div>
 
         {/* Video Grid Area */}
-        <div className="flex-1 relative p-4 flex gap-4 overflow-hidden">
+        <div className="flex-1 relative p-4 flex flex-col lg:flex-row gap-4 overflow-hidden bg-[var(--color-bg-primary)]">
           
-          {/* Active Speaker (Large Tile) */}
-          <div className="flex-[7] relative bg-white rounded-xl overflow-hidden border border-[#E2E8F0] shadow-md flex items-center justify-center">
-            {activeSpeaker ? (
+          {/* Active Speaker (Large Tile) or Screen Share Area */}
+          <div className="flex-[7] relative bg-[var(--color-surface-card)] rounded-xl overflow-hidden border border-[var(--color-border-default)] shadow-lg flex items-center justify-center min-h-[200px]">
+            {localIsScreenSharing ? (
+              <div className="w-full h-full flex flex-col bg-[#0b0f19]">
+                {/* Header */}
+                <div className="bg-black/50 px-4 py-2.5 flex items-center justify-between border-b border-[var(--color-border-default)]">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="h-2 w-2 rounded-full bg-red-500 animate-pulse shrink-0" />
+                    <span className="text-[12px] font-medium text-white truncate">You are sharing your screen</span>
+                  </div>
+                  <button 
+                    onClick={toggleScreenShare}
+                    className="bg-[#EF4444] hover:bg-[#D92626] text-white text-[11px] font-semibold px-2.5 py-1 rounded transition-colors"
+                  >
+                    Stop Presenting
+                  </button>
+                </div>
+                {/* Screen simulation content */}
+                <div className="flex-1 flex flex-col items-center justify-center p-6 text-center select-none bg-slate-950/60 relative">
+                  <div className="w-full max-w-md p-6 bg-slate-900/95 rounded-xl border border-slate-800 shadow-2xl relative overflow-hidden backdrop-blur-md">
+                    <div className="absolute top-0 right-0 h-20 w-20 bg-gradient-to-br from-blue-500/20 to-transparent rounded-full blur-xl" />
+                    <Logo size={32} className="text-white mx-auto mb-4" />
+                    <h3 className="text-[15px] font-bold text-white mb-1">CPEC Quarterly Financial Review</h3>
+                    <p className="text-[11px] text-slate-400 mb-4 font-mono">Presenting window: Chrome Tab</p>
+                    
+                    {/* Simulated bar chart */}
+                    <div className="flex items-end justify-center gap-2 h-20 mt-2 mb-4">
+                      <div className="w-5 bg-gradient-to-t from-blue-600 to-cyan-400 rounded-t h-[40%] animate-pulse" />
+                      <div className="w-5 bg-gradient-to-t from-blue-600 to-cyan-400 rounded-t h-[75%] animate-pulse delay-75" />
+                      <div className="w-5 bg-gradient-to-t from-blue-600 to-cyan-400 rounded-t h-[60%] animate-pulse delay-150" />
+                      <div className="w-5 bg-gradient-to-t from-blue-600 to-cyan-400 rounded-t h-[95%] animate-pulse delay-200" />
+                      <div className="w-5 bg-gradient-to-t from-blue-600 to-cyan-400 rounded-t h-[50%] animate-pulse delay-300" />
+                    </div>
+                    
+                    <span className="text-[11px] font-mono text-cyan-400 bg-cyan-950/30 px-2 py-0.5 rounded border border-cyan-800/30">
+                      Real-time translation active: {srcLang.name} ⇄ {tgtLang.name}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ) : activeSpeaker ? (
               <>
                 {activeSpeaker.isVideoOff ? (
-                  <div className="h-24 w-24 rounded-full flex items-center justify-center text-white text-3xl font-medium" style={{ backgroundColor: activeSpeaker.avatarColor }}>
-                    {activeSpeaker.initials}
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="h-24 w-24 rounded-full flex items-center justify-center text-white text-3xl font-medium" style={{ backgroundColor: activeSpeaker.avatarColor }}>
+                      {activeSpeaker.initials}
+                    </div>
+                    <span className="text-xs text-[var(--color-text-secondary)] bg-black/40 px-2.5 py-1 rounded-full border border-white/5">Camera is off</span>
                   </div>
                 ) : (
-                  <div className="h-24 w-24 rounded-full flex items-center justify-center text-white text-3xl font-medium" style={{ backgroundColor: activeSpeaker.avatarColor }}>
-                    {activeSpeaker.initials}
+                  <div className="w-full h-full relative bg-gradient-to-br from-slate-900 via-slate-800 to-blue-950 flex items-center justify-center overflow-hidden">
+                    {/* Simulated live webcam background noise/mesh */}
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(59,130,246,0.15),transparent_50%)] animate-pulse" />
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(6,182,212,0.12),transparent_50%)]" />
+                    <div className="absolute inset-0 opacity-10 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[size:100%_4px,6px_100%]" />
+                    
+                    <div className="flex flex-col items-center gap-4 relative z-10">
+                      <div className="relative">
+                        {/* Audio activity indicator ring */}
+                        {!activeSpeaker.isMuted && (
+                          <span className="absolute -inset-3 rounded-full bg-emerald-500/25 animate-ping" />
+                        )}
+                        <div className="h-24 w-24 rounded-full flex items-center justify-center text-white text-3xl font-semibold shadow-2xl relative border-2 border-white/20" style={{ backgroundColor: activeSpeaker.avatarColor }}>
+                          {activeSpeaker.initials}
+                        </div>
+                      </div>
+                      
+                      <div className="flex flex-col items-center gap-1.5">
+                        <span className="text-[12px] text-emerald-400 font-semibold bg-emerald-950/60 px-3 py-1 rounded-full border border-emerald-800/40 flex items-center gap-1.5">
+                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                          Live Stream Active
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 )}
-                <div className="absolute bottom-4 left-4 bg-[#0F172A]/70 backdrop-blur-sm rounded-lg px-3 py-1.5 flex items-center gap-2 text-white">
+                
+                {/* Information bar Overlay */}
+                <div className="absolute bottom-4 left-4 bg-black/60 border border-white/5 backdrop-blur-sm rounded-lg px-3 py-1.5 flex items-center gap-2 text-white">
                   <span className="text-[13px] font-medium">{activeSpeaker.name}</span>
-                  {activeSpeaker.isMuted && <MicOff className="h-3 w-3 text-[#DC2626]" />}
+                  {activeSpeaker.isMuted && <MicOff className="h-3 w-3 text-[#EF4444]" />}
                 </div>
-                <div className="absolute bottom-4 right-4 bg-[#0F172A]/85 rounded-full px-2.5 py-1 flex items-center gap-1.5 border border-[#21262D] text-white">
+                <div className="absolute bottom-4 right-4 bg-black/85 rounded-full px-2.5 py-1 flex items-center gap-1.5 border border-white/5 text-white">
                   <span className="text-[12px]">{activeSpeaker.flag}</span>
                   <span className="text-[12px] font-medium">{activeSpeaker.language}</span>
                 </div>
               </>
             ) : (
-              <div className="flex flex-col items-center gap-3 text-[#64748B]">
-                <Users className="h-12 w-12 text-[#94A3B8]" />
+              <div className="flex flex-col items-center gap-3 text-[var(--color-text-secondary)]">
+                <Users className="h-12 w-12 text-[var(--color-text-muted)] animate-pulse" />
                 <span className="text-[14px]">Waiting for participants...</span>
               </div>
             )}
           </div>
 
           {/* Small Tiles Strip */}
-          <div className="flex-[1.5] min-w-[180px] max-w-[240px] flex flex-col gap-4">
+          <div className="flex-none lg:flex-[1.5] flex flex-row lg:flex-col gap-4 overflow-x-auto lg:overflow-x-visible overflow-y-hidden lg:overflow-y-auto pb-2 lg:pb-0 scrollbar-none">
+            
             {/* Self Tile */}
-            <div className="flex-1 min-h-[120px] relative bg-white rounded-xl overflow-hidden border border-[#3B82F6]/40 shadow-sm flex items-center justify-center">
+            <div className="w-[160px] lg:w-full h-[120px] relative bg-[var(--color-surface-card)] rounded-xl overflow-hidden border border-[var(--color-border-hover)]/60 shadow-lg flex items-center justify-center shrink-0">
               {!localIsVideoOff ? (
                 <video 
                   ref={videoRef} 
@@ -292,23 +362,23 @@ export function MeetingRoomPage() {
                   className="w-full h-full object-cover transform -scale-x-100" 
                 />
               ) : (
-                <div className="h-12 w-12 rounded-full bg-[#EFF6FF] text-[#3B82F6] flex items-center justify-center text-lg font-bold">
+                <div className="h-12 w-12 rounded-full bg-[var(--color-surface-light)] text-[var(--color-brand-blue)] flex items-center justify-center text-lg font-bold">
                   {localUser?.initials || 'MU'}
                 </div>
               )}
               <div className="absolute bottom-2 left-2 flex items-center gap-2">
-                <div className="bg-[#0F172A]/70 backdrop-blur-sm rounded px-2 py-0.5 text-white">
-                  <span className="text-[11px] font-medium">You</span>
+                <div className="bg-black/65 backdrop-blur-sm rounded px-1.5 py-0.5 text-white">
+                  <span className="text-[10px] font-medium">You</span>
                 </div>
-                <div className="bg-[#F97316]/10 text-[#F97316] rounded text-[10px] px-1 font-bold">
+                <div className="bg-[var(--color-host)]/20 text-[var(--color-host)] border border-[var(--color-host)]/30 rounded text-[9px] px-1 font-bold">
                   HOST
                 </div>
               </div>
-              <div className="absolute top-2 right-2 bg-white/90 rounded-full px-1.5 py-0.5 flex items-center border border-[#E2E8F0] shadow-sm">
+              <div className="absolute top-2 right-2 bg-black/75 rounded-full px-1.5 py-0.5 flex items-center border border-white/5 shadow-sm">
                 <span className="text-[10px]">{srcLang.flag}</span>
               </div>
               {localIsMuted && (
-                <div className="absolute bottom-2 right-2 h-6 w-6 rounded-full bg-[#DC2626] flex items-center justify-center shadow-lg">
+                <div className="absolute bottom-2 right-2 h-6 w-6 rounded-full bg-[#EF4444] flex items-center justify-center shadow-lg">
                   <MicOff className="h-3 w-3 text-white" />
                 </div>
               )}
@@ -316,27 +386,37 @@ export function MeetingRoomPage() {
 
             {/* Remote Participant Tiles (up to 3) */}
             {remoteParticipants.slice(0, 3).map((p) => (
-              <div key={p.id} className="flex-1 min-h-[120px] relative bg-white rounded-xl overflow-hidden border border-[#E2E8F0] shadow-sm flex items-center justify-center group">
+              <div key={p.id} className="w-[160px] lg:w-full h-[120px] relative bg-[var(--color-surface-card)] rounded-xl overflow-hidden border border-[var(--color-border-default)] shadow-sm flex items-center justify-center shrink-0 group hover:border-[var(--color-border-hover)] transition-all">
                 {p.isVideoOff ? (
                   <div className="h-12 w-12 rounded-full flex items-center justify-center text-white font-medium" style={{ backgroundColor: p.avatarColor }}>
                     {p.initials}
                   </div>
                 ) : (
-                  <>
-                    <div className="h-12 w-12 rounded-full flex items-center justify-center text-white font-medium" style={{ backgroundColor: p.avatarColor }}>
-                      {p.initials}
+                  <div className="w-full h-full relative bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center overflow-hidden">
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.1),transparent_70%)]" />
+                    <div className="relative">
+                      {!p.isMuted && (
+                        <span className="absolute -inset-1.5 rounded-full bg-emerald-500/30 animate-pulse" />
+                      )}
+                      <div className="h-12 w-12 rounded-full flex items-center justify-center text-white text-sm font-semibold relative border border-white/10" style={{ backgroundColor: p.avatarColor }}>
+                        {p.initials}
+                      </div>
                     </div>
-                  </>
+                    <div className="absolute top-1 left-1 bg-black/60 px-1 rounded flex items-center gap-1 border border-white/5">
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                      <span className="text-[8px] text-white">LIVE</span>
+                    </div>
+                  </div>
                 )}
                 {p.isMuted && (
-                  <div className="absolute bottom-2 right-2 h-6 w-6 rounded-full bg-[#DC2626] flex items-center justify-center shadow-lg">
+                  <div className="absolute bottom-2 right-2 h-6 w-6 rounded-full bg-[#EF4444] flex items-center justify-center shadow-lg z-10">
                     <MicOff className="h-3 w-3 text-white" />
                   </div>
                 )}
-                <div className="absolute bottom-2 left-2 bg-[#0F172A]/70 backdrop-blur-sm rounded px-2 py-0.5 text-white">
-                  <span className="text-[11px] font-medium truncate max-w-[100px] block">{p.name}</span>
+                <div className="absolute bottom-2 left-2 bg-black/65 backdrop-blur-sm rounded px-1.5 py-0.5 text-white max-w-[80px] lg:max-w-[120px]">
+                  <span className="text-[10px] font-medium truncate block">{p.name}</span>
                 </div>
-                <div className="absolute top-2 right-2 bg-white/90 rounded-full px-1.5 py-0.5 flex items-center border border-[#E2E8F0] shadow-sm">
+                <div className="absolute top-2 right-2 bg-black/75 rounded-full px-1.5 py-0.5 flex items-center border border-white/5 shadow-sm">
                   <span className="text-[10px]">{p.flag}</span>
                 </div>
               </div>
@@ -344,51 +424,104 @@ export function MeetingRoomPage() {
 
             {/* Overflow indicator */}
             {remoteParticipants.length > 3 && (
-              <div className="flex-1 min-h-[80px] relative bg-white rounded-xl overflow-hidden border border-[#E2E8F0] flex items-center justify-center shadow-sm">
-                <span className="text-[#64748B] text-[14px] font-semibold">+{remoteParticipants.length - 3} more</span>
+              <div className="w-[160px] lg:w-full h-[120px] relative bg-[var(--color-surface-card)] rounded-xl overflow-hidden border border-[var(--color-border-default)] flex items-center justify-center shadow-sm shrink-0">
+                <span className="text-[var(--color-text-secondary)] text-[13px] font-semibold">+{remoteParticipants.length - 3} more</span>
               </div>
             )}
           </div>
         </div>
 
         {/* Translation Status Badge */}
-        <div className={`absolute top-[68px] ${isSidebarOpen ? 'right-[340px]' : 'right-6'} bg-white border border-[#E2E8F0] rounded-lg px-3 py-1.5 flex items-center gap-2 shadow-md z-20 transition-all text-[#0F172A]`}>
-          <div className="h-1.5 w-1.5 rounded-full bg-[#3B82F6] animate-pulse" />
-          <span className="text-[12px] font-medium">{srcLang.flag} {srcLang.name} → {tgtLang.flag} {tgtLang.name}</span>
+        <div className={`absolute top-[68px] ${isSidebarOpen ? 'right-[340px]' : 'right-6'} bg-[var(--color-surface-card)] border border-[var(--color-border-default)] rounded-lg px-3 py-1.5 flex items-center gap-2 shadow-lg z-20 transition-all text-[var(--color-text-primary)] hidden sm:flex`}>
+          <div className="h-1.5 w-1.5 rounded-full bg-[var(--color-brand-blue)] animate-pulse" />
+          <span className="text-[12px] font-semibold tracking-wide">{srcLang.flag} {srcLang.name} → {tgtLang.flag} {tgtLang.name}</span>
         </div>
 
+        {/* Floating Language Menu */}
+        {showLangMenu && (
+          <div className="absolute bottom-[84px] left-1/2 -translate-x-1/2 bg-[var(--color-surface-card)] border border-[var(--color-border-default)] rounded-xl p-4 shadow-2xl z-30 min-w-[280px]">
+            <div className="flex justify-between items-center mb-3 pb-2 border-b border-[var(--color-border-default)]">
+              <h4 className="text-[13px] font-bold text-white flex items-center gap-1.5">
+                <Globe2 className="h-4 w-4 text-[var(--color-brand-blue)]" />
+                Translation Settings
+              </h4>
+              <button 
+                onClick={() => setShowLangMenu(false)}
+                className="text-[var(--color-text-secondary)] hover:text-white text-xs font-semibold"
+              >
+                Close
+              </button>
+            </div>
+            
+            <div className="space-y-3">
+              <div>
+                <label className="block text-[10px] font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider mb-1">My Spoken Language</label>
+                <select 
+                  value={sourceLang}
+                  onChange={(e) => {
+                    useMeetingStore.setState({ sourceLang: e.target.value })
+                  }}
+                  className="w-full bg-[var(--color-bg-primary)] border border-[var(--color-border-default)] rounded-lg p-2 text-xs text-white focus:outline-none"
+                >
+                  <option value="en">🇬🇧 English</option>
+                  <option value="ur">🇵🇰 Urdu</option>
+                  <option value="zh">🇨🇳 Chinese</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider mb-1">Translate To (Captions)</label>
+                <select 
+                  value={targetLang}
+                  onChange={(e) => {
+                    useMeetingStore.setState({ targetLang: e.target.value })
+                  }}
+                  className="w-full bg-[var(--color-bg-primary)] border border-[var(--color-border-default)] rounded-lg p-2 text-xs text-white focus:outline-none"
+                >
+                  <option value="en">🇬🇧 English</option>
+                  <option value="ur">🇵🇰 Urdu</option>
+                  <option value="zh">🇨🇳 Chinese</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Bottom Control Bar */}
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 h-[56px] bg-white border border-[#E2E8F0] rounded-xl px-5 flex items-center gap-2 shadow-lg z-20">
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 h-[56px] bg-[var(--color-surface-card)] border border-[var(--color-border-default)] rounded-xl px-4 flex items-center gap-1 sm:gap-2 shadow-2xl z-20 max-w-[calc(100vw-2rem)] overflow-x-auto scrollbar-none">
           
           <button 
             onClick={toggleMic}
-            className={`w-[52px] flex flex-col items-center justify-center gap-1 rounded-lg hover:bg-[#F1F5F9] transition-colors py-1 focus:outline-none ${localIsMuted ? 'text-[#DC2626]' : 'text-[#64748B]'}`}
+            className={`w-[48px] sm:w-[52px] flex flex-col items-center justify-center gap-1 rounded-lg hover:bg-[var(--color-surface-light)] transition-colors py-1 shrink-0 focus:outline-none ${localIsMuted ? 'text-[#EF4444]' : 'text-[var(--color-text-secondary)] hover:text-white'}`}
           >
-            {localIsMuted ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
-            <span className="text-[10px] font-medium">{localIsMuted ? 'Unmute' : 'Mute'}</span>
+            {localIsMuted ? <MicOff className="h-4 sm:h-5 w-4 sm:w-5" /> : <Mic className="h-4 sm:h-5 w-4 sm:w-5" />}
+            <span className="text-[9px] font-medium">{localIsMuted ? 'Unmute' : 'Mute'}</span>
           </button>
 
           <button 
             onClick={toggleVideo}
-            className={`w-[52px] flex flex-col items-center justify-center gap-1 rounded-lg hover:bg-[#F1F5F9] transition-colors py-1 focus:outline-none ${localIsVideoOff ? 'text-[#DC2626]' : 'text-[#64748B]'}`}
+            className={`w-[48px] sm:w-[52px] flex flex-col items-center justify-center gap-1 rounded-lg hover:bg-[var(--color-surface-light)] transition-colors py-1 shrink-0 focus:outline-none ${localIsVideoOff ? 'text-[#EF4444]' : 'text-[var(--color-text-secondary)] hover:text-white'}`}
           >
-            {localIsVideoOff ? <VideoOff className="h-5 w-5" /> : <Video className="h-5 w-5" />}
-            <span className="text-[10px] font-medium">{localIsVideoOff ? 'Start Video' : 'Stop Video'}</span>
+            {localIsVideoOff ? <VideoOff className="h-4 sm:h-5 w-4 sm:w-5" /> : <Video className="h-4 sm:h-5 w-4 sm:w-5" />}
+            <span className="text-[9px] font-medium">{localIsVideoOff ? 'Start Cam' : 'Stop Cam'}</span>
           </button>
 
-          <button className="w-[52px] flex flex-col items-center justify-center gap-1 rounded-lg hover:bg-[#F1F5F9] transition-colors py-1 text-[#64748B] focus:outline-none">
-            <MonitorUp className="h-5 w-5" />
-            <span className="text-[10px] font-medium">Share</span>
+          <button 
+            onClick={toggleScreenShare}
+            className={`w-[48px] sm:w-[52px] flex flex-col items-center justify-center gap-1 rounded-lg transition-colors py-1 shrink-0 focus:outline-none ${localIsScreenSharing ? 'bg-[var(--color-brand-blue)]/20 text-[var(--color-brand-blue)]' : 'hover:bg-[var(--color-surface-light)] text-[var(--color-text-secondary)] hover:text-white'}`}
+          >
+            <MonitorUp className="h-4 sm:h-5 w-4 sm:w-5" />
+            <span className="text-[9px] font-medium">Share</span>
           </button>
 
           <button 
             onClick={() => toggleSidebar("chat")}
-            className={`w-[52px] flex flex-col items-center justify-center gap-1 rounded-lg transition-colors py-1 relative focus:outline-none ${isSidebarOpen && activeTab === "chat" ? 'bg-[#EFF6FF] text-[#3B82F6]' : 'hover:bg-[#F1F5F9] text-[#64748B]'}`}
+            className={`w-[48px] sm:w-[52px] flex flex-col items-center justify-center gap-1 rounded-lg transition-colors py-1 relative shrink-0 focus:outline-none ${isSidebarOpen && activeTab === "chat" ? 'bg-[var(--color-brand-blue)]/20 text-[var(--color-brand-blue)]' : 'hover:bg-[var(--color-surface-light)] text-[var(--color-text-secondary)] hover:text-white'}`}
           >
-            <MessageSquare className="h-5 w-5" />
-            <span className="text-[10px] font-medium">Chat</span>
+            <MessageSquare className="h-4 sm:h-5 w-4 sm:w-5" />
+            <span className="text-[9px] font-medium">Chat</span>
             {unreadCount > 0 && (
-              <div className="absolute top-0 right-1 h-4 min-w-[16px] bg-[#DC2626] rounded-full border-2 border-white text-[8px] text-white flex items-center justify-center font-bold px-1">
+              <div className="absolute top-0 right-1 h-4 min-w-[16px] bg-[#EF4444] rounded-full border-2 border-[var(--color-surface-card)] text-[8px] text-white flex items-center justify-center font-bold px-1">
                 {unreadCount > 9 ? '9+' : unreadCount}
               </div>
             )}
@@ -396,28 +529,31 @@ export function MeetingRoomPage() {
 
           <button 
             onClick={() => toggleSidebar("participants")}
-            className={`w-[52px] flex flex-col items-center justify-center gap-1 rounded-lg transition-colors py-1 relative focus:outline-none ${isSidebarOpen && activeTab === "participants" ? 'bg-[#EFF6FF] text-[#3B82F6]' : 'hover:bg-[#F1F5F9] text-[#64748B]'}`}
+            className={`w-[48px] sm:w-[52px] flex flex-col items-center justify-center gap-1 rounded-lg transition-colors py-1 relative shrink-0 focus:outline-none ${isSidebarOpen && activeTab === "participants" ? 'bg-[var(--color-brand-blue)]/20 text-[var(--color-brand-blue)]' : 'hover:bg-[var(--color-surface-light)] text-[var(--color-text-secondary)] hover:text-white'}`}
           >
-            <Users className="h-5 w-5" />
-            <span className="text-[10px] font-medium">People</span>
-            <div className="absolute top-0 right-1 bg-[#F1F5F9] rounded-full px-1 border-2 border-white text-[8px] flex items-center justify-center font-bold text-[#64748B]">
+            <Users className="h-4 sm:h-5 w-4 sm:w-5" />
+            <span className="text-[9px] font-medium">People</span>
+            <div className="absolute top-0 right-1 bg-[var(--color-surface-light)] rounded-full px-1 border-2 border-[var(--color-surface-card)] text-[8px] flex items-center justify-center font-bold text-[var(--color-text-secondary)]">
               {participants.length}
             </div>
           </button>
 
-          <button className="w-[52px] flex flex-col items-center justify-center gap-1 rounded-lg hover:bg-[#F1F5F9] transition-colors py-1 text-[#64748B] focus:outline-none">
-            <Globe2 className="h-5 w-5" />
-            <span className="text-[10px] font-medium">Lang</span>
+          <button 
+            onClick={() => setShowLangMenu(!showLangMenu)}
+            className={`w-[48px] sm:w-[52px] flex flex-col items-center justify-center gap-1 rounded-lg transition-colors py-1 shrink-0 focus:outline-none ${showLangMenu ? 'bg-[var(--color-brand-blue)]/20 text-[var(--color-brand-blue)]' : 'hover:bg-[var(--color-surface-light)] text-[var(--color-text-secondary)] hover:text-white'}`}
+          >
+            <Globe2 className="h-4 sm:h-5 w-4 sm:w-5" />
+            <span className="text-[9px] font-medium">Lang</span>
           </button>
 
-          <div className="w-[1px] h-8 bg-[#E2E8F0] mx-2" />
+          <div className="w-[1px] h-8 bg-[var(--color-border-default)] mx-1 sm:mx-2 shrink-0" />
 
           <button 
             onClick={handleEndCall}
-            className="w-[52px] flex flex-col items-center justify-center gap-1 rounded-lg bg-[#DC2626] hover:bg-[#B91C1C] transition-colors py-1 text-white ml-1 shadow-md shadow-red-500/10 focus:outline-none"
+            className="w-[48px] sm:w-[52px] flex flex-col items-center justify-center gap-1 rounded-lg bg-[#EF4444] hover:bg-[#D92626] transition-colors py-1 text-white ml-1 shadow-md shadow-red-500/10 shrink-0 focus:outline-none"
           >
-            <PhoneOff className="h-5 w-5" />
-            <span className="text-[10px] font-medium">End</span>
+            <PhoneOff className="h-4 sm:h-5 w-4 sm:w-5" />
+            <span className="text-[9px] font-medium">End</span>
           </button>
 
         </div>
@@ -425,23 +561,23 @@ export function MeetingRoomPage() {
 
       {/* Right Panel */}
       {isSidebarOpen && (
-        <div className="w-[320px] bg-white border-l border-[#E2E8F0] flex flex-col shrink-0">
+        <div className="w-full md:w-[320px] absolute md:relative right-0 top-[52px] md:top-auto bottom-0 md:bottom-auto md:h-full bg-[var(--color-bg-secondary)] border-l border-[var(--color-border-default)] flex flex-col shrink-0 z-40 shadow-2xl md:shadow-none">
           
           {/* Tabs */}
-          <div className="flex h-[52px] border-b border-[#E2E8F0]">
+          <div className="flex h-[52px] border-b border-[var(--color-border-default)]">
             <button 
               onClick={() => { setActiveTab("chat"); clearUnread() }}
-              className={`flex-1 flex items-center justify-center text-[14px] font-semibold relative focus:outline-none ${activeTab === "chat" ? 'text-[#0F172A]' : 'text-[#64748B] hover:text-[#0F172A]'}`}
+              className={`flex-1 flex items-center justify-center text-[14px] font-semibold relative focus:outline-none ${activeTab === "chat" ? 'text-white' : 'text-[var(--color-text-secondary)] hover:text-white'}`}
             >
               Chat
-              {activeTab === "chat" && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#3B82F6]" />}
+              {activeTab === "chat" && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[var(--color-brand-blue)]" />}
             </button>
             <button 
               onClick={() => setActiveTab("participants")}
-              className={`flex-1 flex items-center justify-center text-[14px] font-semibold relative focus:outline-none ${activeTab === "participants" ? 'text-[#0F172A]' : 'text-[#64748B] hover:text-[#0F172A]'}`}
+              className={`flex-1 flex items-center justify-center text-[14px] font-semibold relative focus:outline-none ${activeTab === "participants" ? 'text-white' : 'text-[var(--color-text-secondary)] hover:text-white'}`}
             >
               Participants ({participants.length})
-              {activeTab === "participants" && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#3B82F6]" />}
+              {activeTab === "participants" && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[var(--color-brand-blue)]" />}
             </button>
           </div>
 
@@ -450,35 +586,35 @@ export function MeetingRoomPage() {
             {activeTab === "chat" ? (
               <>
                 {messages.length === 0 ? (
-                  <div className="flex-1 flex flex-col items-center justify-center text-[#64748B]">
-                    <MessageSquare className="h-8 w-8 mb-2 opacity-50 text-[#94A3B8]" />
+                  <div className="flex-1 flex flex-col items-center justify-center text-[var(--color-text-secondary)]">
+                    <MessageSquare className="h-8 w-8 mb-2 opacity-50 text-[var(--color-text-muted)]" />
                     <p className="text-[13px] font-medium">No messages yet</p>
-                    <p className="text-[11px] text-[#94A3B8]">Be the first to say something!</p>
+                    <p className="text-[11px] text-[var(--color-text-muted)]">Be the first to say something!</p>
                   </div>
                 ) : (
                   messages.map((msg) => (
                     msg.isOwn ? (
                       <div key={msg.id} className="flex gap-3 flex-row-reverse">
-                        <div className="h-8 w-8 rounded-full bg-[#EFF6FF] text-[#3B82F6] flex items-center justify-center text-xs font-bold shrink-0 mt-1">{msg.senderInitials}</div>
+                        <div className="h-8 w-8 rounded-full bg-[var(--color-surface-light)] text-[var(--color-brand-blue)] border border-white/5 flex items-center justify-center text-xs font-bold shrink-0 mt-1">{msg.senderInitials}</div>
                         <div className="flex flex-col items-end">
                           <div className="flex items-baseline gap-2 mb-1">
-                            <span className="text-[10px] text-[#94A3B8]">{msg.timestamp}</span>
-                            <span className="text-[12px] font-semibold text-[#64748B]">You</span>
+                            <span className="text-[10px] text-[var(--color-text-secondary)]">{msg.timestamp}</span>
+                            <span className="text-[12px] font-semibold text-[var(--color-text-secondary)]">You</span>
                           </div>
-                          <div className="bg-[#3B82F6] text-white text-[14px] px-3 py-2 rounded-lg rounded-tr-sm inline-block shadow-sm max-w-[220px]">
+                          <div className="bg-[var(--color-brand-blue)] text-white text-[14px] px-3.5 py-2.5 rounded-xl rounded-tr-sm inline-block shadow-sm max-w-[220px]">
                             {msg.message}
                           </div>
                         </div>
                       </div>
                     ) : (
                       <div key={msg.id} className="flex gap-3">
-                        <div className="h-8 w-8 rounded-full bg-[#F1F5F9] text-[#64748B] flex items-center justify-center text-xs font-bold shrink-0 mt-1">{msg.senderInitials}</div>
+                        <div className="h-8 w-8 rounded-full bg-[var(--color-surface-light)] text-[var(--color-text-secondary)] border border-white/5 flex items-center justify-center text-xs font-bold shrink-0 mt-1">{msg.senderInitials}</div>
                         <div>
                           <div className="flex items-baseline gap-2 mb-1">
-                            <span className="text-[12px] font-semibold text-[#0F172A]">{msg.senderName}</span>
-                            <span className="text-[10px] text-[#94A3B8]">{msg.timestamp}</span>
+                            <span className="text-[12px] font-semibold text-white">{msg.senderName}</span>
+                            <span className="text-[10px] text-[var(--color-text-secondary)]">{msg.timestamp}</span>
                           </div>
-                          <div className="bg-[#F1F5F9] text-[#0F172A] text-[14px] px-3 py-2 rounded-lg rounded-tl-sm inline-block max-w-[220px] shadow-sm">
+                          <div className="bg-[var(--color-surface-card)] text-white text-[14px] px-3.5 py-2.5 rounded-xl rounded-tl-sm inline-block max-w-[220px] shadow-sm border border-white/5">
                             {msg.message}
                           </div>
                         </div>
@@ -490,35 +626,35 @@ export function MeetingRoomPage() {
               </>
             ) : (
               <>
-                <h3 className="text-[12px] font-semibold text-[#64748B] uppercase tracking-wider mb-2">In this meeting ({participants.length})</h3>
+                <h3 className="text-[12px] font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider mb-2">In this meeting ({participants.length})</h3>
                 
                 {participants.map((p) => (
-                  <div key={p.id} className="flex items-center justify-between p-2 hover:bg-[#F1F5F9] rounded-lg group h-10">
+                  <div key={p.id} className="flex items-center justify-between p-2 hover:bg-[var(--color-surface-light)] rounded-lg group h-10 transition-colors">
                     <div className="flex items-center gap-3 min-w-0">
                       <div className="h-8 w-8 rounded-full flex items-center justify-center text-white text-xs shrink-0 font-bold" style={{ backgroundColor: p.avatarColor }}>
                         {p.initials}
                       </div>
                       <div className="flex items-center gap-2 truncate">
-                        <span className="text-[14px] font-semibold text-[#0F172A] truncate">{p.name}</span>
-                        {p.id === 'local-user' && <span className="text-[12px] text-[#94A3B8] shrink-0">(You)</span>}
-                        {p.isHost && <span className="text-[10px] text-[#F97316] bg-[#F97316]/10 px-1.5 py-0.5 rounded shrink-0 font-bold">HOST</span>}
+                        <span className="text-[14px] font-semibold text-white truncate">{p.name}</span>
+                        {p.id === 'local-user' && <span className="text-[12px] text-[var(--color-text-secondary)] shrink-0">(You)</span>}
+                        {p.isHost && <span className="text-[10px] text-[var(--color-host)] bg-[var(--color-host)]/15 border border-[var(--color-host)]/20 px-1.5 py-0.5 rounded shrink-0 font-bold">HOST</span>}
                         {!p.isHost && <span className="text-[16px] shrink-0">{p.flag}</span>}
                       </div>
                     </div>
                     <div className="flex items-center gap-2 shrink-0 ml-2">
-                      <div className="flex items-center gap-2 text-[#64748B]">
-                        {p.isMuted ? <MicOff className="h-4 w-4 text-[#DC2626]" /> : <Mic className="h-4 w-4" />}
-                        {p.isVideoOff ? <VideoOff className="h-4 w-4 text-[#DC2626]" /> : <Video className="h-4 w-4" />}
+                      <div className="flex items-center gap-2 text-[var(--color-text-secondary)]">
+                        {p.isMuted ? <MicOff className="h-4 w-4 text-[#EF4444]" /> : <Mic className="h-4 w-4" />}
+                        {p.isVideoOff ? <VideoOff className="h-4 w-4 text-[#EF4444]" /> : <Video className="h-4 w-4" />}
                       </div>
                       {/* Host Actions (only for remote participants) */}
                       {p.id !== 'local-user' && (
-                        <div className="hidden group-hover:flex items-center gap-1 ml-1 pl-2 border-l border-[#E2E8F0]">
-                          <button className="h-7 w-7 rounded flex items-center justify-center text-[#94A3B8] hover:text-[#DC2626] hover:bg-[#FEF2F2] transition-colors">
+                        <div className="hidden group-hover:flex items-center gap-1 ml-1 pl-2 border-l border-[var(--color-border-default)]">
+                          <button className="h-7 w-7 rounded flex items-center justify-center text-[var(--color-text-secondary)] hover:text-[#EF4444] hover:bg-[#EF4444]/10 transition-colors">
                             <MicOff className="h-4 w-4" />
                           </button>
                           <button 
                             onClick={() => { setRemoveTarget(p.id); setShowRemoveModal(true) }}
-                            className="h-7 w-7 rounded flex items-center justify-center text-[#94A3B8] hover:text-[#DC2626] hover:bg-[#FEF2F2] transition-colors"
+                            className="h-7 w-7 rounded flex items-center justify-center text-[var(--color-text-secondary)] hover:text-[#EF4444] hover:bg-[#EF4444]/10 transition-colors"
                           >
                             <XCircle className="h-4 w-4" />
                           </button>
@@ -533,7 +669,7 @@ export function MeetingRoomPage() {
 
           {/* Chat Input */}
           {activeTab === "chat" && (
-            <div className="p-3 border-t border-[#E2E8F0]">
+            <div className="p-3 border-t border-[var(--color-border-default)]">
               <div className="relative">
                 <input 
                   type="text"
@@ -541,12 +677,12 @@ export function MeetingRoomPage() {
                   onChange={(e) => setChatInput(e.target.value)}
                   onKeyDown={handleKeyDown}
                   placeholder="Message everyone..." 
-                  className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-lg pl-3 pr-10 py-2.5 text-[14px] text-[#0F172A] focus:outline-none focus:border-[#3B82F6] placeholder:text-[#94A3B8]"
+                  className="w-full bg-[var(--color-bg-primary)] border border-[var(--color-border-default)] rounded-lg pl-3 pr-10 py-2.5 text-[14px] text-white focus:outline-none focus:border-[var(--color-border-hover)] placeholder:text-[var(--color-text-muted)]"
                 />
                 <button 
                   onClick={handleSendMessage}
                   disabled={!chatInput.trim()}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 bg-[#3B82F6] rounded-full flex items-center justify-center text-white hover:bg-[#2563EB] transition-colors disabled:opacity-40 disabled:hover:bg-[#3B82F6]"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 bg-[var(--color-brand-blue)] rounded-full flex items-center justify-center text-white hover:bg-[var(--color-brand-blue-hover)] transition-colors disabled:opacity-40 disabled:hover:bg-[var(--color-brand-blue)]"
                 >
                   <Send className="h-3 w-3" />
                 </button>
@@ -556,10 +692,10 @@ export function MeetingRoomPage() {
           
           {/* Invite Button */}
           {activeTab === "participants" && (
-             <div className="p-3 border-t border-[#E2E8F0]">
+             <div className="p-3 border-t border-[var(--color-border-default)]">
                 <button 
                   onClick={() => navigator.clipboard.writeText(`https://intellimeet.app/join/${id}`)}
-                  className="w-full flex items-center justify-center gap-2 bg-[#F8FAFC] border border-[#E2E8F0] hover:bg-[#F1F5F9] text-[#3B82F6] text-[13px] py-2.5 rounded-lg transition-colors font-medium"
+                  className="w-full flex items-center justify-center gap-2 bg-[var(--color-surface-light)] border border-[var(--color-border-default)] hover:bg-[var(--color-surface-card)] text-[var(--color-brand-blue)] text-[13px] py-2.5 rounded-lg transition-colors font-semibold shadow-sm"
                 >
                   <Users className="h-4 w-4" />
                   Copy Invite Link
@@ -572,43 +708,43 @@ export function MeetingRoomPage() {
 
       {/* Remove Participant Modal */}
       {showRemoveModal && (
-        <div className="absolute inset-0 z-50 flex items-center justify-center bg-[#0D1117]/50 backdrop-blur-sm">
-          <div className="bg-white rounded-[16px] w-full max-w-[480px] p-[32px] relative shadow-2xl mx-4">
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-[var(--color-surface-card)] border border-[var(--color-border-default)] rounded-[16px] w-full max-w-[480px] p-[32px] relative shadow-2xl mx-4">
             <button 
               onClick={() => { setShowRemoveModal(false); setRemoveTarget(null) }}
-              className="absolute top-4 right-4 text-[#94A3B8] hover:text-[#0F172A] focus:outline-none"
+              className="absolute top-4 right-4 text-[var(--color-text-secondary)] hover:text-white focus:outline-none"
             >
               <XCircle className="h-5 w-5" />
             </button>
             
             <div className="flex flex-col items-center text-center">
-              <div className="h-10 w-10 bg-[#FEF3C7] rounded-[8px] flex items-center justify-center mb-4">
+              <div className="h-10 w-10 bg-[#D97706]/10 rounded-[8px] flex items-center justify-center mb-4 border border-[#D97706]/20">
                 <AlertTriangle className="h-5 w-5 text-[#D97706]" />
               </div>
               
-              <h2 className="text-[20px] font-semibold text-[#0F172A] mb-2">
+              <h2 className="text-[20px] font-semibold text-white mb-2 font-display">
                 Remove {participants.find(p => p.id === removeTarget)?.name || 'Participant'}?
               </h2>
               
-              <p className="text-[14px] text-[#64748B] leading-[1.6] max-w-[360px] mb-6">
+              <p className="text-[14px] text-[var(--color-text-secondary)] leading-[1.6] max-w-[360px] mb-6">
                 {participants.find(p => p.id === removeTarget)?.name || 'This participant'} will be immediately disconnected from this meeting. They won't be able to rejoin unless you invite them again.
               </p>
               
-              <div className="w-full flex items-center gap-2 mb-6">
-                <input type="checkbox" id="prevent-rejoin" className="rounded border-[#E2E8F0] text-[#3B82F6]" />
-                <label htmlFor="prevent-rejoin" className="text-[14px] text-[#64748B] cursor-pointer">Also prevent this participant from rejoining</label>
+              <div className="w-full flex items-center gap-2 mb-6 justify-center">
+                <input type="checkbox" id="prevent-rejoin" className="rounded border-[var(--color-border-default)] bg-[var(--color-bg-primary)] text-[var(--color-brand-blue)] focus:ring-[var(--color-brand-blue)]/20" />
+                <label htmlFor="prevent-rejoin" className="text-[14px] text-[var(--color-text-secondary)] cursor-pointer select-none">Also prevent this participant from rejoining</label>
               </div>
               
               <div className="w-full flex items-center justify-end gap-3">
                 <button 
                   onClick={() => { setShowRemoveModal(false); setRemoveTarget(null) }}
-                  className="h-10 px-4 rounded-[8px] border border-[#E2E8F0] bg-white text-[#0F172A] text-[14px] font-medium hover:bg-gray-50 transition-colors focus:outline-none"
+                  className="h-10 px-4 rounded-[8px] border border-[var(--color-border-default)] bg-[var(--color-bg-secondary)] text-[var(--color-text-primary)] text-[14px] font-medium hover:bg-[var(--color-surface-light)] transition-colors focus:outline-none"
                 >
                   Cancel
                 </button>
                 <button 
                   onClick={handleRemoveParticipant}
-                  className="h-10 px-4 rounded-[8px] bg-[#DC2626] text-white text-[14px] font-medium hover:bg-[#B91C1C] transition-colors focus:outline-none"
+                  className="h-10 px-4 rounded-[8px] bg-[#EF4444] text-white text-[14px] font-medium hover:bg-[#D92626] transition-colors focus:outline-none shadow-md shadow-red-500/10"
                 >
                   Remove
                 </button>
