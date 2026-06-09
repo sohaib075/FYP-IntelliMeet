@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Link } from "react-router-dom"
 import { Card, CardContent } from "@/components/ui/Card"
 import { Button } from "@/components/ui/Button"
@@ -112,8 +112,23 @@ const statusStyles: Record<MeetingStatus, { bg: string; text: string; label: str
 export function MyMeetingsPage() {
   const [activeTab, setActiveTab] = useState<"upcoming" | "past">("upcoming")
   const [search, setSearch] = useState("")
+  const [scheduledMeetings, setScheduledMeetings] = useState<Meeting[]>([])
 
-  const meetings = activeTab === "upcoming" ? mockUpcoming : mockPast
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("intellimeet_scheduled_meetings")
+      if (stored) {
+        setScheduledMeetings(JSON.parse(stored))
+      }
+    } catch (e) {
+      console.error(e)
+    }
+  }, [])
+
+  const upcomingMeetings = [...scheduledMeetings.filter(m => m.status === "scheduled" || m.status === "in-progress"), ...mockUpcoming]
+  const pastMeetings = [...scheduledMeetings.filter(m => m.status === "completed" || m.status === "cancelled"), ...mockPast]
+
+  const meetings = activeTab === "upcoming" ? upcomingMeetings : pastMeetings
   const filtered = meetings.filter((m) =>
     m.title.toLowerCase().includes(search.toLowerCase())
   )
@@ -143,7 +158,7 @@ export function MyMeetingsPage() {
               : "border-transparent text-[#64748B] hover:text-[#0F172A]"
           }`}
         >
-          Upcoming ({mockUpcoming.length})
+          Upcoming ({upcomingMeetings.length})
         </button>
         <button
           onClick={() => setActiveTab("past")}
@@ -153,7 +168,7 @@ export function MyMeetingsPage() {
               : "border-transparent text-[#64748B] hover:text-[#0F172A]"
           }`}
         >
-          Past ({mockPast.length})
+          Past ({pastMeetings.length})
         </button>
       </div>
 
@@ -220,8 +235,14 @@ export function MyMeetingsPage() {
                         </span>
                       </div>
 
-                      <div className="flex items-center gap-2 mt-2">
+                      <div className="flex flex-wrap items-center gap-2 mt-2">
                         <span className="text-[12px] text-[#94A3B8]">Host: {meeting.host}</span>
+                        <span className="text-[#E2E8F0]">·</span>
+                        <span className="text-[11px] font-mono bg-[#F8FAFC] text-[#3B82F6] font-semibold border border-[#E2E8F0] px-2 py-0.5 rounded cursor-pointer hover:bg-[#EFF6FF] transition-colors" title="Click to copy ID" onClick={() => {
+                          navigator.clipboard.writeText(meeting.id);
+                        }}>
+                          ID: {meeting.id}
+                        </span>
                         <span className="text-[#E2E8F0]">·</span>
                         {meeting.languages.map((lang) => (
                           <span

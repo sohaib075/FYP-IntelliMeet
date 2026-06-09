@@ -1,10 +1,23 @@
 import { Button } from "@/components/ui/Button"
 import { useNavigate } from "react-router-dom"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 
 export function DashboardPage() {
   const navigate = useNavigate()
   const [joinId, setJoinId] = useState("")
+  const [upcomingMeetings, setUpcomingMeetings] = useState<any[]>([])
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("intellimeet_scheduled_meetings")
+      if (stored) {
+        const parsed = JSON.parse(stored)
+        setUpcomingMeetings(parsed.filter((m: any) => m.status === "scheduled" || m.status === "in-progress"))
+      }
+    } catch (e) {
+      console.error("Failed to load meetings in Dashboard", e)
+    }
+  }, [])
 
   const handleJoin = () => {
     if (joinId.trim()) {
@@ -74,6 +87,54 @@ export function DashboardPage() {
           </div>
         ))}
       </div>
+
+      {/* Upcoming Meetings Section */}
+      {upcomingMeetings.length > 0 && (
+        <div className="mt-8">
+          <div className="flex items-center justify-between mb-4 px-1">
+            <h2 className="text-[16px] font-semibold text-[#0F172A] font-display">Upcoming Meetings</h2>
+            <button 
+              onClick={() => navigate('/dashboard/meetings')} 
+              className="text-[13px] font-medium text-[#3B82F6] hover:text-[#2563EB] bg-transparent border-0 cursor-pointer"
+            >
+              View all scheduled &rarr;
+            </button>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {upcomingMeetings.slice(0, 4).map((meeting) => (
+              <div key={meeting.id} className="bg-white border border-[#E2E8F0] rounded-xl p-5 shadow-sm hover:border-[#3B82F6] transition-all flex justify-between items-start gap-4">
+                <div className="space-y-2 min-w-0">
+                  <h3 className="text-[15px] font-semibold text-[#0F172A] truncate">{meeting.title}</h3>
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-[#64748B]">
+                    <span 
+                      className="font-mono text-[#3b82f6] font-semibold bg-blue-50 px-1.5 py-0.5 rounded cursor-pointer hover:bg-blue-100 transition-colors"
+                      title="Click to copy ID"
+                      onClick={() => {
+                        navigator.clipboard.writeText(meeting.id);
+                      }}
+                    >
+                      ID: {meeting.id}
+                    </span>
+                    <span>{meeting.date} · {meeting.time}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    {meeting.languages.map((lang: string) => (
+                      <span key={lang} className="text-[10px] bg-[#F1F5F9] text-[#475569] px-2 py-0.5 rounded-full">{lang}</span>
+                    ))}
+                  </div>
+                </div>
+                <Button 
+                  onClick={() => navigate(`/meeting/lobby/${meeting.id}`)}
+                  className="bg-[#3B82F6] text-white hover:bg-[#2563EB] h-9 px-4 text-xs font-semibold rounded-lg border-0 shrink-0"
+                >
+                  Join
+                </Button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Recent Meetings Section */}
       <div className="mt-8">

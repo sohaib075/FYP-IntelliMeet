@@ -26,6 +26,15 @@ export function CreateMeetingPage() {
   const [isCopiedId, setIsCopiedId] = useState(false)
   const [isCopiedLink, setIsCopiedLink] = useState(false)
 
+  const formatTime12h = (time24: string): string => {
+    if (!time24) return ""
+    const [hoursStr, minutesStr] = time24.split(":")
+    const hours = parseInt(hoursStr, 10)
+    const ampm = hours >= 12 ? "PM" : "AM"
+    const hours12 = hours % 12 || 12
+    return `${hours12}:${minutesStr} ${ampm}`
+  }
+
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
@@ -33,6 +42,29 @@ export function CreateMeetingPage() {
       setIsLoading(false)
       const newId = `im-${Math.random().toString(36).substring(2, 6)}-${Math.random().toString(36).substring(2, 6)}`
       setGeneratedId(newId)
+
+      // Save meeting to localStorage
+      const langNames: Record<string, string> = { en: "English", ur: "Urdu", zh: "Chinese" }
+      const newMeeting = {
+        id: newId,
+        title: meetingDetails.title || "Untitled Meeting",
+        date: meetingDetails.type === "scheduled" ? meetingDetails.date : new Date().toISOString().split('T')[0],
+        time: meetingDetails.type === "scheduled" ? formatTime12h(meetingDetails.time) : new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }),
+        duration: "1h",
+        participants: 1,
+        status: meetingDetails.type === "scheduled" ? "scheduled" : "in-progress",
+        host: "You",
+        languages: [langNames[meetingDetails.primaryLang] || "English", langNames[meetingDetails.secondaryLang] || "Chinese"]
+      }
+
+      try {
+        const stored = localStorage.getItem("intellimeet_scheduled_meetings")
+        const currentList = stored ? JSON.parse(stored) : []
+        localStorage.setItem("intellimeet_scheduled_meetings", JSON.stringify([newMeeting, ...currentList]))
+      } catch (err) {
+        console.error("Failed to save scheduled meeting", err)
+      }
+
       setStep(2)
     }, 1000)
   }
