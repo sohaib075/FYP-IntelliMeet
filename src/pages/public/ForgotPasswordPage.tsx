@@ -3,6 +3,7 @@ import { Link } from "react-router-dom"
 import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
 import { Mail, ArrowLeft, CheckCircle2 } from "lucide-react"
+import { Logo } from "@/components/common/Logo"
 
 export function ForgotPasswordPage() {
   const [isLoading, setIsLoading] = useState(false)
@@ -19,7 +20,10 @@ export function ForgotPasswordPage() {
   }
 
   return (
-    <div className="flex flex-1 items-center justify-center p-4 w-full">
+    <div className="flex flex-col flex-1 items-center justify-center p-4 w-full min-h-screen bg-[#F8FAFC] dark:bg-[#0A0E1A]">
+      <Link to="/" className="mb-6 flex justify-center">
+        <Logo size={42} className="text-[#0F172A] dark:text-white" />
+      </Link>
       <div className="w-full max-w-md rounded-[16px] border border-[#E2E8F0] dark:border-[#1E3A5F] bg-white dark:bg-[#161D35] p-8 shadow-xl">
         <div className="mb-8 text-center">
           <h2 className="text-[28px] font-bold text-[#0F172A] dark:text-white font-display tracking-tight">Reset Password</h2>

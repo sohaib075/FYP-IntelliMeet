@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom"
 import { Globe2, Mic, Volume2, Video, MessageSquare, Monitor, Users, FileText, Lock, Zap } from "lucide-react"
 import { motion } from "framer-motion"
+import { Logo } from "@/components/common/Logo"
 
 export function LandingPage() {
   const features = [
@@ -16,14 +17,11 @@ export function LandingPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-[#F8FAFC] dark:bg-[#0A0E1A] font-body selection:bg-[#3B82F6]/20 selection:text-[#3B82F6]">
-      
+
       {/* Header / Navbar */}
       <header className="fixed top-0 left-0 right-0 h-16 bg-[#F8FAFC]/80 dark:bg-[#0A0E1A]/80 backdrop-blur-md border-b border-[#E2E8F0] dark:border-[#1E3A5F] z-50 px-6 md:px-12 flex items-center justify-between">
-        <Link to="/" className="text-[18px] font-bold font-display tracking-tight text-[#0F172A] dark:text-white flex items-center gap-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#3B82F6] text-white font-bold text-[15px]">
-            IM
-          </div>
-          IntelliMeet
+        <Link to="/" className="flex items-center gap-2">
+          <Logo size={32} className="text-[#0F172A] dark:text-white" />
         </Link>
         <div className="flex items-center gap-4">
           <Link to="/login" className="text-[14px] font-medium text-[#64748B] hover:text-[#0F172A] dark:text-[#94A3B8] dark:hover:text-white transition-colors">
@@ -37,17 +35,17 @@ export function LandingPage() {
 
       {/* Hero Section */}
       <section className="pt-32 pb-16 px-4 flex flex-col items-center text-center relative overflow-hidden">
-        
+
         {/* Animated Background Particles */}
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.05)_0,transparent_50%)] dark:bg-[radial-gradient(circle_at_center,rgba(6,182,212,0.1)_0,transparent_50%)]" />
 
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
           className="max-w-[800px] w-full flex flex-col items-center relative z-10"
         >
-          
+
           {/* Eyebrow */}
           <div className="mb-8 flex items-center gap-2 bg-[#3B82F6]/10 text-[#3B82F6] px-3 py-1.5 rounded-full border border-[#3B82F6]/20">
             <Globe2 className="h-3.5 w-3.5" />
@@ -84,7 +82,7 @@ export function LandingPage() {
 
         {/* Hero Visual Mockup */}
         <div className="mt-16 w-full max-w-[960px] border border-[#E2E8F0] rounded-[16px] shadow-xl overflow-hidden bg-[#0D1117] flex flex-col relative mx-4">
-          
+
           {/* Top Bar Mock */}
           <div className="h-12 border-b border-[#21262D] flex items-center justify-between px-4">
             <div className="flex items-center gap-2">
@@ -125,7 +123,7 @@ export function LandingPage() {
           <div className="h-16 border-t border-[#21262D] flex items-center justify-center gap-3">
             {['Mic', 'Video', 'Chat', 'Users'].map((icon, i) => (
               <div key={i} className="h-10 w-10 rounded-lg bg-[#21262D] flex items-center justify-center text-white/70">
-                <div className="h-4 w-4 bg-white/70 rounded-sm" style={{ clipPath: 'circle(50%)'}} />
+                <div className="h-4 w-4 bg-white/70 rounded-sm" style={{ clipPath: 'circle(50%)' }} />
               </div>
             ))}
           </div>
@@ -135,8 +133,8 @@ export function LandingPage() {
       {/* SECTION 1 - Features Grid */}
       <section id="features" className="py-24 px-4 bg-white dark:bg-[#0F1629]">
         <div className="max-w-[1000px] mx-auto">
-          
-          <motion.div 
+
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -149,8 +147,8 @@ export function LandingPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {features.map((feature, i) => (
-              <motion.div 
-                key={i} 
+              <motion.div
+                key={i}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -171,8 +169,8 @@ export function LandingPage() {
       {/* SECTION 2 - How It Works */}
       <section id="how-it-works" className="py-24 px-4 bg-[#F8FAFC] dark:bg-[#0A0E1A]">
         <div className="max-w-[1000px] mx-auto">
-          
-          <motion.div 
+
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -183,7 +181,7 @@ export function LandingPage() {
           </motion.div>
 
           <div className="relative flex flex-col md:flex-row justify-between gap-8 md:gap-4">
-            
+
             {/* Connecting Line (Desktop) */}
             <div className="hidden md:block absolute top-[20px] left-[15%] right-[15%] h-[2px] border-t-2 border-dashed border-[#E2E8F0] dark:border-[#1E3A5F] z-0" />
 
@@ -192,8 +190,8 @@ export function LandingPage() {
               { num: "2", title: "Speak Naturally", desc: "Talk as you normally would. AI captures your audio and processes it in real time." },
               { num: "3", title: "Everyone Understands", desc: "Each participant hears your speech translated to their chosen language." }
             ].map((step, i) => (
-              <motion.div 
-                key={i} 
+              <motion.div
+                key={i}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -207,7 +205,7 @@ export function LandingPage() {
                 <p className="text-[14px] text-[#64748B] dark:text-[#94A3B8] max-w-[260px] leading-[1.6]">{step.desc}</p>
               </motion.div>
             ))}
-            
+
           </div>
         </div>
       </section>

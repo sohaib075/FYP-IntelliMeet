@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react"
-import { useNavigate, useSearchParams } from "react-router-dom"
+import { useNavigate, useSearchParams, Link } from "react-router-dom"
 import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
 import { Lock } from "lucide-react"
 import { useToastStore } from "@/store/useToastStore"
+import { Logo } from "@/components/common/Logo"
 
 export function ResetPasswordPage() {
   const [isLoading, setIsLoading] = useState(false)
@@ -49,7 +50,10 @@ export function ResetPasswordPage() {
   const strengthColors = ["bg-gray-700", "bg-red-500", "bg-yellow-500", "bg-green-500"]
 
   return (
-    <div className="flex flex-1 items-center justify-center p-4 w-full">
+    <div className="flex flex-col flex-1 items-center justify-center p-4 w-full min-h-screen bg-[#F8FAFC] dark:bg-[#0A0E1A]">
+      <Link to="/" className="mb-6 flex justify-center">
+        <Logo size={42} className="text-[#0F172A] dark:text-white" />
+      </Link>
       <div className="w-full max-w-md rounded-[16px] border border-[#E2E8F0] dark:border-[#1E3A5F] bg-white dark:bg-[#161D35] p-8 shadow-xl">
         <div className="mb-8 text-center">
           <h2 className="text-[28px] font-bold text-[#0F172A] dark:text-white font-display tracking-tight">Create New Password</h2>

@@ -5,6 +5,7 @@ import { useAuthStore } from "@/store/useAuthStore"
 import { PageTransition } from "@/components/layout/PageTransition"
 import { AnimatePresence, motion } from "framer-motion"
 import { ToastContainer } from "@/components/ui/ToastContainer"
+import { Logo } from "@/components/common/Logo"
 
 export function DashboardLayout() {
   const location = useLocation()
@@ -62,11 +63,8 @@ export function DashboardLayout() {
         
         {/* Logo Area */}
         <div className="p-6 pb-4">
-          <Link to="/dashboard" className="flex items-center gap-2 mb-6">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#3B82F6] text-white font-bold text-xl">
-              IM
-            </div>
-            <span className="text-[18px] font-bold font-display tracking-tight">IntelliMeet</span>
+          <Link to="/dashboard" className="flex items-center mb-6">
+            <Logo size={32} className="text-black dark:text-white" />
           </Link>
           
           {/* User Profile Mini Section */}

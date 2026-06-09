@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { useMeetingStore } from "@/store/useMeetingStore"
 import { useMeetingSimulation } from "@/hooks/useMeetingSimulation"
 import { useWebRTCSimulation } from "@/hooks/useWebRTCSimulation"
+import { Logo } from "@/components/common/Logo"
 
 // ─── Helper ────────────────────────────────────────────────────────
 
@@ -186,7 +187,7 @@ export function MeetingRoomPage() {
         {/* Top Bar */}
         <div className="h-[52px] bg-white border-b border-[#E2E8F0] flex items-center justify-between px-4 z-10 shrink-0 shadow-sm">
           <div className="flex items-center gap-3">
-            <span className="text-[#3B82F6] text-[14px] font-bold font-display tracking-tight">IntelliMeet</span>
+            <Logo size={24} className="text-black" />
             <div className="h-4 w-[1px] bg-[#E2E8F0]" />
             <span className="text-[#64748B] text-[14px] font-medium">{title || 'CPEC Quarterly Review'}</span>
             <div className="flex items-center gap-1.5 ml-2">

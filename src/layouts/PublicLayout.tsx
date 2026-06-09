@@ -3,6 +3,7 @@ import { ToastContainer } from "@/components/ui/ToastContainer"
 import { Button } from "@/components/ui/Button"
 import { PageTransition } from "@/components/layout/PageTransition"
 import { AnimatePresence } from "framer-motion"
+import { Logo } from "@/components/common/Logo"
 
 export function PublicLayout() {
   const location = useLocation()
@@ -15,10 +16,7 @@ export function PublicLayout() {
       <header className="fixed top-0 left-0 right-0 z-50 border-b border-[#E2E8F0] dark:border-[#1E3A5F] bg-white/80 dark:bg-[#0A0E1A]/80 backdrop-blur-md">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#3B82F6] text-white font-bold text-xl">
-              IM
-            </div>
-            <span className="text-xl font-bold font-display tracking-tight text-[#0F172A] dark:text-white">IntelliMeet</span>
+            <Logo size={36} className="text-[#0F172A] dark:text-white" />
           </Link>
           
           <nav className="flex items-center gap-4">
@@ -42,7 +40,9 @@ export function PublicLayout() {
       <footer className="border-t border-[#E2E8F0] dark:border-[#1E3A5F] bg-white dark:bg-[#0A0E1A] py-8 text-center text-sm text-[#64748B] dark:text-gray-400">
         <div className="container mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <span className="text-xl font-bold font-display text-[#0F172A] dark:text-white">IntelliMeet</span>
+            <Link to="/" className="flex items-center">
+              <Logo size={32} className="text-[#0F172A] dark:text-white" />
+            </Link>
             <span className="hidden md:inline-block">|</span>
             <span>Break Language Barriers. Connect Intelligently.</span>
           </div>

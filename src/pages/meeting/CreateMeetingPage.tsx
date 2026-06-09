@@ -5,10 +5,12 @@ import { Input } from "@/components/ui/Input"
 import { Switch } from "@/components/ui/Switch"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/Select"
-import { Copy, Calendar as CalendarIcon, Clock, CheckCircle2 } from "lucide-react"
+import { Copy, Calendar as CalendarIcon, Clock, CheckCircle2, ClipboardCheck } from "lucide-react"
+import { useToastStore } from "@/store/useToastStore"
 
 export function CreateMeetingPage() {
   const navigate = useNavigate()
+  const addToast = useToastStore((state) => state.addToast)
   const [step, setStep] = useState(1)
   const [isLoading, setIsLoading] = useState(false)
   const [meetingDetails, setMeetingDetails] = useState({
@@ -21,6 +23,8 @@ export function CreateMeetingPage() {
     requireLogin: false
   })
   const [generatedId, setGeneratedId] = useState("")
+  const [isCopiedId, setIsCopiedId] = useState(false)
+  const [isCopiedLink, setIsCopiedLink] = useState(false)
 
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault()
@@ -33,8 +37,18 @@ export function CreateMeetingPage() {
     }, 1000)
   }
 
+  const copyId = () => {
+    navigator.clipboard.writeText(generatedId)
+    setIsCopiedId(true)
+    addToast({ message: "Meeting ID copied successfully!", variant: "success" })
+    setTimeout(() => setIsCopiedId(false), 2000)
+  }
+
   const copyLink = () => {
     navigator.clipboard.writeText(`https://intellimeet.app/join/${generatedId}`)
+    setIsCopiedLink(true)
+    addToast({ message: "Join link copied successfully!", variant: "success" })
+    setTimeout(() => setIsCopiedLink(false), 2000)
   }
 
   return (
@@ -150,33 +164,50 @@ export function CreateMeetingPage() {
           </CardContent>
         </Card>
       ) : (
-        <Card className="text-center overflow-hidden border-[#22C55E]/30 shadow-lg">
+        <Card className="text-center overflow-hidden border-[#22C55E]/30 shadow-lg bg-white">
           <div className="bg-[#DCFCE7] p-8 flex flex-col items-center">
             <CheckCircle2 className="h-16 w-16 text-[#22C55E] mb-4" />
             <h2 className="text-2xl font-bold text-[#0F172A] mb-2 font-display">Meeting Created Successfully</h2>
-            <p className="text-[#64748B] max-w-md">Your meeting room is ready. Share the link below to invite participants.</p>
+            <p className="text-[#64748B] max-w-md">Your meeting room is ready. Share the ID or link below to invite participants.</p>
           </div>
           
           <CardContent className="p-8 space-y-6">
-            <div className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-lg p-6 max-w-md mx-auto">
-              <p className="text-[14px] text-[#64748B] mb-2">Meeting ID</p>
-              <p className="text-3xl font-mono tracking-widest text-[#0F172A] font-bold">{generatedId}</p>
-            </div>
-
-            <div className="max-w-md mx-auto flex items-center gap-2">
-              <Input
-                readOnly
-                value={`https://intellimeet.app/join/${generatedId}`}
-                className="font-mono text-sm"
-              />
-              <Button variant="secondary" onClick={copyLink} title="Copy Link" className="bg-[#F1F5F9] text-[#0F172A] hover:bg-[#E2E8F0] border-0">
-                <Copy className="h-4 w-4" />
+            {/* Interactive Meeting ID Card */}
+            <div className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl p-6 max-w-md mx-auto relative group hover:border-[#3B82F6]/50 transition-all flex flex-col items-center gap-3">
+              <span className="text-[12px] font-semibold tracking-wider text-[#64748B] uppercase">Meeting ID</span>
+              <p className="text-3.5xl font-mono tracking-widest text-[#0F172A] font-extrabold select-all">{generatedId}</p>
+              <Button 
+                onClick={copyId} 
+                className="mt-2 h-9 px-4.5 bg-[#3B82F6] hover:bg-[#2563EB] text-white rounded-lg flex items-center gap-2 text-xs font-semibold shadow-sm"
+              >
+                {isCopiedId ? <ClipboardCheck className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                {isCopiedId ? "Copied ID!" : "Copy Meeting ID"}
               </Button>
             </div>
 
+            {/* Direct Invitation Link */}
+            <div className="max-w-md mx-auto space-y-2">
+              <label className="block text-left text-xs font-semibold text-[#64748B] uppercase">Invitation Link</label>
+              <div className="flex items-center gap-2">
+                <Input
+                  readOnly
+                  value={`https://intellimeet.app/join/${generatedId}`}
+                  className="font-mono text-sm bg-[#F8FAFC]"
+                />
+                <Button 
+                  onClick={copyLink} 
+                  title="Copy Link" 
+                  className="bg-[#EFF6FF] text-[#3B82F6] hover:bg-[#DBEAFE] h-10 px-4 rounded-lg shrink-0 flex items-center gap-1.5 font-semibold text-xs border border-[#BFDBFE]"
+                >
+                  {isCopiedLink ? <ClipboardCheck className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                  {isCopiedLink ? "Copied!" : "Copy"}
+                </Button>
+              </div>
+            </div>
+
             <div className="pt-6 flex flex-col sm:flex-row justify-center gap-4">
-              <Button variant="ghost" onClick={() => navigate("/dashboard")} className="text-[#64748B] hover:text-[#0F172A]">Go to Dashboard</Button>
-              <Button size="lg" onClick={() => navigate(`/meeting/lobby/${generatedId}`)} className="bg-[#3B82F6] text-white hover:bg-[#2563EB]">
+              <Button variant="ghost" onClick={() => navigate("/dashboard")} className="text-[#64748B] hover:text-[#0F172A] font-medium">Go to Dashboard</Button>
+              <Button size="lg" onClick={() => navigate(`/meeting/lobby/${generatedId}`)} className="bg-[#3B82F6] text-white hover:bg-[#2563EB] font-semibold px-6 rounded-lg">
                 Start Meeting Now
               </Button>
             </div>
