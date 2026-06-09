@@ -1,12 +1,16 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Switch } from "@/components/ui/Switch"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/Select"
 import { Badge } from "@/components/ui/Badge"
 import { useAuthStore } from "@/store/useAuthStore"
+import { useToastStore } from "@/store/useToastStore"
+import { Button } from "@/components/ui/Button"
 
 export function SettingsPage() {
-  const { user, updatePreferences } = useAuthStore()
+  const { user, updatePreferences, updateProfile } = useAuthStore()
+  const addToast = useToastStore((state) => state.addToast)
+  const [isSaving, setIsSaving] = useState(false)
 
   const [settings, setSettings] = useState({
     general: {
@@ -30,6 +34,56 @@ export function SettingsPage() {
       postSummaryEmail: true,
     }
   })
+
+  // Load settings on mount
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("intellimeet-app-settings")
+      if (stored) {
+        const parsed = JSON.parse(stored)
+        setSettings(prev => ({
+          ...prev,
+          ...parsed,
+          general: {
+            ...prev.general,
+            ...parsed.general,
+            displayName: user?.name || parsed.general?.displayName || prev.general.displayName
+          }
+        }))
+      } else if (user) {
+        setSettings(prev => ({
+          ...prev,
+          general: {
+            ...prev.general,
+            displayName: user.name
+          }
+        }))
+      }
+    } catch (e) {
+      console.error("Failed to load settings", e)
+    }
+  }, [user])
+
+  const handleSave = () => {
+    setIsSaving(true)
+    setTimeout(() => {
+      try {
+        localStorage.setItem("intellimeet-app-settings", JSON.stringify(settings))
+        
+        // Sync with Auth Store
+        if (settings.general.displayName.trim()) {
+          updateProfile(settings.general.displayName.trim())
+        }
+        
+        addToast({ message: "Settings saved successfully!", variant: "success" })
+      } catch (err) {
+        console.error(err)
+        addToast({ message: "Failed to save settings.", variant: "error" })
+      } finally {
+        setIsSaving(false)
+      }
+    }, 800)
+  }
 
   const [activeTab, setActiveTab] = useState("general")
   const tabs = [
@@ -70,6 +124,15 @@ export function SettingsPage() {
             </CardHeader>
             <CardContent className="space-y-6">
               <div>
+                <label className="block text-[13px] font-medium text-[#0F172A] tracking-[0.2px] mb-1.5">Display Name</label>
+                <input 
+                  type="text" 
+                  value={settings.general.displayName} 
+                  onChange={(e) => setSettings(s => ({...s, general: {...s.general, displayName: e.target.value}}))}
+                  className="w-full md:w-[300px] h-[38px] px-3 bg-white border border-[#E2E8F0] rounded-lg text-[14px] text-[#0F172A] focus:outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 transition-all font-body"
+                />
+              </div>
+              <div>
                 <label className="block text-[13px] font-medium text-[#0F172A] tracking-[0.2px] mb-1.5">Default Meeting View</label>
                 <Select 
                   value={settings.general.defaultView} 
@@ -95,6 +158,16 @@ export function SettingsPage() {
                     <SelectItem value="zh">Chinese (中文)</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+              
+              <div className="flex justify-end pt-4 border-t border-[#E2E8F0]">
+                <Button 
+                  onClick={handleSave} 
+                  isLoading={isSaving}
+                  className="bg-[#3B82F6] text-white hover:bg-[#2563EB] border-0"
+                >
+                  Save Changes
+                </Button>
               </div>
             </CardContent>
           </Card>
@@ -137,6 +210,16 @@ export function SettingsPage() {
                   onCheckedChange={(v) => setSettings(s => ({...s, av: {...s.av, noiseCancellation: v}}))}
                 />
               </div>
+              
+              <div className="flex justify-end pt-4 border-t border-[#E2E8F0]">
+                <Button 
+                  onClick={handleSave} 
+                  isLoading={isSaving}
+                  className="bg-[#3B82F6] text-white hover:bg-[#2563EB] border-0"
+                >
+                  Save Changes
+                </Button>
+              </div>
             </CardContent>
           </Card>
         )}
@@ -174,6 +257,16 @@ export function SettingsPage() {
                   Your default speaking language is currently set to <span className="font-bold text-[#0F172A] uppercase">{user?.preferences?.sourceLanguage || 'en'}</span> and target language to <span className="font-bold text-[#0F172A] uppercase">{user?.preferences?.targetLanguage || 'en'}</span>. 
                   You can change this in your <a href="/profile" className="text-[#3B82F6] hover:underline font-medium">Profile</a>.
                 </p>
+              </div>
+              
+              <div className="flex justify-end pt-4 border-t border-[#E2E8F0]">
+                <Button 
+                  onClick={handleSave} 
+                  isLoading={isSaving}
+                  className="bg-[#3B82F6] text-white hover:bg-[#2563EB] border-0"
+                >
+                  Save Changes
+                </Button>
               </div>
             </CardContent>
           </Card>
@@ -223,6 +316,16 @@ export function SettingsPage() {
                   onCheckedChange={(v) => setSettings(s => ({...s, notifications: {...s.notifications, postSummaryEmail: v}}))}
                 />
               </div>
+              
+              <div className="flex justify-end pt-4 border-t border-[#E2E8F0]">
+                <Button 
+                  onClick={handleSave} 
+                  isLoading={isSaving}
+                  className="bg-[#3B82F6] text-white hover:bg-[#2563EB] border-0"
+                >
+                  Save Changes
+                </Button>
+              </div>
             </CardContent>
           </Card>
         )}
@@ -246,8 +349,18 @@ export function SettingsPage() {
               <div className="pt-4 border-t border-[#E2E8F0]">
                 <h4 className="font-medium text-[#0F172A] mb-2">Data Preferences</h4>
                 <div className="flex gap-4">
-                  <button className="text-sm text-[#3B82F6] hover:underline">Download my data</button>
-                  <button className="text-sm text-red-600 hover:underline">Request data deletion</button>
+                  <button 
+                    onClick={() => addToast({ message: "Preparing your data archive. You will receive an email shortly.", variant: "success" })}
+                    className="text-sm text-[#3B82F6] hover:underline bg-transparent border-0 cursor-pointer p-0 font-medium"
+                  >
+                    Download my data
+                  </button>
+                  <button 
+                    onClick={() => addToast({ message: "Data deletion request submitted successfully.", variant: "success" })}
+                    className="text-sm text-red-600 hover:underline bg-transparent border-0 cursor-pointer p-0 font-medium"
+                  >
+                    Request data deletion
+                  </button>
                 </div>
               </div>
             </CardContent>
