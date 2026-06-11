@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react"
 import { useParams, useNavigate } from "react-router-dom"
-import { Mic, MicOff, Video, VideoOff, MonitorUp, MessageSquare, Users, Globe2, PhoneOff, Copy, Signal, XCircle, AlertTriangle, Send } from "lucide-react"
+import { Mic, MicOff, Video, VideoOff, MonitorUp, MessageSquare, Users, Globe2, PhoneOff, Copy, Signal, XCircle, AlertTriangle, Send, ChevronLeft, ChevronRight } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useMeetingStore } from "@/store/useMeetingStore"
 import { useMeetingSimulation } from "@/hooks/useMeetingSimulation"
@@ -44,6 +44,17 @@ export function MeetingRoomPage() {
   const [removeTarget, setRemoveTarget] = useState<string | null>(null)
   const [chatInput, setChatInput] = useState("")
   const [showLangMenu, setShowLangMenu] = useState(false)
+  const [currentPage, setCurrentPage] = useState(0)
+
+  const pageSize = 6
+  const totalPages = Math.ceil(participants.length / pageSize)
+
+  // Reset page index if total pages shrink
+  useEffect(() => {
+    if (currentPage >= totalPages && totalPages > 0) {
+      setCurrentPage(totalPages - 1)
+    }
+  }, [participants.length, totalPages, currentPage])
 
   // Refs
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -227,7 +238,7 @@ export function MeetingRoomPage() {
         {/* In-Meeting Event Notifications */}
         <div className="absolute top-[60px] left-1/2 -translate-x-1/2 z-30 flex flex-col items-center gap-2 pointer-events-none w-full max-w-sm px-4">
           <AnimatePresence>
-            {events.slice(-3).map((event) => (
+            {events.slice(-2).map((event) => (
               <motion.div
                 key={event.id}
                 initial={{ opacity: 0, y: -20, scale: 0.9 }}
@@ -249,186 +260,202 @@ export function MeetingRoomPage() {
             ))}
           </AnimatePresence>
         </div>
-
         {/* Video Grid Area */}
-        <div className="flex-1 relative p-4 flex flex-col lg:flex-row gap-4 overflow-hidden bg-[var(--color-bg-primary)]">
+        <div className="flex-1 relative p-6 flex flex-col items-center justify-center overflow-hidden bg-[var(--color-bg-primary)] pb-24">
           
-          {/* Active Speaker (Large Tile) or Screen Share Area */}
-          <div className="flex-[7] relative bg-[var(--color-surface-card)] rounded-xl overflow-hidden border border-[var(--color-border-default)] shadow-lg flex items-center justify-center min-h-[200px]">
-            {localIsScreenSharing ? (
-              <div className="w-full h-full flex flex-col bg-[#0b0f19]">
-                {/* Header */}
-                <div className="bg-black/50 px-4 py-2.5 flex items-center justify-between border-b border-[var(--color-border-default)]">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span className="h-2 w-2 rounded-full bg-red-500 animate-pulse shrink-0" />
-                    <span className="text-[12px] font-medium text-white truncate">You are sharing your screen</span>
-                  </div>
-                  <button 
-                    onClick={toggleScreenShare}
-                    className="bg-[#EF4444] hover:bg-[#D92626] text-white text-[11px] font-semibold px-2.5 py-1 rounded transition-colors"
-                  >
-                    Stop Presenting
-                  </button>
+          {localIsScreenSharing ? (
+            <div className="w-full h-full max-w-6xl relative bg-[var(--color-surface-card)] rounded-2xl overflow-hidden border border-[var(--color-border-default)] shadow-lg flex flex-col">
+              {/* Header */}
+              <div className="bg-black/50 px-4 py-2.5 flex items-center justify-between border-b border-[var(--color-border-default)]">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="h-2 w-2 rounded-full bg-red-500 animate-pulse shrink-0" />
+                  <span className="text-[12px] font-medium text-white truncate">You are sharing your screen</span>
                 </div>
-                {/* Screen simulation content */}
-                <div className="flex-1 flex flex-col items-center justify-center p-6 text-center select-none bg-slate-950/60 relative">
-                  <div className="w-full max-w-md p-6 bg-slate-900/95 rounded-xl border border-slate-800 shadow-2xl relative overflow-hidden backdrop-blur-md">
-                    <div className="absolute top-0 right-0 h-20 w-20 bg-gradient-to-br from-blue-500/20 to-transparent rounded-full blur-xl" />
-                    <Logo size={32} className="text-white mx-auto mb-4" />
-                    <h3 className="text-[15px] font-bold text-white mb-1">CPEC Quarterly Financial Review</h3>
-                    <p className="text-[11px] text-slate-400 mb-4 font-mono">Presenting window: Chrome Tab</p>
-                    
-                    {/* Simulated bar chart */}
-                    <div className="flex items-end justify-center gap-2 h-20 mt-2 mb-4">
-                      <div className="w-5 bg-gradient-to-t from-blue-600 to-cyan-400 rounded-t h-[40%] animate-pulse" />
-                      <div className="w-5 bg-gradient-to-t from-blue-600 to-cyan-400 rounded-t h-[75%] animate-pulse delay-75" />
-                      <div className="w-5 bg-gradient-to-t from-blue-600 to-cyan-400 rounded-t h-[60%] animate-pulse delay-150" />
-                      <div className="w-5 bg-gradient-to-t from-blue-600 to-cyan-400 rounded-t h-[95%] animate-pulse delay-200" />
-                      <div className="w-5 bg-gradient-to-t from-blue-600 to-cyan-400 rounded-t h-[50%] animate-pulse delay-300" />
-                    </div>
-                    
-                    <span className="text-[11px] font-mono text-cyan-400 bg-cyan-950/30 px-2 py-0.5 rounded border border-cyan-800/30">
-                      Real-time translation active: {srcLang.name} ⇄ {tgtLang.name}
-                    </span>
+                <button 
+                  onClick={toggleScreenShare}
+                  className="bg-[#EF4444] hover:bg-[#D92626] text-white text-[11px] font-semibold px-2.5 py-1 rounded transition-colors"
+                >
+                  Stop Presenting
+                </button>
+              </div>
+              {/* Screen simulation content */}
+              <div className="flex-1 flex flex-col items-center justify-center p-6 text-center select-none bg-slate-950/60 relative">
+                <div className="w-full max-w-md p-6 bg-slate-900/95 rounded-xl border border-slate-800 shadow-2xl relative overflow-hidden backdrop-blur-md">
+                  <div className="absolute top-0 right-0 h-20 w-20 bg-gradient-to-br from-blue-500/20 to-transparent rounded-full blur-xl" />
+                  <Logo size={32} className="text-white mx-auto mb-4" />
+                  <h3 className="text-[15px] font-bold text-white mb-1">CPEC Quarterly Financial Review</h3>
+                  <p className="text-[11px] text-slate-400 mb-4 font-mono">Presenting window: Chrome Tab</p>
+                  
+                  {/* Simulated bar chart */}
+                  <div className="flex items-end justify-center gap-2 h-20 mt-2 mb-4">
+                    <div className="w-5 bg-gradient-to-t from-blue-600 to-cyan-400 rounded-t h-[40%] animate-pulse" />
+                    <div className="w-5 bg-gradient-to-t from-blue-600 to-cyan-400 rounded-t h-[75%] animate-pulse delay-75" />
+                    <div className="w-5 bg-gradient-to-t from-blue-600 to-cyan-400 rounded-t h-[60%] animate-pulse delay-150" />
+                    <div className="w-5 bg-gradient-to-t from-blue-600 to-cyan-400 rounded-t h-[95%] animate-pulse delay-200" />
+                    <div className="w-5 bg-gradient-to-t from-blue-600 to-cyan-400 rounded-t h-[50%] animate-pulse delay-300" />
                   </div>
+                  
+                  <span className="text-[11px] font-mono text-cyan-400 bg-cyan-950/30 px-2 py-0.5 rounded border border-cyan-800/30">
+                    Real-time translation active: {srcLang.name} ⇄ {tgtLang.name}
+                  </span>
                 </div>
               </div>
-            ) : activeSpeaker ? (
-              <>
-                {activeSpeaker.isVideoOff ? (
-                  <div className="flex flex-col items-center gap-3">
-                    <div className="h-24 w-24 rounded-full flex items-center justify-center text-white text-3xl font-medium" style={{ backgroundColor: activeSpeaker.avatarColor }}>
-                      {activeSpeaker.initials}
-                    </div>
-                    <span className="text-xs text-[var(--color-text-secondary)] bg-black/40 px-2.5 py-1 rounded-full border border-white/5">Camera is off</span>
-                  </div>
-                ) : (
-                  <div className="w-full h-full relative bg-gradient-to-br from-slate-900 via-slate-800 to-blue-950 flex items-center justify-center overflow-hidden">
-                    {/* Simulated live webcam background noise/mesh */}
-                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(59,130,246,0.15),transparent_50%)] animate-pulse" />
-                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(6,182,212,0.12),transparent_50%)]" />
-                    <div className="absolute inset-0 opacity-10 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[size:100%_4px,6px_100%]" />
-                    
-                    <div className="flex flex-col items-center gap-4 relative z-10">
-                      <div className="relative">
-                        {/* Audio activity indicator ring */}
-                        {!activeSpeaker.isMuted && (
-                          <span className="absolute -inset-3 rounded-full bg-emerald-500/25 animate-ping" />
-                        )}
-                        <div className="h-24 w-24 rounded-full flex items-center justify-center text-white text-3xl font-semibold shadow-2xl relative border-2 border-white/20" style={{ backgroundColor: activeSpeaker.avatarColor }}>
-                          {activeSpeaker.initials}
-                        </div>
-                      </div>
-                      
-                      <div className="flex flex-col items-center gap-1.5">
-                        <span className="text-[12px] text-emerald-400 font-semibold bg-emerald-950/60 px-3 py-1 rounded-full border border-emerald-800/40 flex items-center gap-1.5">
-                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                          Live Stream Active
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-                
-                {/* Information bar Overlay */}
-                <div className="absolute bottom-4 left-4 bg-black/60 border border-white/5 backdrop-blur-sm rounded-lg px-3 py-1.5 flex items-center gap-2 text-white">
-                  <span className="text-[13px] font-medium">{activeSpeaker.name}</span>
-                  {activeSpeaker.isMuted && <MicOff className="h-3 w-3 text-[#EF4444]" />}
-                </div>
-                <div className="absolute bottom-4 right-4 bg-black/85 rounded-full px-2.5 py-1 flex items-center gap-1.5 border border-white/5 text-white">
-                  <span className="text-[12px]">{activeSpeaker.flag}</span>
-                  <span className="text-[12px] font-medium">{activeSpeaker.language}</span>
-                </div>
-              </>
-            ) : (
-              <div className="flex flex-col items-center gap-3 text-[var(--color-text-secondary)]">
-                <Users className="h-12 w-12 text-[var(--color-text-muted)] animate-pulse" />
-                <span className="text-[14px]">Waiting for participants...</span>
-              </div>
-            )}
-          </div>
-
-          {/* Small Tiles Strip */}
-          <div className="flex-none lg:flex-[1.5] flex flex-row lg:flex-col gap-4 overflow-x-auto lg:overflow-x-visible overflow-y-hidden lg:overflow-y-auto pb-2 lg:pb-0 scrollbar-none">
-            
-            {/* Self Tile */}
-            <div className="w-[160px] lg:w-full h-[120px] relative bg-[var(--color-surface-card)] rounded-xl overflow-hidden border border-[var(--color-border-hover)]/60 shadow-lg flex items-center justify-center shrink-0">
-              {!localIsVideoOff ? (
-                <video 
-                  ref={videoRef} 
-                  autoPlay 
-                  playsInline 
-                  muted 
-                  className="w-full h-full object-cover transform -scale-x-100" 
-                />
-              ) : (
-                <div className="h-12 w-12 rounded-full bg-[var(--color-surface-light)] text-[var(--color-brand-blue)] flex items-center justify-center text-lg font-bold">
-                  {localUser?.initials || 'MU'}
-                </div>
-              )}
-              <div className="absolute bottom-2 left-2 flex items-center gap-2">
-                <div className="bg-black/65 backdrop-blur-sm rounded px-1.5 py-0.5 text-white">
-                  <span className="text-[10px] font-medium">You</span>
-                </div>
-                <div className="bg-[var(--color-host)]/20 text-[var(--color-host)] border border-[var(--color-host)]/30 rounded text-[9px] px-1 font-bold">
-                  HOST
-                </div>
-              </div>
-              <div className="absolute top-2 right-2 bg-black/75 rounded-full px-1.5 py-0.5 flex items-center border border-white/5 shadow-sm">
-                <span className="text-[10px]">{srcLang.flag}</span>
-              </div>
-              {localIsMuted && (
-                <div className="absolute bottom-2 right-2 h-6 w-6 rounded-full bg-[#EF4444] flex items-center justify-center shadow-lg">
-                  <MicOff className="h-3 w-3 text-white" />
-                </div>
-              )}
             </div>
+          ) : (
+            <div className="w-full h-full max-w-5xl max-h-[calc(100vh-180px)] relative flex items-center justify-center p-2">
+              
+              {/* Pagination Left Button */}
+              {totalPages > 1 && (
+                <button
+                  onClick={() => setCurrentPage((prev) => Math.max(0, prev - 1))}
+                  disabled={currentPage === 0}
+                  className="absolute left-0 z-30 p-3 rounded-full bg-[var(--color-bg-secondary)]/85 border border-[var(--color-border-default)] text-white hover:bg-[var(--color-brand-blue)] hover:border-[var(--color-brand-blue)] transition-all disabled:opacity-35 disabled:hover:bg-[var(--color-bg-secondary)]/85 disabled:hover:border-[var(--color-border-default)] shadow-lg"
+                >
+                  <ChevronLeft className="h-5 w-5" />
+                </button>
+              )}
 
-            {/* Remote Participant Tiles (up to 3) */}
-            {remoteParticipants.slice(0, 3).map((p) => (
-              <div key={p.id} className="w-[160px] lg:w-full h-[120px] relative bg-[var(--color-surface-card)] rounded-xl overflow-hidden border border-[var(--color-border-default)] shadow-sm flex items-center justify-center shrink-0 group hover:border-[var(--color-border-hover)] transition-all">
-                {p.isVideoOff ? (
-                  <div className="h-12 w-12 rounded-full flex items-center justify-center text-white font-medium" style={{ backgroundColor: p.avatarColor }}>
-                    {p.initials}
-                  </div>
-                ) : (
-                  <div className="w-full h-full relative bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center overflow-hidden">
-                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.1),transparent_70%)]" />
-                    <div className="relative">
-                      {!p.isMuted && (
-                        <span className="absolute -inset-1.5 rounded-full bg-emerald-500/30 animate-pulse" />
-                      )}
-                      <div className="h-12 w-12 rounded-full flex items-center justify-center text-white text-sm font-semibold relative border border-white/10" style={{ backgroundColor: p.avatarColor }}>
-                        {p.initials}
-                      </div>
-                    </div>
-                    <div className="absolute top-1 left-1 bg-black/60 px-1 rounded flex items-center gap-1 border border-white/5">
-                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                      <span className="text-[8px] text-white">LIVE</span>
-                    </div>
-                  </div>
-                )}
-                {p.isMuted && (
-                  <div className="absolute bottom-2 right-2 h-6 w-6 rounded-full bg-[#EF4444] flex items-center justify-center shadow-lg z-10">
-                    <MicOff className="h-3 w-3 text-white" />
-                  </div>
-                )}
-                <div className="absolute bottom-2 left-2 bg-black/65 backdrop-blur-sm rounded px-1.5 py-0.5 text-white max-w-[80px] lg:max-w-[120px]">
-                  <span className="text-[10px] font-medium truncate block">{p.name}</span>
-                </div>
-                <div className="absolute top-2 right-2 bg-black/75 rounded-full px-1.5 py-0.5 flex items-center border border-white/5 shadow-sm">
-                  <span className="text-[10px]">{p.flag}</span>
-                </div>
-              </div>
-            ))}
+              {/* Grid Container */}
+              <div 
+                className={`grid gap-4 w-full h-full px-12 transition-all duration-300 ${
+                  (() => {
+                    const count = participants.slice(currentPage * pageSize, (currentPage + 1) * pageSize).length;
+                    if (count === 1) return 'grid-cols-1 max-w-3xl';
+                    if (count === 2) return 'grid-cols-1 md:grid-cols-2';
+                    if (count === 3) return 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3';
+                    if (count === 4) return 'grid-cols-2';
+                    return 'grid-cols-2 lg:grid-cols-3';
+                  })()
+                }`}
+                style={{
+                  gridTemplateRows: (() => {
+                    const count = participants.slice(currentPage * pageSize, (currentPage + 1) * pageSize).length;
+                    if (count === 1) return '1fr';
+                    if (count <= 3) return 'repeat(auto-fit, minmax(0, 1fr))';
+                    return 'repeat(2, minmax(0, 1fr))';
+                  })()
+                }}
+              >
+                <AnimatePresence mode="popLayout">
+                  {participants.slice(currentPage * pageSize, (currentPage + 1) * pageSize).map((p) => {
+                    const isLocal = p.id === 'local-user'
+                    return (
+                      <motion.div 
+                        layout
+                        key={p.id}
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.9 }}
+                        transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                        className={`relative w-full h-full rounded-2xl overflow-hidden bg-[var(--color-surface-card)] border-2 transition-all duration-300 flex items-center justify-center shadow-lg min-h-0 min-w-0 ${
+                          !p.isMuted && !p.isVideoOff ? 'border-[var(--color-success)]/40 shadow-[var(--color-success)]/5' : 'border-[var(--color-border-default)]'
+                        } hover:border-[var(--color-border-hover)] group`}
+                      >
+                        {isLocal ? (
+                          // Local video card
+                          !localIsVideoOff ? (
+                            <video 
+                              ref={videoRef} 
+                              autoPlay 
+                              playsInline 
+                              muted 
+                              className="w-full h-full object-cover transform -scale-x-100 absolute inset-0" 
+                            />
+                          ) : (
+                            <div className="flex flex-col items-center gap-3 z-10 p-4">
+                              <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-[var(--color-surface-light)] text-[var(--color-brand-blue)] border-2 border-[var(--color-brand-blue)]/25 flex items-center justify-center text-xl sm:text-2xl font-bold uppercase shadow-inner shrink-0">
+                                {p.initials}
+                              </div>
+                              <span className="text-[11px] sm:text-xs text-[var(--color-text-secondary)] bg-black/45 px-2.5 py-1 rounded-full border border-white/5">Camera is off</span>
+                            </div>
+                          )
+                        ) : (
+                          // Remote video card
+                          p.isVideoOff ? (
+                            <div className="flex flex-col items-center gap-3 z-10 p-4">
+                              <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-full flex items-center justify-center text-white text-xl sm:text-2xl font-bold uppercase shadow-inner border-2 border-white/10 shrink-0" style={{ backgroundColor: p.avatarColor }}>
+                                {p.initials}
+                              </div>
+                              <span className="text-[11px] sm:text-xs text-[var(--color-text-secondary)] bg-black/45 px-2.5 py-1 rounded-full border border-white/5">Camera is off</span>
+                            </div>
+                          ) : (
+                            <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-blue-950 flex items-center justify-center overflow-hidden">
+                              <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(59,130,246,0.15),transparent_50%)] animate-pulse" />
+                              <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(6,182,212,0.12),transparent_50%)]" />
+                              <div className="absolute inset-0 opacity-10 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[size:100%_4px,6px_100%]" />
+                              
+                              <div className="flex flex-col items-center gap-3 relative z-10">
+                                <div className="relative">
+                                  {!p.isMuted && (
+                                    <span className="absolute -inset-2.5 rounded-full bg-emerald-500/25 animate-ping" />
+                                  )}
+                                  <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-full flex items-center justify-center text-white text-xl sm:text-2xl font-bold shadow-2xl border-2 border-white/15" style={{ backgroundColor: p.avatarColor }}>
+                                    {p.initials}
+                                  </div>
+                                </div>
+                                <span className="text-[9px] sm:text-[10px] text-emerald-400 font-semibold bg-emerald-950/60 px-2.5 py-0.5 rounded-full border border-emerald-800/40 flex items-center gap-1">
+                                  <span className="h-1 w-1 rounded-full bg-emerald-400 animate-pulse" />
+                                  LIVE
+                                </span>
+                              </div>
+                            </div>
+                          )
+                        )}
 
-            {/* Overflow indicator */}
-            {remoteParticipants.length > 3 && (
-              <div className="w-[160px] lg:w-full h-[120px] relative bg-[var(--color-surface-card)] rounded-xl overflow-hidden border border-[var(--color-border-default)] flex items-center justify-center shadow-sm shrink-0">
-                <span className="text-[var(--color-text-secondary)] text-[13px] font-semibold">+{remoteParticipants.length - 3} more</span>
+                        {/* Participant Details Overlay */}
+                        <div className="absolute bottom-3 left-3 bg-black/60 border border-white/5 backdrop-blur-sm rounded-lg px-2.5 py-1 flex items-center gap-2 text-white z-20">
+                          <span className="text-[11px] sm:text-[12px] font-semibold truncate max-w-[100px] sm:max-w-[140px]">{p.name} {isLocal && '(You)'}</span>
+                          {p.isHost && (
+                            <span className="bg-[var(--color-host)]/20 text-[var(--color-host)] border border-[var(--color-host)]/30 rounded text-[9px] px-1 font-bold">
+                              HOST
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="absolute top-3 right-3 flex items-center gap-1.5 z-20">
+                          <div className="bg-black/75 rounded-full px-2 py-0.5 flex items-center gap-1 border border-white/5 shadow-sm">
+                            <span className="text-[10px] sm:text-[11px]">{p.flag}</span>
+                            <span className="text-[8px] sm:text-[9px] text-[var(--color-text-secondary)] font-medium uppercase tracking-wider hidden xs:inline">{p.language}</span>
+                          </div>
+                        </div>
+
+                        {p.isMuted && (
+                          <div className="absolute bottom-3 right-3 h-7 w-7 rounded-full bg-[#EF4444] flex items-center justify-center shadow-lg z-25 border border-white/10">
+                            <MicOff className="h-3.5 w-3.5 text-white" />
+                          </div>
+                        )}
+                      </motion.div>
+                    )
+                  })}
+                </AnimatePresence>
               </div>
-            )}
-          </div>
+
+              {/* Pagination Right Button */}
+              {totalPages > 1 && (
+                <button
+                  onClick={() => setCurrentPage((prev) => Math.min(totalPages - 1, prev + 1))}
+                  disabled={currentPage === totalPages - 1}
+                  className="absolute right-0 z-30 p-3 rounded-full bg-[var(--color-bg-secondary)]/85 border border-[var(--color-border-default)] text-white hover:bg-[var(--color-brand-blue)] hover:border-[var(--color-brand-blue)] transition-all disabled:opacity-35 disabled:hover:bg-[var(--color-bg-secondary)]/85 disabled:hover:border-[var(--color-border-default)] shadow-lg"
+                >
+                  <ChevronRight className="h-5 w-5" />
+                </button>
+              )}
+
+              {/* Page indicator dot indicators at bottom of grid */}
+              {totalPages > 1 && (
+                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 flex gap-1.5 z-30">
+                  {Array.from({ length: totalPages }).map((_, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setCurrentPage(i)}
+                      className={`h-2 rounded-full transition-all duration-300 ${i === currentPage ? 'w-5 bg-[var(--color-brand-blue)]' : 'w-2 bg-[var(--color-border-default)] hover:bg-[var(--color-text-secondary)]'}`}
+                    />
+                  ))}
+                </div>
+              )}
+
+            </div>
+          )}
         </div>
 
         {/* Translation Status Badge */}
@@ -439,7 +466,7 @@ export function MeetingRoomPage() {
 
         {/* Floating Language Menu */}
         {showLangMenu && (
-          <div className="absolute bottom-[84px] left-1/2 -translate-x-1/2 bg-[var(--color-surface-card)] border border-[var(--color-border-default)] rounded-xl p-4 shadow-2xl z-30 min-w-[280px]">
+          <div className="absolute bottom-[88px] left-1/2 -translate-x-1/2 bg-[var(--color-surface-card)] border border-[var(--color-border-default)] rounded-xl p-4 shadow-2xl z-30 min-w-[280px]">
             <div className="flex justify-between items-center mb-3 pb-2 border-b border-[var(--color-border-default)]">
               <h4 className="text-[13px] font-bold text-white flex items-center gap-1.5">
                 <Globe2 className="h-4 w-4 text-[var(--color-brand-blue)]" />
@@ -487,13 +514,13 @@ export function MeetingRoomPage() {
           </div>
         )}
 
-        {/* Bottom Control Bar */}
-        <div className="h-[76px] bg-[var(--color-bg-secondary)] border-t border-[var(--color-border-default)] flex items-center justify-center px-4 shrink-0 z-20">
-          <div className="flex items-center gap-1 sm:gap-2 max-w-full overflow-x-auto scrollbar-none">
+        {/* Floating Bottom Control Bar */}
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-[var(--color-bg-secondary)]/90 backdrop-blur-md border border-[var(--color-border-default)] rounded-2xl flex items-center justify-center px-6 py-2.5 shrink-0 z-30 shadow-2xl">
+          <div className="flex items-center gap-1 sm:gap-2 max-w-full">
             
             <button 
               onClick={toggleMic}
-              className={`w-[48px] sm:w-[52px] flex flex-col items-center justify-center gap-1 rounded-lg hover:bg-[var(--color-surface-light)] transition-colors py-1 shrink-0 focus:outline-none ${localIsMuted ? 'text-[#EF4444]' : 'text-[var(--color-text-secondary)] hover:text-white'}`}
+              className={`w-[48px] sm:w-[52px] flex flex-col items-center justify-center gap-1 rounded-xl hover:bg-[var(--color-surface-light)] transition-colors py-1 shrink-0 focus:outline-none ${localIsMuted ? 'text-[#EF4444]' : 'text-[var(--color-text-secondary)] hover:text-white'}`}
             >
               {localIsMuted ? <MicOff className="h-4 sm:h-5 w-4 sm:w-5" /> : <Mic className="h-4 sm:h-5 w-4 sm:w-5" />}
               <span className="text-[9px] font-medium">{localIsMuted ? 'Unmute' : 'Mute'}</span>
@@ -501,7 +528,7 @@ export function MeetingRoomPage() {
 
             <button 
               onClick={toggleVideo}
-              className={`w-[48px] sm:w-[52px] flex flex-col items-center justify-center gap-1 rounded-lg hover:bg-[var(--color-surface-light)] transition-colors py-1 shrink-0 focus:outline-none ${localIsVideoOff ? 'text-[#EF4444]' : 'text-[var(--color-text-secondary)] hover:text-white'}`}
+              className={`w-[48px] sm:w-[52px] flex flex-col items-center justify-center gap-1 rounded-xl hover:bg-[var(--color-surface-light)] transition-colors py-1 shrink-0 focus:outline-none ${localIsVideoOff ? 'text-[#EF4444]' : 'text-[var(--color-text-secondary)] hover:text-white'}`}
             >
               {localIsVideoOff ? <VideoOff className="h-4 sm:h-5 w-4 sm:w-5" /> : <Video className="h-4 sm:h-5 w-4 sm:w-5" />}
               <span className="text-[9px] font-medium">{localIsVideoOff ? 'Start Cam' : 'Stop Cam'}</span>
@@ -509,7 +536,7 @@ export function MeetingRoomPage() {
 
             <button 
               onClick={toggleScreenShare}
-              className={`w-[48px] sm:w-[52px] flex flex-col items-center justify-center gap-1 rounded-lg transition-colors py-1 shrink-0 focus:outline-none ${localIsScreenSharing ? 'bg-[var(--color-brand-blue)]/20 text-[var(--color-brand-blue)]' : 'hover:bg-[var(--color-surface-light)] text-[var(--color-text-secondary)] hover:text-white'}`}
+              className={`w-[48px] sm:w-[52px] flex flex-col items-center justify-center gap-1 rounded-xl transition-colors py-1 shrink-0 focus:outline-none ${localIsScreenSharing ? 'bg-[var(--color-brand-blue)]/20 text-[var(--color-brand-blue)]' : 'hover:bg-[var(--color-surface-light)] text-[var(--color-text-secondary)] hover:text-white'}`}
             >
               <MonitorUp className="h-4 sm:h-5 w-4 sm:w-5" />
               <span className="text-[9px] font-medium">Share</span>
@@ -517,7 +544,7 @@ export function MeetingRoomPage() {
 
             <button 
               onClick={() => toggleSidebar("chat")}
-              className={`w-[48px] sm:w-[52px] flex flex-col items-center justify-center gap-1 rounded-lg transition-colors py-1 relative shrink-0 focus:outline-none ${isSidebarOpen && activeTab === "chat" ? 'bg-[var(--color-brand-blue)]/20 text-[var(--color-brand-blue)]' : 'hover:bg-[var(--color-surface-light)] text-[var(--color-text-secondary)] hover:text-white'}`}
+              className={`w-[48px] sm:w-[52px] flex flex-col items-center justify-center gap-1 rounded-xl transition-colors py-1 relative shrink-0 focus:outline-none ${isSidebarOpen && activeTab === "chat" ? 'bg-[var(--color-brand-blue)]/20 text-[var(--color-brand-blue)]' : 'hover:bg-[var(--color-surface-light)] text-[var(--color-text-secondary)] hover:text-white'}`}
             >
               <MessageSquare className="h-4 sm:h-5 w-4 sm:w-5" />
               <span className="text-[9px] font-medium">Chat</span>
@@ -530,7 +557,7 @@ export function MeetingRoomPage() {
 
             <button 
               onClick={() => toggleSidebar("participants")}
-              className={`w-[48px] sm:w-[52px] flex flex-col items-center justify-center gap-1 rounded-lg transition-colors py-1 relative shrink-0 focus:outline-none ${isSidebarOpen && activeTab === "participants" ? 'bg-[var(--color-brand-blue)]/20 text-[var(--color-brand-blue)]' : 'hover:bg-[var(--color-surface-light)] text-[var(--color-text-secondary)] hover:text-white'}`}
+              className={`w-[48px] sm:w-[52px] flex flex-col items-center justify-center gap-1 rounded-xl transition-colors py-1 relative shrink-0 focus:outline-none ${isSidebarOpen && activeTab === "participants" ? 'bg-[var(--color-brand-blue)]/20 text-[var(--color-brand-blue)]' : 'hover:bg-[var(--color-surface-light)] text-[var(--color-text-secondary)] hover:text-white'}`}
             >
               <Users className="h-4 sm:h-5 w-4 sm:w-5" />
               <span className="text-[9px] font-medium">People</span>
@@ -541,7 +568,7 @@ export function MeetingRoomPage() {
 
             <button 
               onClick={() => setShowLangMenu(!showLangMenu)}
-              className={`w-[48px] sm:w-[52px] flex flex-col items-center justify-center gap-1 rounded-lg transition-colors py-1 shrink-0 focus:outline-none ${showLangMenu ? 'bg-[var(--color-brand-blue)]/20 text-[var(--color-brand-blue)]' : 'hover:bg-[var(--color-surface-light)] text-[var(--color-text-secondary)] hover:text-white'}`}
+              className={`w-[48px] sm:w-[52px] flex flex-col items-center justify-center gap-1 rounded-xl transition-colors py-1 shrink-0 focus:outline-none ${showLangMenu ? 'bg-[var(--color-brand-blue)]/20 text-[var(--color-brand-blue)]' : 'hover:bg-[var(--color-surface-light)] text-[var(--color-text-secondary)] hover:text-white'}`}
             >
               <Globe2 className="h-4 sm:h-5 w-4 sm:w-5" />
               <span className="text-[9px] font-medium">Lang</span>
@@ -551,10 +578,10 @@ export function MeetingRoomPage() {
 
             <button 
               onClick={handleEndCall}
-              className="w-[48px] sm:w-[52px] flex flex-col items-center justify-center gap-1 rounded-lg bg-[#EF4444] hover:bg-[#D92626] transition-colors py-1 text-white ml-1 shadow-md shadow-red-500/10 shrink-0 focus:outline-none"
+              className="w-[48px] sm:w-[52px] flex flex-col items-center justify-center gap-1 rounded-xl bg-[#EF4444] hover:bg-[#D92626] transition-colors py-1 text-white ml-1 shadow-md shadow-red-500/10 shrink-0 focus:outline-none"
             >
               <PhoneOff className="h-4 sm:h-5 w-4 sm:w-5" />
-              <span className="text-[9px] font-medium">End</span>
+              <span className="text-[9px] font-medium">Leave</span>
             </button>
 
           </div>

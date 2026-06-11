@@ -251,14 +251,18 @@ export const useMeetingStore = create<MeetingState>((set, get) => ({
   // ── Events ────────────────────────────────────────────────────────
 
   addEvent: (event) => {
+    const id = uid()
     const newEvent: MeetingEvent = {
       ...event,
-      id: uid(),
+      id,
       timestamp: Date.now(),
     }
     set((state) => ({
       events: [...state.events, newEvent],
     }))
+    setTimeout(() => {
+      get().dismissEvent(id)
+    }, 2500)
   },
 
   dismissEvent: (id) => {
@@ -270,31 +274,40 @@ export const useMeetingStore = create<MeetingState>((set, get) => ({
   // ── Local media ───────────────────────────────────────────────────
 
   toggleMic: () => {
-    set((state) => {
-      const newMuted = !state.localIsMuted
-      return {
-        localIsMuted: newMuted,
-        participants: state.participants.map((p) =>
-          p.id === 'local-user' ? { ...p, isMuted: newMuted } : p
-        ),
-      }
+    const newMuted = !get().localIsMuted
+    set((state) => ({
+      localIsMuted: newMuted,
+      participants: state.participants.map((p) =>
+        p.id === 'local-user' ? { ...p, isMuted: newMuted } : p
+      ),
+    }))
+    get().addEvent({
+      type: newMuted ? 'mute' : 'unmute',
+      message: newMuted ? 'You muted your microphone' : 'You unmuted your microphone',
     })
   },
 
   toggleVideo: () => {
-    set((state) => {
-      const newVideoOff = !state.localIsVideoOff
-      return {
-        localIsVideoOff: newVideoOff,
-        participants: state.participants.map((p) =>
-          p.id === 'local-user' ? { ...p, isVideoOff: newVideoOff } : p
-        ),
-      }
+    const newVideoOff = !get().localIsVideoOff
+    set((state) => ({
+      localIsVideoOff: newVideoOff,
+      participants: state.participants.map((p) =>
+        p.id === 'local-user' ? { ...p, isVideoOff: newVideoOff } : p
+      ),
+    }))
+    get().addEvent({
+      type: newVideoOff ? 'video-off' : 'video-on',
+      message: newVideoOff ? 'You turned off your camera' : 'You turned on your camera',
     })
   },
 
   toggleScreenShare: () => {
-    set((state) => ({ localIsScreenSharing: !state.localIsScreenSharing }))
+    const newScreenShare = !get().localIsScreenSharing
+    set({ localIsScreenSharing: newScreenShare })
+    get().addEvent({
+      type: 'info',
+      message: newScreenShare ? 'You started sharing your screen' : 'You stopped sharing your screen',
+    })
   },
 
   // ── Signaling ─────────────────────────────────────────────────────
