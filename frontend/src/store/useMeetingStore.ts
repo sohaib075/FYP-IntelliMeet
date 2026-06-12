@@ -55,6 +55,7 @@ interface MeetingState {
   events: MeetingEvent[]
 
   // Local user media state
+  localUserId: string | null
   localIsMuted: boolean
   localIsVideoOff: boolean
   localIsScreenSharing: boolean
@@ -118,6 +119,7 @@ const formatTime = () => {
 
 const initialState = {
   meetingId: null as string | null,
+  localUserId: null as string | null,
   title: '',
   status: 'idle' as MeetingStatus,
   startedAt: null as number | null,
@@ -134,6 +136,8 @@ const initialState = {
   signalingLog: [] as string[],
 }
 
+import { getSocket } from '@/lib/socket'
+
 // ─── Store ──────────────────────────────────────────────────────────
 
 export const useMeetingStore = create<MeetingState>((set, get) => ({
@@ -142,8 +146,9 @@ export const useMeetingStore = create<MeetingState>((set, get) => ({
   // ── Room lifecycle ────────────────────────────────────────────────
 
   joinMeeting: (config) => {
+    const newUserId = uid()
     const hostParticipant: Participant = {
-      id: 'local-user',
+      id: newUserId,
       name: config.userName,
       initials: config.userName.substring(0, 2).toUpperCase(),
       avatarColor: '#3B82F6',
@@ -157,6 +162,7 @@ export const useMeetingStore = create<MeetingState>((set, get) => ({
 
     set({
       meetingId: config.meetingId,
+      localUserId: newUserId,
       title: config.title || 'IntelliMeet Session',
       status: 'connecting',
       startedAt: null,
@@ -217,12 +223,12 @@ export const useMeetingStore = create<MeetingState>((set, get) => ({
 
   sendMessage: (message) => {
     const state = get()
-    const localUser = state.participants.find((p) => p.id === 'local-user')
+    const localUser = state.participants.find((p) => p.id === state.localUserId)
     if (!localUser || !message.trim()) return
 
     const msg: ChatMessage = {
       id: uid(),
-      senderId: 'local-user',
+      senderId: localUser.id,
       senderName: 'You',
       senderInitials: localUser.initials,
       message: message.trim(),
@@ -232,6 +238,17 @@ export const useMeetingStore = create<MeetingState>((set, get) => ({
     set((state) => ({
       messages: [...state.messages, msg],
     }))
+
+    const socket = getSocket()
+    if (socket && state.meetingId) {
+      socket.emit('send-message', state.meetingId, {
+        senderId: localUser.id,
+        senderName: localUser.name,
+        senderInitials: localUser.initials,
+        message: message.trim(),
+        timestamp: msg.timestamp
+      })
+    }
   },
 
   receiveMessage: (msg) => {
@@ -274,13 +291,20 @@ export const useMeetingStore = create<MeetingState>((set, get) => ({
   // ── Local media ───────────────────────────────────────────────────
 
   toggleMic: () => {
-    const newMuted = !get().localIsMuted
-    set((state) => ({
+    const state = get()
+    const newMuted = !state.localIsMuted
+    set((s) => ({
       localIsMuted: newMuted,
-      participants: state.participants.map((p) =>
-        p.id === 'local-user' ? { ...p, isMuted: newMuted } : p
+      participants: s.participants.map((p) =>
+        p.id === s.localUserId ? { ...p, isMuted: newMuted } : p
       ),
     }))
+
+    const socket = getSocket()
+    if (socket && state.meetingId) {
+      socket.emit('toggle-media', state.meetingId, state.localUserId, { isMuted: newMuted })
+    }
+
     get().addEvent({
       type: newMuted ? 'mute' : 'unmute',
       message: newMuted ? 'You muted your microphone' : 'You unmuted your microphone',
@@ -288,13 +312,20 @@ export const useMeetingStore = create<MeetingState>((set, get) => ({
   },
 
   toggleVideo: () => {
-    const newVideoOff = !get().localIsVideoOff
-    set((state) => ({
+    const state = get()
+    const newVideoOff = !state.localIsVideoOff
+    set((s) => ({
       localIsVideoOff: newVideoOff,
-      participants: state.participants.map((p) =>
-        p.id === 'local-user' ? { ...p, isVideoOff: newVideoOff } : p
+      participants: s.participants.map((p) =>
+        p.id === s.localUserId ? { ...p, isVideoOff: newVideoOff } : p
       ),
     }))
+
+    const socket = getSocket()
+    if (socket && state.meetingId) {
+      socket.emit('toggle-media', state.meetingId, state.localUserId, { isVideoOff: newVideoOff })
+    }
+
     get().addEvent({
       type: newVideoOff ? 'video-off' : 'video-on',
       message: newVideoOff ? 'You turned off your camera' : 'You turned on your camera',

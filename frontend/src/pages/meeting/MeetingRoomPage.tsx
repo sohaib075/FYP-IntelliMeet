@@ -3,8 +3,7 @@ import { useParams, useNavigate } from "react-router-dom"
 import { Mic, MicOff, Video, VideoOff, MonitorUp, MessageSquare, Users, Globe2, PhoneOff, Copy, Signal, XCircle, AlertTriangle, Send, ChevronLeft, ChevronRight } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useMeetingStore } from "@/store/useMeetingStore"
-import { useMeetingSimulation } from "@/hooks/useMeetingSimulation"
-import { useWebRTCSimulation } from "@/hooks/useWebRTCSimulation"
+import { useMeetingConnection } from "@/hooks/useMeetingConnection"
 import { Logo } from "@/components/common/Logo"
 
 // ─── Helper ────────────────────────────────────────────────────────
@@ -30,12 +29,11 @@ export function MeetingRoomPage() {
     localIsMuted, localIsVideoOff, localIsScreenSharing,
     toggleMic, toggleVideo, toggleScreenShare, sendMessage, clearUnread,
     addEvent, dismissEvent, removeParticipant,
-    sourceLang, targetLang,
+    sourceLang, targetLang, localUserId,
   } = useMeetingStore()
 
-  // Simulation hooks
-  useMeetingSimulation()
-  useWebRTCSimulation()
+  // Connection hooks
+  useMeetingConnection()
 
   // Local UI state
   const [activeTab, setActiveTab] = useState<"chat" | "participants">("chat")
@@ -176,8 +174,8 @@ export function MeetingRoomPage() {
 
   // ── Derived data ──────────────────────────────────────────────────
 
-  const localUser = participants.find(p => p.id === 'local-user')
-  const remoteParticipants = participants.filter(p => p.id !== 'local-user')
+  const localUser = participants.find(p => p.id === localUserId)
+  const remoteParticipants = participants.filter(p => p.id !== localUserId)
   const activeSpeaker = remoteParticipants[0] // First remote participant is "active speaker"
 
   const langMap: Record<string, { flag: string; name: string }> = {
@@ -338,7 +336,7 @@ export function MeetingRoomPage() {
               >
                 <AnimatePresence mode="popLayout">
                   {participants.slice(currentPage * pageSize, (currentPage + 1) * pageSize).map((p) => {
-                    const isLocal = p.id === 'local-user'
+                    const isLocal = p.id === localUserId
                     return (
                       <motion.div 
                         layout
@@ -665,7 +663,7 @@ export function MeetingRoomPage() {
                       </div>
                       <div className="flex items-center gap-2 truncate">
                         <span className="text-[14px] font-semibold text-white truncate">{p.name}</span>
-                        {p.id === 'local-user' && <span className="text-[12px] text-[var(--color-text-secondary)] shrink-0">(You)</span>}
+                        {p.id === localUserId && <span className="text-[12px] text-[var(--color-text-secondary)] shrink-0">(You)</span>}
                         {p.isHost && <span className="text-[10px] text-[var(--color-host)] bg-[var(--color-host)]/15 border border-[var(--color-host)]/20 px-1.5 py-0.5 rounded shrink-0 font-bold">HOST</span>}
                         {!p.isHost && <span className="text-[16px] shrink-0">{p.flag}</span>}
                       </div>
@@ -676,7 +674,7 @@ export function MeetingRoomPage() {
                         {p.isVideoOff ? <VideoOff className="h-4 w-4 text-[#EF4444]" /> : <Video className="h-4 w-4" />}
                       </div>
                       {/* Host Actions (only for remote participants) */}
-                      {p.id !== 'local-user' && (
+                      {p.id !== localUserId && (
                         <div className="hidden group-hover:flex items-center gap-1 ml-1 pl-2 border-l border-[var(--color-border-default)]">
                           <button className="h-7 w-7 rounded flex items-center justify-center text-[var(--color-text-secondary)] hover:text-[#EF4444] hover:bg-[#EF4444]/10 transition-colors">
                             <MicOff className="h-4 w-4" />
