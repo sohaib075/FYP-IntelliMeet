@@ -5,18 +5,22 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/Select"
 import { Avatar } from "@/components/ui/Avatar"
 import { Badge } from "@/components/ui/Badge"
-import { Eye, EyeOff } from "lucide-react"
+import { Eye, EyeOff, Loader2, AlertTriangle } from "lucide-react"
 import { useToastStore } from "@/store/useToastStore"
-import { useAuthStore } from "@/store/useAuthStore"
+import { useAuthStore, mapBackendUser } from "@/store/useAuthStore"
+import { userApi, ApiError } from "@/lib/api"
+import { useNavigate } from "react-router-dom"
 
 export function ProfilePage() {
   const [isLoading, setIsLoading] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
   const addToast = useToastStore((state) => state.addToast)
-  const { user, updatePreferences, updateProfile } = useAuthStore()
+  const { user, updatePreferences, updateProfile, logout } = useAuthStore()
+  const navigate = useNavigate()
 
   const [profile, setProfile] = useState({
-    name: user?.name || "John Doe",
-    email: user?.email || "john@example.com",
+    name: user?.name || "",
+    email: user?.email || "",
     sourceLanguage: user?.preferences?.sourceLanguage || "en",
     targetLanguage: user?.preferences?.targetLanguage || "zh",
   })
@@ -33,29 +37,76 @@ export function ProfilePage() {
     confirm: false,
   })
 
-  const handleSaveProfile = (e: React.FormEvent) => {
+  const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-    setTimeout(() => {
-      updateProfile(profile.name)
-      updatePreferences({ sourceLanguage: profile.sourceLanguage, targetLanguage: profile.targetLanguage })
-      setIsLoading(false)
+    try {
+      // Update preferences via backend API
+      const data = await userApi.updatePreferences({
+        spokenLanguage: profile.sourceLanguage,
+        listeningLanguage: profile.targetLanguage,
+      })
+      // Sync local store with the backend response
+      const mapped = mapBackendUser(data.user)
+      updateProfile(mapped.name)
+      updatePreferences(mapped.preferences)
       addToast({ message: "Profile & Preferences updated successfully", variant: "success" })
-    }, 1000)
+    } catch (err) {
+      if (err instanceof ApiError) {
+        addToast({ message: err.message, variant: "error" })
+      } else {
+        addToast({ message: "Failed to save. Please try again.", variant: "error" })
+      }
+    } finally {
+      setIsLoading(false)
+    }
   }
 
-  const handleSavePassword = (e: React.FormEvent) => {
+  const handleSavePassword = async (e: React.FormEvent) => {
     e.preventDefault()
     if (password.new !== password.confirm) {
       addToast({ message: "Passwords do not match", variant: "error" })
       return
     }
+    
     setIsLoading(true)
-    setTimeout(() => {
-      setIsLoading(false)
+    try {
+      await userApi.updatePassword({
+        currentPassword: password.current,
+        newPassword: password.new
+      })
       setPassword({ current: "", new: "", confirm: "" })
       addToast({ message: "Password updated successfully", variant: "success" })
-    }, 1000)
+    } catch (err) {
+      if (err instanceof ApiError) {
+        addToast({ message: err.message, variant: "error" })
+      } else {
+        addToast({ message: "Failed to update password. Please try again.", variant: "error" })
+      }
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleDeleteAccount = async () => {
+    if (!window.confirm("Are you absolutely sure you want to delete your account? This action cannot be undone.")) {
+      return
+    }
+
+    setIsDeleting(true)
+    try {
+      await userApi.deleteAccount()
+      logout()
+      addToast({ message: "Your account has been deleted.", variant: "success" })
+      navigate("/login")
+    } catch (err) {
+      if (err instanceof ApiError) {
+        addToast({ message: err.message, variant: "error" })
+      } else {
+        addToast({ message: "Failed to delete account. Please try again.", variant: "error" })
+      }
+      setIsDeleting(false)
+    }
   }
 
   return (
@@ -73,7 +124,7 @@ export function ProfilePage() {
             <p className="text-[#64748B] mt-1">{profile.email}</p>
             <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mt-4">
               <span className="text-[12px] text-[#3B82F6] bg-[#EFF6FF] px-2 py-0.5 rounded-full font-medium">
-                {user?.role === 'ADMIN' ? 'Admin' : 'Host'}
+                Member
               </span>
             </div>
           </div>
@@ -211,7 +262,14 @@ export function ProfilePage() {
               <p className="text-[14px] text-red-600/80 mb-4">
                 Once you delete your account, there is no going back. Please be certain.
               </p>
-              <Button className="bg-red-600 text-white hover:bg-red-700 border-0">Delete Account</Button>
+              <Button 
+                onClick={handleDeleteAccount}
+                disabled={isDeleting}
+                className="bg-red-600 text-white hover:bg-red-700 border-0"
+              >
+                {isDeleting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <AlertTriangle className="mr-2 h-4 w-4" />}
+                Delete Account
+              </Button>
             </CardContent>
           </Card>
         </div>

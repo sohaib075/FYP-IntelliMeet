@@ -4,6 +4,7 @@ import { Mic, MicOff, Video, VideoOff, MonitorUp, MessageSquare, Users, Globe2, 
 import { motion, AnimatePresence } from "framer-motion"
 import { useMeetingStore } from "@/store/useMeetingStore"
 import { useMeetingConnection } from "@/hooks/useMeetingConnection"
+import { useAuthStore } from "@/store/useAuthStore"
 import { Logo } from "@/components/common/Logo"
 
 // ─── Helper ────────────────────────────────────────────────────────
@@ -70,12 +71,13 @@ export function MeetingRoomPage() {
     // If user navigated directly (no lobby), set up a default meeting
     if (status === 'idle') {
       const { joinMeeting } = useMeetingStore.getState()
+      const authUser = useAuthStore.getState().user
       joinMeeting({
         meetingId: id || 'direct-join',
         title: 'CPEC Quarterly Review',
-        userName: 'Muhammad Usman',
-        sourceLang: 'en',
-        targetLang: 'zh',
+        userName: authUser?.name || 'Guest',
+        sourceLang: authUser?.preferences?.sourceLanguage || 'en',
+        targetLang: authUser?.preferences?.targetLanguage || 'en',
         micOn: true,
         videoOn: true,
       })
@@ -228,7 +230,7 @@ export function MeetingRoomPage() {
               <Globe2 className="h-5 w-5" />
             </button>
             <div className="h-8 w-8 rounded-full bg-[var(--color-surface-light)] text-[var(--color-brand-blue)] flex items-center justify-center text-xs font-bold uppercase border border-white/5 shrink-0">
-              {localUser?.initials || 'MU'}
+              {localUser?.initials || '??'}
             </div>
           </div>
         </div>

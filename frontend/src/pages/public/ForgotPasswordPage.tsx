@@ -4,19 +4,32 @@ import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
 import { Mail, ArrowLeft, CheckCircle2 } from "lucide-react"
 import { Logo } from "@/components/common/Logo"
+import { authApi, ApiError } from "@/lib/api"
 
 export function ForgotPasswordPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [email, setEmail] = useState("")
   const [isSuccess, setIsSuccess] = useState(false)
 
+  const [error, setError] = useState("")
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-    setTimeout(() => {
-      setIsLoading(false)
+    setError("")
+    
+    try {
+      await authApi.forgotPassword(email)
       setIsSuccess(true)
-    }, 1500)
+    } catch (err) {
+      if (err instanceof ApiError) {
+        setError(err.message)
+      } else {
+        setError("Unable to process request. Please try again.")
+      }
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -44,6 +57,11 @@ export function ForgotPasswordPage() {
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
+            {error && (
+              <div className="mb-4 rounded-lg border border-[#EF4444]/30 bg-[#EF4444]/10 p-3 text-sm text-[#EF4444]">
+                {error}
+              </div>
+            )}
             <Input
               label="Email Address"
               type="email"

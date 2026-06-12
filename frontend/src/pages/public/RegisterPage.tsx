@@ -3,12 +3,12 @@ import { Link, useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
 import { ArrowLeftRight, Eye, EyeOff } from "lucide-react"
-import { useAuthStore } from "@/store/useAuthStore"
+import { useAuthStore, mapBackendUser } from "@/store/useAuthStore"
 import { Logo } from "@/components/common/Logo"
+import { authApi, ApiError } from "@/lib/api"
 
 export function RegisterPage() {
   const navigate = useNavigate()
-  const login = useAuthStore((state) => state.login)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
   const [showPassword, setShowPassword] = useState(false)
@@ -65,22 +65,39 @@ export function RegisterPage() {
     return isValid
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!validateForm()) return
     setError("")
-
     setIsLoading(true)
 
-    // Simulate API Call
-    setTimeout(() => {
-      login("mock-jwt-token-newuser", { 
-        id: "3", name: formData.name, email: formData.email, role: "USER",
-        preferences: { sourceLanguage: "en", targetLanguage: "en" }
+    try {
+      await authApi.register({
+        fullName: formData.name,
+        email: formData.email,
+        password: formData.password,
       })
-      navigate('/dashboard')
+      // Do not log in yet, redirect to verification page
+      navigate(`/verify-email?email=${encodeURIComponent(formData.email)}`)
+    } catch (err) {
+      if (err instanceof ApiError) {
+        // Map server-side field validation errors to form fields
+        if (err.errors && err.errors.length > 0) {
+          const newFieldErrors = { ...fieldErrors }
+          err.errors.forEach((e) => {
+            if (e.field === 'fullName') newFieldErrors.name = e.message
+            else if (e.field === 'email') newFieldErrors.email = e.message
+            else if (e.field === 'password') newFieldErrors.password = e.message
+          })
+          setFieldErrors(newFieldErrors)
+        }
+        setError(err.message)
+      } else {
+        setError('Unable to connect to server. Please try again later.')
+      }
+    } finally {
       setIsLoading(false)
-    }, 1500)
+    }
   }
 
   return (

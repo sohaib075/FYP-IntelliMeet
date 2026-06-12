@@ -3,8 +3,9 @@ import { Input } from "@/components/ui/Input"
 import { Link, useNavigate } from "react-router-dom"
 import { Eye, EyeOff, ArrowLeftRight } from "lucide-react"
 import { useState } from "react"
-import { useAuthStore } from "@/store/useAuthStore"
+import { useAuthStore, mapBackendUser } from "@/store/useAuthStore"
 import { Logo } from "@/components/common/Logo"
+import { authApi, ApiError } from "@/lib/api"
 
 export function LoginPage() {
   const navigate = useNavigate()
@@ -42,29 +43,30 @@ export function LoginPage() {
     return isValid
   }
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!validateForm()) return
     setError("")
     setIsLoading(true)
 
-    // Simulate API Call
-    setTimeout(() => {
-      if (email === "admin@example.com") {
-        login("mock-jwt-token-admin", { 
-          id: "1", name: "System Admin", email, role: "ADMIN",
-          preferences: { sourceLanguage: "en", targetLanguage: "en" }
-        })
-        navigate('/admin')
+    try {
+      const data = await authApi.login({ email, password })
+      const mappedUser = mapBackendUser(data.user)
+      login(data.token, mappedUser)
+      navigate('/dashboard')
+    } catch (err) {
+      if (err instanceof ApiError) {
+        if (err.status === 403 && err.message.includes('not verified')) {
+          navigate(`/verify-email?email=${encodeURIComponent(email)}`)
+          return
+        }
+        setError(err.message)
       } else {
-        login("mock-jwt-token-user", { 
-          id: "2", name: "Muhammad Usman", email, role: "USER",
-          preferences: { sourceLanguage: "ur", targetLanguage: "zh" }
-        })
-        navigate('/dashboard')
+        setError('Unable to connect to server. Please try again later.')
       }
+    } finally {
       setIsLoading(false)
-    }, 1000)
+    }
   }
 
   return (

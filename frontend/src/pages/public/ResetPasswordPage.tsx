@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/Input"
 import { Lock } from "lucide-react"
 import { useToastStore } from "@/store/useToastStore"
 import { Logo } from "@/components/common/Logo"
+import { authApi, ApiError } from "@/lib/api"
 
 export function ResetPasswordPage() {
   const [isLoading, setIsLoading] = useState(false)
@@ -39,11 +40,20 @@ export function ResetPasswordPage() {
     }
 
     setIsLoading(true)
-    setTimeout(() => {
-      setIsLoading(false)
-      addToast({ message: "Password reset successful!", variant: "success" })
+    
+    try {
+      await authApi.resetPassword(password, token as string)
+      addToast({ message: "Password reset successful! Please log in.", variant: "success" })
       navigate("/login")
-    }, 1500)
+    } catch (err) {
+      if (err instanceof ApiError) {
+        setError(err.message)
+      } else {
+        setError("Unable to reset password. The link may be expired.")
+      }
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const passwordStrength = password.length === 0 ? 0 : password.length < 6 ? 1 : password.length < 8 ? 2 : 3

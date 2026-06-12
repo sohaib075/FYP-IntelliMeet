@@ -15,7 +15,7 @@ export function LobbyPage() {
   
   const [micOn, setMicOn] = useState(true)
   const [videoOn, setVideoOn] = useState(true)
-  const [displayName, setDisplayName] = useState(user?.name || "John Doe")
+  const [displayName, setDisplayName] = useState(user?.name || "")
   const [sourceLang, setSourceLang] = useState(user?.preferences?.sourceLanguage || "en")
   const [targetLang, setTargetLang] = useState(user?.preferences?.targetLanguage || "zh")
   const [isJoining, setIsJoining] = useState(false)
@@ -96,7 +96,7 @@ export function LobbyPage() {
                 />
                 <div className="absolute bottom-4 left-4 z-20">
                   <span className="bg-black/60 border border-white/10 px-3.5 py-1.5 rounded-xl text-[13px] font-medium backdrop-blur-md text-white/90">
-                    {displayName || "John Doe"}
+                    {displayName || user?.name || "You"}
                   </span>
                 </div>
               </div>

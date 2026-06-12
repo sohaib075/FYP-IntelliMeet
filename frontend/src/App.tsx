@@ -12,6 +12,7 @@ import { LoginPage } from "./pages/public/LoginPage"
 import { RegisterPage } from "./pages/public/RegisterPage"
 import { ForgotPasswordPage } from "./pages/public/ForgotPasswordPage"
 import { ResetPasswordPage } from "./pages/public/ResetPasswordPage"
+import { VerifyEmailPage } from "./pages/public/VerifyEmailPage"
 import { StatusPreviewPage } from "./pages/public/StatusPreviewPage"
 import { NotFoundPage } from "./pages/public/NotFoundPage"
 
@@ -35,6 +36,7 @@ export function App() {
       {/* Auth Routes (Standalone) */}
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
+      <Route path="/verify-email" element={<VerifyEmailPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />
 

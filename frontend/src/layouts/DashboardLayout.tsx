@@ -70,14 +70,14 @@ export function DashboardLayout() {
           {/* User Profile Mini Section */}
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-full flex items-center justify-center text-sm font-medium bg-[#EFF6FF] text-[#3B82F6]">
-              {user?.name?.substring(0, 2).toUpperCase() || 'MU'}
+              {user?.name?.substring(0, 2).toUpperCase() || '??'}
             </div>
             <div className="flex flex-col">
               <span className="text-[14px] font-medium text-[#0F172A]">
-                {user?.name || 'Muhammad Usman'}
+                {user?.name || 'User'}
               </span>
               <span className="text-[12px] text-[#3B82F6] bg-[#EFF6FF] px-2 py-0.5 rounded-full self-start font-medium mt-0.5">
-                {user?.role === 'ADMIN' ? 'Admin' : 'Host'}
+                {user ? 'Member' : ''}
               </span>
             </div>
           </div>
@@ -184,7 +184,7 @@ export function DashboardLayout() {
                   }}
                   className="h-8 w-8 rounded-full bg-[#EFF6FF] text-[#3B82F6] flex items-center justify-center text-xs font-bold uppercase border-2 border-transparent hover:border-[#3B82F6]/30 transition-all cursor-pointer select-none focus:outline-none"
                 >
-                  {user?.name?.substring(0, 2) || 'MU'}
+                  {user?.name?.substring(0, 2) || '??'}
                 </button>
 
                 <AnimatePresence>
@@ -197,8 +197,8 @@ export function DashboardLayout() {
                       className="absolute right-0 mt-2 w-56 bg-white border border-[#E2E8F0] rounded-xl shadow-xl z-50 overflow-hidden py-1"
                     >
                       <div className="px-4 py-3 border-b border-[#F1F5F9] bg-[#F8FAFC]/50">
-                        <p className="text-[13px] font-semibold text-[#0F172A] truncate">{user?.name || 'Muhammad Usman'}</p>
-                        <p className="text-[11px] text-[#64748B] truncate mt-0.5">{user?.email || 'usman@intellimeet.com'}</p>
+                        <p className="text-[13px] font-semibold text-[#0F172A] truncate">{user?.name || 'User'}</p>
+                        <p className="text-[11px] text-[#64748B] truncate mt-0.5">{user?.email || ''}</p>
                       </div>
                       <div className="py-1">
                         <Link 

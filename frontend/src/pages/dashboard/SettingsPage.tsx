@@ -14,7 +14,7 @@ export function SettingsPage() {
 
   const [settings, setSettings] = useState({
     general: {
-      displayName: "John Doe",
+      displayName: user?.name || "",
       defaultView: "speaker",
       uiLanguage: "en",
     },
