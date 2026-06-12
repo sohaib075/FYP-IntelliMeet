@@ -71,38 +71,35 @@ const sendOtpEmail = async (to, otp) => {
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>IntelliMeet Verification</title>
+        <style>
+          @media (prefers-color-scheme: dark) {
+            .bg-main { background-color: #121212 !important; }
+            .bg-card { background-color: #1a1a1a !important; border-color: #333333 !important; }
+            .text-primary { color: #e5e5e5 !important; }
+            .text-secondary { color: #a3a3a3 !important; }
+            .bg-otp { background-color: #262626 !important; }
+          }
+        </style>
       </head>
-      <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; color: #0f172a;">
-        <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #f8fafc; padding: 40px 0;">
+      <body class="bg-main" style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc;">
+        <table width="100%" border="0" cellspacing="0" cellpadding="0" class="bg-main" style="background-color: #f8fafc; padding: 40px 15px;">
           <tr>
             <td align="center">
-              <table width="100%" max-width="600" border="0" cellspacing="0" cellpadding="0" style="background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); max-width: 600px; width: 100%; margin: 0 auto; overflow: hidden;">
-                <!-- Header -->
+              <table width="100%" max-width="500" border="0" cellspacing="0" cellpadding="0" class="bg-card" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; max-width: 500px; width: 100%; margin: 0 auto;">
                 <tr>
-                  <td align="center" style="background-color: #3b82f6; padding: 30px 0;">
-                    <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 700; letter-spacing: -0.5px;">IntelliMeet</h1>
-                  </td>
-                </tr>
-                <!-- Body -->
-                <tr>
-                  <td style="padding: 40px 30px;">
-                    <h2 style="margin: 0 0 20px 0; font-size: 20px; font-weight: 600; color: #1e293b;">Verify your email address</h2>
-                    <p style="margin: 0 0 24px 0; font-size: 16px; line-height: 24px; color: #475569;">
-                      Welcome to IntelliMeet! To complete your registration and secure your account, please enter the following verification code:
+                  <td style="padding: 24px;">
+                    <h2 style="margin: 0 0 16px 0; font-size: 20px; font-weight: 600; color: #3b82f6;">IntelliMeet Verification</h2>
+                    
+                    <p class="text-primary" style="margin: 0 0 24px 0; font-size: 15px; line-height: 22px; color: #1e293b;">
+                      Welcome to IntelliMeet! To complete your registration, please enter the following verification code:
                     </p>
                     
-                    <div style="background-color: #f1f5f9; border-radius: 8px; padding: 24px; text-align: center; margin-bottom: 24px;">
-                      <span style="font-family: monospace; font-size: 32px; font-weight: 700; letter-spacing: 8px; color: #0f172a;">${otp}</span>
+                    <div class="bg-otp" style="background-color: #f1f5f9; border-radius: 6px; padding: 20px 10px; text-align: center; margin-bottom: 24px;">
+                      <span class="text-primary" style="font-family: monospace; font-size: 28px; font-weight: 700; letter-spacing: 14px; color: #0f172a; padding-left: 14px;">${otp}</span>
                     </div>
 
-                    <p style="margin: 0 0 24px 0; font-size: 14px; line-height: 21px; color: #64748b;">
-                      This code is valid for <strong>10 minutes</strong>. Please do not share this code with anyone.
-                    </p>
-                    
-                    <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 30px 0;">
-                    
-                    <p style="margin: 0; font-size: 13px; line-height: 20px; color: #94a3b8;">
-                      If you didn't attempt to register an IntelliMeet account, you can safely ignore and delete this email.
+                    <p class="text-secondary" style="margin: 0; font-size: 13px; line-height: 20px; color: #64748b;">
+                      This code will expire in 10 minutes. If you did not request this, please ignore this email.
                     </p>
                   </td>
                 </tr>
@@ -142,42 +139,34 @@ const sendPasswordResetEmail = async (to, resetUrl) => {
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>IntelliMeet Password Reset</title>
+        <style>
+          @media (prefers-color-scheme: dark) {
+            .bg-main { background-color: #121212 !important; }
+            .bg-card { background-color: #1a1a1a !important; border-color: #333333 !important; }
+            .text-primary { color: #e5e5e5 !important; }
+            .text-secondary { color: #a3a3a3 !important; }
+          }
+        </style>
       </head>
-      <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; color: #0f172a;">
-        <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #f8fafc; padding: 40px 0;">
+      <body class="bg-main" style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc;">
+        <table width="100%" border="0" cellspacing="0" cellpadding="0" class="bg-main" style="background-color: #f8fafc; padding: 40px 15px;">
           <tr>
             <td align="center">
-              <table width="100%" max-width="600" border="0" cellspacing="0" cellpadding="0" style="background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); max-width: 600px; width: 100%; margin: 0 auto; overflow: hidden;">
-                <!-- Header -->
+              <table width="100%" max-width="500" border="0" cellspacing="0" cellpadding="0" class="bg-card" style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; max-width: 500px; width: 100%; margin: 0 auto;">
                 <tr>
-                  <td align="center" style="background-color: #3b82f6; padding: 30px 0;">
-                    <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 700; letter-spacing: -0.5px;">IntelliMeet</h1>
-                  </td>
-                </tr>
-                <!-- Body -->
-                <tr>
-                  <td style="padding: 40px 30px;">
-                    <h2 style="margin: 0 0 20px 0; font-size: 20px; font-weight: 600; color: #1e293b;">Password Reset Request</h2>
-                    <p style="margin: 0 0 24px 0; font-size: 16px; line-height: 24px; color: #475569;">
-                      You recently requested to reset your password for your IntelliMeet account. Click the button below to proceed.
+                  <td style="padding: 24px;">
+                    <h2 style="margin: 0 0 16px 0; font-size: 20px; font-weight: 600; color: #3b82f6;">IntelliMeet Password Reset</h2>
+                    
+                    <p class="text-primary" style="margin: 0 0 24px 0; font-size: 15px; line-height: 22px; color: #1e293b;">
+                      You recently requested to reset your password for your IntelliMeet account. Click the button below to proceed:
                     </p>
                     
                     <div style="text-align: center; margin: 32px 0;">
-                      <a href="${resetUrl}" style="background-color: #3b82f6; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; display: inline-block;">Reset Password</a>
+                      <a href="${resetUrl}" style="background-color: #3b82f6; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px; display: inline-block;">Reset Password</a>
                     </div>
 
-                    <p style="margin: 0 0 16px 0; font-size: 14px; line-height: 21px; color: #64748b;">
-                      This link is valid for <strong>15 minutes</strong>. If you're having trouble clicking the button, copy and paste the URL below into your web browser:
-                    </p>
-                    
-                    <p style="margin: 0 0 24px 0; font-size: 12px; line-height: 18px; color: #94a3b8; word-break: break-all;">
-                      ${resetUrl}
-                    </p>
-                    
-                    <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 30px 0;">
-                    
-                    <p style="margin: 0; font-size: 13px; line-height: 20px; color: #94a3b8;">
-                      If you did not request a password reset, please safely ignore this email. Your password will remain unchanged.
+                    <p class="text-secondary" style="margin: 0; font-size: 13px; line-height: 20px; color: #64748b;">
+                      This link will expire in 15 minutes. If you did not request this, please ignore this email.
                     </p>
                   </td>
                 </tr>
