@@ -78,6 +78,7 @@ export function MeetingRoomPage() {
   // Refs
   const videoRef = useRef<HTMLVideoElement>(null)
   const [stream, setStream] = useState<MediaStream | null>(null)
+  const [isDeviceInitDone, setIsDeviceInitDone] = useState(false)
   const chatEndRef = useRef<HTMLDivElement>(null)
 
   // WebRTC peers & streams
@@ -96,13 +97,14 @@ export function MeetingRoomPage() {
   // ── WebRTC Connection Management ──
   useEffect(() => {
     if (status !== 'active') return
+    if (!isDeviceInitDone) return // Wait for device initialization to complete
 
     const socket = getSocket()
     if (!socket) return
 
     const createPeerConnection = (remoteParticipantId: string, remoteSocketId: string, initiateCall: boolean) => {
       const pc = new RTCPeerConnection({
-        iceServers: [{ urls: 'stun:stun.l.google.com:19002' }]
+        iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
       })
 
       pc.onicecandidate = (event) => {
@@ -144,7 +146,8 @@ export function MeetingRoomPage() {
 
     // Handle signal messages from peers
     const onSignal = async ({ from, signal }: { from: string; signal: any }) => {
-      const peer = participants.find(p => p.socketId === from)
+      const latestParticipants = useMeetingStore.getState().participants
+      const peer = latestParticipants.find(p => p.socketId === from)
       if (!peer) return
 
       let pc = peersRef.current.get(peer.id)
@@ -201,7 +204,7 @@ export function MeetingRoomPage() {
     return () => {
       socket.off('signal', onSignal)
     }
-  }, [status, participants, stream, localUserId])
+  }, [status, participants, stream, localUserId, isDeviceInitDone])
 
   // Clean up peers that left
   useEffect(() => {
@@ -270,6 +273,8 @@ export function MeetingRoomPage() {
             console.error("Failed to get any media device in room:", videoErr)
           }
         }
+      } finally {
+        setIsDeviceInitDone(true)
       }
     }
 
