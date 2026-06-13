@@ -156,6 +156,54 @@ const getProfile = async (req, res, next) => {
 };
 
 // ============================================================
+// PUT /api/users/profile
+// ============================================================
+/**
+ * Update the authenticated user's profile.
+ * Allows updating fullName, email, phoneNumber, and preferences.
+ */
+const updateProfile = async (req, res, next) => {
+  try {
+    const { fullName, email, phoneNumber, sourceLanguage, targetLanguage } = req.body;
+
+    // Check if email is being updated and if it's already in use
+    if (email && email.toLowerCase() !== req.user.email) {
+      const emailExists = await User.findOne({ email: email.toLowerCase() });
+      if (emailExists) {
+        throw ApiError.conflict('Email address is already in use');
+      }
+      req.user.email = email.toLowerCase();
+    }
+
+    if (fullName) {
+      req.user.fullName = fullName;
+    }
+    
+    if (phoneNumber !== undefined) {
+      req.user.phoneNumber = phoneNumber;
+    }
+
+    if (sourceLanguage !== undefined) {
+      req.user.preferences.spokenLanguage = sourceLanguage;
+    }
+    if (targetLanguage !== undefined) {
+      req.user.preferences.listeningLanguage = targetLanguage;
+    }
+
+    await req.user.save();
+
+    return sendSuccess(res, 200, 'Profile updated successfully', {
+      user: req.user.toSanitizedJSON(),
+    });
+  } catch (err) {
+    if (err.name === 'ValidationError') {
+      return res.status(400).json({ success: false, message: 'Validation failed' });
+    }
+    next(err);
+  }
+};
+
+// ============================================================
 // PATCH /api/users/preferences
 // ============================================================
 /**
@@ -530,6 +578,7 @@ module.exports = {
   forgotPassword,
   resetPassword,
   getProfile,
+  updateProfile,
   updatePreferences,
   updatePassword,
   deleteAccount,

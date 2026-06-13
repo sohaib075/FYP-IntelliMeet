@@ -21,6 +21,7 @@ export function ProfilePage() {
   const [profile, setProfile] = useState({
     name: user?.name || "",
     email: user?.email || "",
+    phoneNumber: user?.phoneNumber || "",
     sourceLanguage: user?.preferences?.sourceLanguage || "en",
     targetLanguage: user?.preferences?.targetLanguage || "zh",
   })
@@ -41,15 +42,17 @@ export function ProfilePage() {
     e.preventDefault()
     setIsLoading(true)
     try {
-      // Update preferences via backend API
-      const data = await userApi.updatePreferences({
-        spokenLanguage: profile.sourceLanguage,
-        listeningLanguage: profile.targetLanguage,
+      // Update profile via backend API
+      const data = await userApi.updateProfile({
+        fullName: profile.name,
+        email: profile.email,
+        phoneNumber: profile.phoneNumber,
+        sourceLanguage: profile.sourceLanguage,
+        targetLanguage: profile.targetLanguage,
       })
       // Sync local store with the backend response
       const mapped = mapBackendUser(data.user)
-      updateProfile(mapped.name)
-      updatePreferences(mapped.preferences)
+      updateProfile(mapped)
       addToast({ message: "Profile & Preferences updated successfully", variant: "success" })
     } catch (err) {
       if (err instanceof ApiError) {
@@ -147,12 +150,21 @@ export function ProfilePage() {
                 label="Full Name"
                 value={profile.name}
                 onChange={(e) => setProfile({ ...profile, name: e.target.value })}
+                required
               />
               <Input
                 label="Email Address"
+                type="email"
                 value={profile.email}
-                disabled
-                helperText="Email address cannot be changed."
+                onChange={(e) => setProfile({ ...profile, email: e.target.value })}
+                required
+              />
+              <Input
+                label="Phone Number"
+                type="tel"
+                value={profile.phoneNumber}
+                onChange={(e) => setProfile({ ...profile, phoneNumber: e.target.value })}
+                placeholder="+1 (555) 000-0000"
               />
               <div className="pt-6 mt-6 border-t border-[#E2E8F0]">
                 <h4 className="text-[14px] font-semibold text-[#0F172A] mb-4">Language Preferences</h4>
