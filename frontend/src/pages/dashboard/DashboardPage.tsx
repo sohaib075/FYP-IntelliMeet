@@ -25,6 +25,11 @@ export function DashboardPage() {
     }
   }
 
+  const handleStartInstant = () => {
+    const newId = `im-${Math.random().toString(36).substring(2, 6)}-${Math.random().toString(36).substring(2, 6)}`
+    navigate(`/meeting/room/${newId}`)
+  }
+
   return (
     <div className="p-6 max-w-[1200px] mx-auto space-y-6">
       
@@ -37,7 +42,7 @@ export function DashboardPage() {
             <p className="text-[13px] text-[#64748B] mt-1">Start an instant multilingual room</p>
           </div>
           <Button 
-            onClick={() => navigate('/meeting/room/intellimeet-xk7a-2b9c')}
+            onClick={handleStartInstant}
             className="bg-[#3B82F6] text-white hover:bg-[#2563EB] h-[36px] px-4 text-[14px] rounded-lg border-0"
           >
             Start Now

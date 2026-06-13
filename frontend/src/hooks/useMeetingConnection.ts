@@ -24,11 +24,20 @@ export function useMeetingConnection() {
 
     const onRoomState = (state: any) => {
       const currentParticipants = useMeetingStore.getState().participants;
-      const others = state.participants.filter((p: any) => p.id !== store.localUserId);
       
+      // Sync local participant settings (like isHost) from server state
+      const me = state.participants.find((p: any) => p.id === store.localUserId);
+      if (me && store.localUserId) {
+        useMeetingStore.getState().updateParticipant(store.localUserId, { isHost: me.isHost });
+      }
+
+      const others = state.participants.filter((p: any) => p.id !== store.localUserId);
       others.forEach((p: any) => {
-        if (!currentParticipants.find(cp => cp.id === p.id)) {
+        const existing = currentParticipants.find(cp => cp.id === p.id);
+        if (!existing) {
           useMeetingStore.getState().addParticipant(p);
+        } else {
+          useMeetingStore.getState().updateParticipant(p.id, p);
         }
       });
     };

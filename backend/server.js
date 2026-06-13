@@ -139,10 +139,17 @@ io.on('connection', (socket) => {
 
     // Check if participant already exists in the room
     const existingIndex = room.participants.findIndex((p) => p.id === user.id);
+    const isFirstUser = room.participants.length === 0;
+    const updatedUser = { 
+      ...user, 
+      socketId: socket.id,
+      isHost: existingIndex >= 0 ? room.participants[existingIndex].isHost : isFirstUser 
+    };
+
     if (existingIndex >= 0) {
-      room.participants[existingIndex] = { ...user, socketId: socket.id };
+      room.participants[existingIndex] = updatedUser;
     } else {
-      room.participants.push({ ...user, socketId: socket.id });
+      room.participants.push(updatedUser);
     }
 
     // Send the current room state back to the newly joined user
@@ -152,7 +159,7 @@ io.on('connection', (socket) => {
     });
 
     // Notify others in the room
-    socket.to(roomId).emit('user-joined', user);
+    socket.to(roomId).emit('user-joined', updatedUser);
 
     // Save user info on socket for disconnect handling
     socket.roomId = roomId;
@@ -236,6 +243,11 @@ io.on('connection', (socket) => {
         }
       }
     }
+  });
+
+  // Handle WebRTC signaling
+  socket.on('signal', ({ to, signal }) => {
+    io.to(to).emit('signal', { from: socket.id, signal });
   });
 });
 

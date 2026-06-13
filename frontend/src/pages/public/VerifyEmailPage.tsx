@@ -157,7 +157,7 @@ export function VerifyEmailPage() {
                 {otp.map((digit, index) => (
                   <input
                     key={index}
-                    ref={(el) => (inputRefs.current[index] = el)}
+                    ref={(el) => { inputRefs.current[index] = el; }}
                     type="text"
                     inputMode="numeric"
                     maxLength={1}
@@ -185,7 +185,7 @@ export function VerifyEmailPage() {
             <p className="text-[14px] text-[#64748B] mb-4">Didn't receive the code?</p>
             <Button
               type="button"
-              variant="outline"
+              variant="secondary"
               onClick={handleResend}
               disabled={resendTimer > 0 || isResending}
               className="w-full text-[#3B82F6] border-[#E2E8F0] hover:bg-[#F8FAFC]"
