@@ -94,7 +94,7 @@ const userSchema = new mongoose.Schema(
      */
     password: {
       type: String,
-      required: function() { return !this.googleId; },
+      required: function () { return !this.googleId; },
       minlength: [8, 'Password must be at least 8 characters'],
       select: false,
     },
@@ -208,6 +208,7 @@ userSchema.pre('save', async function (next) {
  * @returns {Promise<boolean>}          - True if the password matches
  */
 userSchema.methods.comparePassword = async function (candidatePassword) {
+  if (!this.password || !candidatePassword) return false;
   return bcrypt.compare(candidatePassword, this.password);
 };
 

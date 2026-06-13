@@ -50,6 +50,8 @@ const registerValidation = [
     .withMessage('Full name is required')
     .isLength({ min: 2, max: 50 })
     .withMessage('Full name must be between 2 and 50 characters')
+    .matches(/^[a-zA-Z\s]+$/)
+    .withMessage('Full name can only contain letters and spaces')
     .escape(), // Sanitise HTML entities
 
   body('email')
@@ -92,7 +94,8 @@ const loginValidation = [
 
   body('password')
     .notEmpty()
-    .withMessage('Password is required'),
+    .withMessage('Password is required')
+    .trim(),
 
   validate,
 ];
