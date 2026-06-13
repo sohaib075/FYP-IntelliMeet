@@ -24,6 +24,7 @@ export function GoogleAuthButton({ onError }: GoogleAuthButtonProps) {
       login(data.token, mappedUser)
       navigate('/dashboard')
     } catch (err) {
+      console.error("[GoogleAuthButton] Authentication error:", err)
       if (err instanceof ApiError) {
         onError?.(err.message)
       } else {

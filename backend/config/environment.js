@@ -63,7 +63,9 @@ module.exports = {
   BCRYPT_SALT_ROUNDS: parseInt(process.env.BCRYPT_SALT_ROUNDS, 10) || 10,
 
   /** Allowed CORS origins (parsed into an array) */
-  CORS_ORIGIN: process.env.CORS_ORIGIN
-    ? process.env.CORS_ORIGIN.split(',').map((origin) => origin.trim())
-    : ['http://localhost:5173'],
+  CORS_ORIGIN: process.env.NODE_ENV === 'development' || !process.env.NODE_ENV
+    ? [/^http:\/\/localhost:\d+$/, ...(process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',').map((origin) => origin.trim()) : [])]
+    : process.env.CORS_ORIGIN
+      ? process.env.CORS_ORIGIN.split(',').map((origin) => origin.trim())
+      : ['http://localhost:5173', 'http://localhost:5174'],
 };

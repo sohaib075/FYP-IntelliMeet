@@ -434,8 +434,19 @@ const forgotPassword = async (req, res, next) => {
     await user.save({ validateBeforeSave: false });
 
     // 4. Create reset URL
-    // Use CORS_ORIGIN to construct frontend URL (assume first origin is frontend)
-    const frontendUrl = Array.isArray(config.CORS_ORIGIN) ? config.CORS_ORIGIN[0] : config.CORS_ORIGIN;
+    // Use Origin header if available, otherwise fallback to configured CORS origins
+    const reqOrigin = req.headers.origin || req.headers.referer;
+    let frontendUrl = 'http://localhost:5173';
+    
+    if (reqOrigin) {
+      frontendUrl = reqOrigin.replace(/\/$/, '');
+    } else {
+      const stringOrigin = Array.isArray(config.CORS_ORIGIN) 
+        ? config.CORS_ORIGIN.find(o => typeof o === 'string') 
+        : config.CORS_ORIGIN;
+      if (stringOrigin) frontendUrl = stringOrigin;
+    }
+    
     const resetUrl = `${frontendUrl}/reset-password?token=${resetToken}`;
 
     // 5. Send email
