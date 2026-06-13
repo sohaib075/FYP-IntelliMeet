@@ -60,7 +60,7 @@ module.exports = {
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || '7d',
 
   /** Bcrypt cost factor — higher = slower + more secure */
-  BCRYPT_SALT_ROUNDS: parseInt(process.env.BCRYPT_SALT_ROUNDS, 10) || 12,
+  BCRYPT_SALT_ROUNDS: parseInt(process.env.BCRYPT_SALT_ROUNDS, 10) || 10,
 
   /** Allowed CORS origins (parsed into an array) */
   CORS_ORIGIN: process.env.CORS_ORIGIN

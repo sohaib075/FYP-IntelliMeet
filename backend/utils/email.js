@@ -14,7 +14,12 @@ const config = require('../config/environment');
 // For production, you would configure this with a real SMTP service
 // (e.g., SendGrid, Mailgun, Amazon SES).
 // For now, it just mocks it or uses Ethereal if configured.
+
+let cachedTransporter = null;
+
 const createTransporter = async () => {
+  if (cachedTransporter) return cachedTransporter;
+
   console.log("=== EMAIL CONFIGURATION CHECK ===");
   console.log("SMTP_HOST:", process.env.SMTP_HOST);
   console.log("SMTP_USER:", process.env.SMTP_USER);
@@ -24,7 +29,7 @@ const createTransporter = async () => {
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST,
       port: process.env.SMTP_PORT || 587,
-      secure: process.env.SMTP_PORT === '465', 
+      secure: process.env.SMTP_PORT === '465',
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS,
@@ -35,6 +40,7 @@ const createTransporter = async () => {
     try {
       await transporter.verify();
       console.log("✅ SMTP connection verified in createTransporter");
+      cachedTransporter = transporter;
       return transporter;
     } catch (err) {
       console.error("❌ SMTP connection failed in createTransporter:", err.message);

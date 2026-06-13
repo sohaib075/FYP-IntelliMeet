@@ -10,7 +10,7 @@ import { GoogleAuthButton } from "@/components/auth/GoogleAuthButton"
 export function LoginPage() {
   const navigate = useNavigate()
   const login = useAuthStore((state) => state.login)
-  
+
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
@@ -19,29 +19,40 @@ export function LoginPage() {
   const [passwordError, setPasswordError] = useState("")
   const [showPassword, setShowPassword] = useState(false)
 
+  const validateEmail = (val: string) => {
+    if (!val.trim()) return "Please enter your email address.";
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) return "Please enter a valid email address.";
+    return "";
+  };
+
+  const validatePassword = (val: string) => {
+    if (!val) return "Please enter your password.";
+    return "";
+  };
+
   const validateForm = () => {
-    let isValid = true
-    setEmailError("")
-    setPasswordError("")
+    const eError = validateEmail(email);
+    const pError = validatePassword(password);
 
-    if (!email) {
-      setEmailError("Email is required")
-      isValid = false
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      setEmailError("Please enter a valid email address")
-      isValid = false
-    }
+    setEmailError(eError);
+    setPasswordError(pError);
 
-    if (!password) {
-      setPasswordError("Password is required")
-      isValid = false
-    } else if (password.length < 8) {
-      setPasswordError("Password must be at least 8 characters")
-      isValid = false
-    }
+    return !eError && !pError;
+  };
 
-    return isValid
-  }
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value.trim();
+    setEmail(val);
+    if (emailError) setEmailError(validateEmail(val));
+    setError("");
+  };
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setPassword(val);
+    if (passwordError) setPasswordError(validatePassword(val));
+    setError("");
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -71,19 +82,19 @@ export function LoginPage() {
 
   return (
     <div className="flex min-h-screen w-full bg-[#F8FAFC] font-body text-[#0F172A] overflow-hidden">
-      
+
       {/* Left Column (Form) */}
       <div className="flex-1 flex flex-col justify-between px-6 py-8 md:px-16 lg:px-20 bg-white relative z-10 shadow-2xl">
         <Link to="/" className="flex items-center mb-6 self-start hover:opacity-85 transition-opacity">
           <Logo size={42} className="text-[#3B82F6]" />
         </Link>
-        
+
         <div className="my-auto max-w-[380px] w-full mx-auto space-y-6">
           <div className="space-y-2">
             <h1 className="text-[32px] font-bold text-[#0F172A] font-display tracking-tight leading-tight">Welcome back</h1>
             <p className="text-[15px] text-[#64748B]">Sign in to your account to continue connecting</p>
           </div>
-          
+
           <form className="space-y-5" onSubmit={handleLogin}>
             {error && (
               <div className="p-3.5 bg-red-50 text-red-600 rounded-xl text-sm border border-red-100 flex items-center gap-2">
@@ -91,31 +102,33 @@ export function LoginPage() {
                 {error}
               </div>
             )}
-            
+
             <div className="space-y-4">
-              <Input 
+              <Input
                 type="email"
                 label="Email address"
                 value={email}
-                onChange={(e) => { setEmail(e.target.value); setEmailError(""); setError("") }}
+                onChange={handleEmailChange}
+                onBlur={() => setEmailError(validateEmail(email))}
                 placeholder="you@example.com"
                 error={emailError}
                 disabled={isLoading}
                 className="rounded-xl border-[#E2E8F0] focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 transition-all h-11"
               />
-              
-              <Input 
+
+              <Input
                 type={showPassword ? "text" : "password"}
                 label="Password"
                 value={password}
-                onChange={(e) => { setPassword(e.target.value); setPasswordError(""); setError("") }}
+                onChange={handlePasswordChange}
+                onBlur={() => setPasswordError(validatePassword(password))}
                 placeholder="••••••••"
                 error={passwordError}
                 disabled={isLoading}
                 className="rounded-xl border-[#E2E8F0] focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 transition-all h-11"
                 rightIcon={
-                  <button 
-                    type="button" 
+                  <button
+                    type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     className="text-[#94A3B8] hover:text-[#0F172A] focus:outline-none flex items-center justify-center h-full pr-1.5"
                     aria-label={showPassword ? "Hide password" : "Show password"}
@@ -136,8 +149,8 @@ export function LoginPage() {
               </Link>
             </div>
 
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               disabled={isLoading}
               className="w-full h-11 rounded-xl bg-[#3B82F6] hover:bg-[#2563EB] text-white font-medium shadow-md shadow-blue-500/10 hover:shadow-lg hover:shadow-blue-500/20 active:scale-[0.99] transition-all"
             >
@@ -160,7 +173,7 @@ export function LoginPage() {
             </Link>
           </div>
         </div>
-        
+
         <div className="text-center text-[12px] text-[#94A3B8] mt-6">
           © {new Date().getFullYear()} IntelliMeet. All rights reserved.
         </div>
@@ -168,17 +181,17 @@ export function LoginPage() {
 
       {/* Right Column (Visual Showcase) */}
       <div className="hidden lg:flex flex-1 bg-[#090D1A] relative items-center justify-center p-12 overflow-hidden">
-        
+
         {/* Cinematic Backdrop Glows */}
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(59,130,246,0.15),transparent_60%)]" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_70%,rgba(99,102,241,0.12),transparent_60%)]" />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-[#1E3A8A]/10 rounded-full blur-[140px]" />
-        
+
         {/* Animated Cyber Grid background overlay */}
         <div className="absolute inset-0 opacity-[0.03] bg-[linear-gradient(to_right,#808080_1px,transparent_1px),linear-gradient(to_bottom,#808080_1px,transparent_1px)] bg-[size:24px_24px]" />
 
         <div className="relative z-10 flex flex-col items-center max-w-lg w-full">
-          
+
           {/* Simulated Real-time Translation Wave Interface */}
           <div className="w-full bg-white/[0.03] border border-white/[0.08] backdrop-blur-xl rounded-2xl p-6 shadow-2xl mb-8 space-y-4">
             <div className="flex items-center justify-between border-b border-white/[0.08] pb-3 mb-1">
