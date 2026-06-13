@@ -68,6 +68,17 @@ const userSchema = new mongoose.Schema(
       ],
     },
 
+    /** Phone Number */
+    phoneNumber: {
+      type: String,
+      trim: true,
+      default: null,
+      match: [
+        /^[0-9+\-\s()]*$/,
+        'Please provide a valid phone number',
+      ],
+    },
+
     /** Google Account ID */
     googleId: {
       type: String,

@@ -11,6 +11,40 @@ const { body } = require('express-validator');
 const { validate } = require('./authValidators');
 
 // ============================================================
+// Update Profile Validation Rules
+// ============================================================
+const updateProfileValidation = [
+  body('fullName')
+    .optional()
+    .trim()
+    .notEmpty()
+    .withMessage('Full name cannot be empty')
+    .isLength({ min: 2, max: 50 })
+    .withMessage('Full name must be between 2 and 50 characters')
+    .matches(/^[a-zA-Z0-9\s.,'-]+$/)
+    .withMessage('Full name contains invalid characters'),
+
+  body('email')
+    .optional()
+    .trim()
+    .notEmpty()
+    .withMessage('Email cannot be empty')
+    .isEmail()
+    .withMessage('Please provide a valid email address')
+    .normalizeEmail(),
+
+  body('phoneNumber')
+    .optional()
+    .trim()
+    .matches(/^[0-9+\-\s()]*$/)
+    .withMessage('Please provide a valid phone number')
+    .isLength({ max: 20 })
+    .withMessage('Phone number must not exceed 20 characters'),
+
+  validate,
+];
+
+// ============================================================
 // Update Preferences Validation Rules
 // ============================================================
 const updatePreferencesValidation = [
@@ -56,6 +90,7 @@ const updatePasswordValidation = [
 ];
 
 module.exports = {
+  updateProfileValidation,
   updatePreferencesValidation,
   updatePasswordValidation,
 };

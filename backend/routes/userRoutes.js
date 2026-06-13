@@ -15,12 +15,14 @@ const router = express.Router();
 
 const {
   getProfile,
+  updateProfile,
   updatePreferences,
   updatePassword,
   deleteAccount,
 } = require('../controllers/authController');
 const { protect } = require('../middleware/authMiddleware');
 const {
+  updateProfileValidation,
   updatePreferencesValidation,
   updatePasswordValidation,
 } = require('../validators/userValidators');
@@ -31,6 +33,7 @@ router.use(protect);
 // ---- Routes ----
 
 router.get('/profile', getProfile);
+router.put('/profile', updateProfileValidation, updateProfile);
 router.delete('/profile', deleteAccount);
 router.patch('/preferences', updatePreferencesValidation, updatePreferences);
 router.put('/password', updatePasswordValidation, updatePassword);

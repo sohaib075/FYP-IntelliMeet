@@ -15,6 +15,7 @@ export interface User {
   id: string
   name: string
   email: string
+  phoneNumber?: string
   preferences: {
     sourceLanguage: string
     targetLanguage: string
@@ -30,7 +31,7 @@ interface AuthState {
   login: (token: string, user: User) => void
   logout: () => void
   updatePreferences: (preferences: Partial<User['preferences']>) => void
-  updateProfile: (name: string) => void
+  updateProfile: (data: Partial<User>) => void
 }
 
 /**
@@ -41,6 +42,7 @@ export function mapBackendUser(backendUser: {
   _id: string
   fullName: string
   email: string
+  phoneNumber?: string
   preferences?: {
     spokenLanguage?: string
     listeningLanguage?: string
@@ -50,6 +52,7 @@ export function mapBackendUser(backendUser: {
     id: backendUser._id,
     name: backendUser.fullName,
     email: backendUser.email,
+    phoneNumber: backendUser.phoneNumber,
     preferences: {
       sourceLanguage: backendUser.preferences?.spokenLanguage || 'en',
       targetLanguage: backendUser.preferences?.listeningLanguage || 'en',
@@ -75,9 +78,9 @@ export const useAuthStore = create<AuthState>()(
           user: state.user ? { ...state.user, preferences: { ...state.user.preferences, ...preferences } } : null
         })),
         
-      updateProfile: (name) => 
+      updateProfile: (data) => 
         set((state) => ({
-          user: state.user ? { ...state.user, name } : null
+          user: state.user ? { ...state.user, ...data } : null
         })),
     }),
     {

@@ -33,6 +33,7 @@ export interface BackendUser {
   _id: string
   fullName: string
   email: string
+  phoneNumber?: string
   preferences: {
     spokenLanguage: string
     listeningLanguage: string
@@ -192,6 +193,21 @@ export const userApi = {
   getProfile: () =>
     request<{ user: BackendUser }>('/users/profile', {
       method: 'GET',
+    }),
+
+  /**
+   * Update the user's profile.
+   */
+  updateProfile: (body: {
+    fullName?: string
+    email?: string
+    phoneNumber?: string
+    sourceLanguage?: string
+    targetLanguage?: string
+  }) =>
+    request<{ user: BackendUser }>('/users/profile', {
+      method: 'PUT',
+      body: JSON.stringify(body),
     }),
 
   /**
