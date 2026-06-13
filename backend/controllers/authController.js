@@ -28,6 +28,9 @@ const { sendOtpEmail, sendPasswordResetEmail } = require('../utils/email');
 const config = require('../config/environment');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
+const { OAuth2Client } = require('google-auth-library');
+
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 // ============================================================
 // POST /api/auth/register
@@ -448,6 +451,77 @@ const resetPassword = async (req, res, next) => {
   }
 };
 
+/**
+ * ============================================================
+ * Google Auth
+ * ============================================================
+ * Handles Google Sign-In and Sign-Up.
+ * Verifies ID token with Google, then links or creates user.
+ */
+const googleAuth = async (req, res, next) => {
+  try {
+    const { token } = req.body;
+
+    if (!token) {
+      throw ApiError.badRequest('Google ID token is required');
+    }
+
+    // 1. Verify Google token
+    let ticket;
+    try {
+      ticket = await googleClient.verifyIdToken({
+        idToken: token,
+        audience: process.env.GOOGLE_CLIENT_ID,
+      });
+    } catch (error) {
+      throw ApiError.unauthorized('Invalid Google ID token');
+    }
+
+    const payload = ticket.getPayload();
+    const { email, name, sub: googleId, picture } = payload;
+
+    // 2. Check if user exists by email
+    let user = await User.findOne({ email: email.toLowerCase() });
+
+    if (user) {
+      // 3a. User exists: Link Google account if not linked
+      if (!user.googleId) {
+        user.googleId = googleId;
+        user.authProvider = 'google';
+        if (picture && !user.profilePicture) {
+          user.profilePicture = picture;
+        }
+        await user.save({ validateBeforeSave: false });
+      }
+    } else {
+      // 3b. User does not exist: Create new user via Google
+      // We bypass PendingUser since Google verifies the email
+      user = await User.create({
+        fullName: name,
+        email: email.toLowerCase(),
+        googleId,
+        authProvider: 'google',
+        profilePicture: picture,
+      });
+    }
+
+    // 4. Update last login timestamp
+    user.lastLoginAt = new Date();
+    await user.save({ validateBeforeSave: false });
+
+    // 5. Generate JWT
+    const jwtToken = generateToken(user._id);
+
+    // 6. Return sanitised response
+    return sendSuccess(res, 200, 'Logged in with Google successfully', {
+      token: jwtToken,
+      user: user.toSanitizedJSON(),
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports = {
   register,
   login,
@@ -459,4 +533,5 @@ module.exports = {
   updatePreferences,
   updatePassword,
   deleteAccount,
+  googleAuth,
 };

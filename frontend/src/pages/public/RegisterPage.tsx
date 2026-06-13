@@ -6,7 +6,7 @@ import { ArrowLeftRight, Eye, EyeOff } from "lucide-react"
 import { useAuthStore, mapBackendUser } from "@/store/useAuthStore"
 import { Logo } from "@/components/common/Logo"
 import { authApi, ApiError } from "@/lib/api"
-
+import { GoogleAuthButton } from "@/components/auth/GoogleAuthButton"
 export function RegisterPage() {
   const navigate = useNavigate()
   const [isLoading, setIsLoading] = useState(false)
@@ -211,7 +211,9 @@ export function RegisterPage() {
             <div className="flex-1 h-px bg-[#E2E8F0]" />
           </div>
 
-          <div className="text-center text-[14px] text-[#64748B]">
+          <GoogleAuthButton onError={(msg) => setError(msg)} />
+
+          <div className="text-center text-[14px] text-[#64748B] mt-6">
             Already have an account?{" "}
             <Link to="/login" className="text-[#3B82F6] hover:text-[#2563EB] font-semibold transition-colors">
               Sign in

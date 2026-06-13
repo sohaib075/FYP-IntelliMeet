@@ -13,7 +13,7 @@
 const express = require('express');
 const router = express.Router();
 
-const { register, login, verifyOtp, resendOtp, forgotPassword, resetPassword } = require('../controllers/authController');
+const { register, login, verifyOtp, resendOtp, forgotPassword, resetPassword, googleAuth } = require('../controllers/authController');
 const {
   registerValidation,
   loginValidation,
@@ -27,6 +27,7 @@ router.use(authLimiter);
 
 router.post('/register', authLimiter, registerValidation, register);
 router.post('/login', authLimiter, loginValidation, login);
+router.post('/google', authLimiter, googleAuth);
 router.post('/verify-otp', authLimiter, verifyOtp);
 router.post('/resend-otp', authLimiter, resendOtp);
 

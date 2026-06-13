@@ -142,6 +142,15 @@ export const authApi = {
     }),
 
   /**
+   * Authenticate via Google OAuth.
+   */
+  googleAuth: (token: string) =>
+    request<AuthResponseData>('/auth/google', {
+      method: 'POST',
+      body: JSON.stringify({ token }),
+    }),
+
+  /**
    * Verify the 6-digit OTP sent to the user's email.
    */
   verifyOtp: (body: { email: string; otp: string }) =>

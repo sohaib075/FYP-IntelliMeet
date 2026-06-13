@@ -68,13 +68,33 @@ const userSchema = new mongoose.Schema(
       ],
     },
 
+    /** Google Account ID */
+    googleId: {
+      type: String,
+      sparse: true,
+      unique: true,
+    },
+
+    /** Profile Picture URL */
+    profilePicture: {
+      type: String,
+      default: null,
+    },
+
+    /** Authentication Provider */
+    authProvider: {
+      type: String,
+      enum: ['local', 'google'],
+      default: 'local',
+    },
+
     /**
      * Hashed password — NEVER returned by default.
      * Use `.select('+password')` when you need to compare passwords.
      */
     password: {
       type: String,
-      required: [true, 'Password is required'],
+      required: function() { return !this.googleId; },
       minlength: [8, 'Password must be at least 8 characters'],
       select: false,
     },
