@@ -129,6 +129,26 @@ io.on('connection', (socket) => {
 
   // Join a room
   socket.on('join-room', (roomId, user) => {
+    // If the socket was already in a different room, clean up the old room
+    if (socket.roomId && socket.roomId !== roomId) {
+      const oldRoomId = socket.roomId;
+      socket.leave(oldRoomId);
+      const oldRoom = rooms.get(oldRoomId);
+      if (oldRoom) {
+        const leftUsers = oldRoom.participants.filter(p => p.socketId === socket.id);
+        oldRoom.participants = oldRoom.participants.filter(p => p.socketId !== socket.id);
+        
+        leftUsers.forEach(u => {
+          socket.to(oldRoomId).emit('user-left', u.id);
+        });
+
+        if (oldRoom.participants.length === 0) {
+          rooms.delete(oldRoomId);
+          console.log(`[Socket] Room ${oldRoomId} empty and deleted`);
+        }
+      }
+    }
+
     socket.join(roomId);
 
     if (!rooms.has(roomId)) {
@@ -192,6 +212,20 @@ io.on('connection', (socket) => {
     }
   });
 
+  // Handle host forcing media off
+  socket.on('force-media', (roomId, targetUserId, action) => {
+    const room = rooms.get(roomId);
+    if (room) {
+      const targetUser = room.participants.find((p) => p.id === targetUserId);
+      if (targetUser && targetUser.socketId) {
+        const targetSocket = io.sockets.sockets.get(targetUser.socketId);
+        if (targetSocket) {
+          targetSocket.emit('force-media', action);
+        }
+      }
+    }
+  });
+
   // Handle participant removal (kicked by host)
   socket.on('remove-user', (roomId, targetUserId) => {
     const room = rooms.get(roomId);
@@ -208,7 +242,10 @@ io.on('connection', (socket) => {
         // Disconnect the target socket
         const targetSocket = io.sockets.sockets.get(targetUser.socketId);
         if (targetSocket) {
-          targetSocket.disconnect(true);
+          targetSocket.emit('kicked');
+          setTimeout(() => {
+            targetSocket.disconnect(true);
+          }, 500);
         }
       }
     }

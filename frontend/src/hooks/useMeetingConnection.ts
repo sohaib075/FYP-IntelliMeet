@@ -63,12 +63,32 @@ export function useMeetingConnection() {
       useMeetingStore.getState().updateParticipant(userId, mediaState);
     };
 
+    const onKicked = () => {
+      useMeetingStore.getState().leaveMeeting();
+      window.location.href = '/meeting/ended';
+    };
+
+    const onForceMedia = (action: 'mute' | 'video-off') => {
+      const state = useMeetingStore.getState();
+      if (action === 'mute' && !state.localIsMuted) {
+        state.toggleMic();
+      } else if (action === 'video-off' && !state.localIsVideoOff) {
+        state.toggleVideo();
+      }
+    };
+
     socket.on('connect', onConnect);
     socket.on('room-state', onRoomState);
     socket.on('user-joined', onUserJoined);
     socket.on('user-left', onUserLeft);
     socket.on('chat-message', onChatMessage);
     socket.on('media-toggled', onMediaToggled);
+    socket.on('kicked', onKicked);
+    socket.on('force-media', onForceMedia);
+
+    if (socket.connected) {
+      onConnect();
+    }
 
     return () => {
       socket.off('connect', onConnect);
@@ -77,6 +97,8 @@ export function useMeetingConnection() {
       socket.off('user-left', onUserLeft);
       socket.off('chat-message', onChatMessage);
       socket.off('media-toggled', onMediaToggled);
+      socket.off('kicked', onKicked);
+      socket.off('force-media', onForceMedia);
       socket.disconnect();
       hasConnected.current = false;
     };

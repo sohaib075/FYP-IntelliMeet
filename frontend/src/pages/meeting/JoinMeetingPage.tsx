@@ -26,9 +26,9 @@ export function JoinMeetingPage() {
       parsedId = parsedId.split("intellimeet.app/join/")[1]
     }
 
-    // Basic validation format check
-    if (parsedId.length < 5) {
-      setError("Meeting not found. Please check the ID and try again.")
+    // Basic validation check (just length for testing flexibility)
+    if (parsedId.length < 4) {
+      setError("Meeting ID must be at least 4 characters long.")
       return
     }
 

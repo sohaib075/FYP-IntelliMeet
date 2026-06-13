@@ -11,6 +11,7 @@ export interface Participant {
   flag: string
   isMuted: boolean
   isVideoOff: boolean
+  isScreenSharing?: boolean
   isHost: boolean
   joinedAt: number
   socketId?: string
@@ -157,6 +158,7 @@ export const useMeetingStore = create<MeetingState>((set, get) => ({
       flag: config.sourceLang === 'ur' ? '🇵🇰' : config.sourceLang === 'zh' ? '🇨🇳' : '🇬🇧',
       isMuted: !config.micOn,
       isVideoOff: !config.videoOn,
+      isScreenSharing: false,
       isHost: false,
       joinedAt: Date.now(),
     }
@@ -334,8 +336,20 @@ export const useMeetingStore = create<MeetingState>((set, get) => ({
   },
 
   toggleScreenShare: () => {
-    const newScreenShare = !get().localIsScreenSharing
-    set({ localIsScreenSharing: newScreenShare })
+    const state = get()
+    const newScreenShare = !state.localIsScreenSharing
+    set((s) => ({
+      localIsScreenSharing: newScreenShare,
+      participants: s.participants.map((p) =>
+        p.id === s.localUserId ? { ...p, isScreenSharing: newScreenShare } : p
+      ),
+    }))
+    
+    const socket = getSocket()
+    if (socket && state.meetingId) {
+      socket.emit('toggle-media', state.meetingId, state.localUserId, { isScreenSharing: newScreenShare })
+    }
+
     get().addEvent({
       type: 'info',
       message: newScreenShare ? 'You started sharing your screen' : 'You stopped sharing your screen',

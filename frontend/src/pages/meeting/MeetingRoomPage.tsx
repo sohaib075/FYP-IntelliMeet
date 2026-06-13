@@ -17,7 +17,7 @@ function formatElapsed(totalSeconds: number): string {
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
 }
 
-function RemoteVideo({ stream }: { stream: MediaStream }) {
+function RemoteVideo({ stream, className }: { stream: MediaStream, className?: string }) {
   const ref = useRef<HTMLVideoElement>(null)
   
   useEffect(() => {
@@ -31,7 +31,7 @@ function RemoteVideo({ stream }: { stream: MediaStream }) {
       ref={ref}
       autoPlay
       playsInline
-      className="w-full h-full object-cover absolute inset-0"
+      className={className || "w-full h-full object-cover absolute inset-0"}
     />
   )
 }
@@ -78,6 +78,7 @@ export function MeetingRoomPage() {
   // Refs
   const videoRef = useRef<HTMLVideoElement>(null)
   const [stream, setStream] = useState<MediaStream | null>(null)
+  const [screenStream, setScreenStream] = useState<MediaStream | null>(null)
   const [isDeviceInitDone, setIsDeviceInitDone] = useState(false)
   const chatEndRef = useRef<HTMLDivElement>(null)
 
@@ -97,15 +98,19 @@ export function MeetingRoomPage() {
   // ── WebRTC Connection Management ──
   useEffect(() => {
     if (status !== 'active') return
-    if (!isDeviceInitDone) return // Wait for device initialization to complete
 
     const socket = getSocket()
     if (!socket) return
 
-    const createPeerConnection = (remoteParticipantId: string, remoteSocketId: string, initiateCall: boolean) => {
+    const createPeerConnection = (remoteParticipantId: string, remoteSocketId: string, isPolite: boolean) => {
       const pc = new RTCPeerConnection({
         iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
       })
+      
+      const pcAny = pc as any;
+      pcAny.isPolite = isPolite;
+      pcAny.makingOffer = false;
+      pcAny.ignoreOffer = false;
 
       pc.onicecandidate = (event) => {
         if (event.candidate && socket) {
@@ -116,28 +121,35 @@ export function MeetingRoomPage() {
         }
       }
 
+      pc.onnegotiationneeded = async () => {
+        try {
+          pcAny.makingOffer = true;
+          const offer = await pc.createOffer();
+          await pc.setLocalDescription(offer);
+          socket.emit('signal', {
+            to: remoteSocketId,
+            signal: { type: 'offer', sdp: pc.localDescription }
+          })
+        } catch (err) {
+          console.error("Error in negotiation", err)
+        } finally {
+          pcAny.makingOffer = false;
+        }
+      }
+
       pc.ontrack = (event) => {
         setRemoteStreams((prev) => {
           const newMap = new Map(prev)
-          newMap.set(remoteParticipantId, event.streams[0])
+          // Clone the stream to ensure a new object reference. 
+          // If audio arrives after video, creating a new stream forces React to re-bind srcObject!
+          const newStream = new MediaStream(event.streams[0].getTracks())
+          newMap.set(remoteParticipantId, newStream)
           return newMap
         })
       }
 
       if (stream) {
         stream.getTracks().forEach(track => pc.addTrack(track, stream))
-      }
-
-      if (initiateCall) {
-        pc.createOffer()
-          .then((offer) => pc.setLocalDescription(offer))
-          .then(() => {
-            socket.emit('signal', {
-              to: remoteSocketId,
-              signal: { type: 'offer', sdp: pc.localDescription }
-            })
-          })
-          .catch((err) => console.error("Error creating offer", err))
       }
 
       peersRef.current.set(remoteParticipantId, pc)
@@ -152,11 +164,28 @@ export function MeetingRoomPage() {
 
       let pc = peersRef.current.get(peer.id)
       if (!pc) {
-        pc = createPeerConnection(peer.id, from, false)
+        const isPolite = localUserId ? (localUserId > peer.id) : true;
+        pc = createPeerConnection(peer.id, from, isPolite)
       }
+
+      const pcAny = pc as any;
 
       try {
         if (signal.type === 'offer') {
+          const offerCollision = pcAny.makingOffer || pc.signalingState !== 'stable';
+          pcAny.ignoreOffer = !pcAny.isPolite && offerCollision;
+          if (pcAny.ignoreOffer) {
+            return;
+          }
+
+          if (offerCollision) {
+            try {
+              await pc.setLocalDescription({ type: 'rollback' });
+            } catch (e) {
+              console.warn("Rollback failed or not supported, proceeding anyway", e);
+            }
+          }
+
           await pc.setRemoteDescription(new RTCSessionDescription(signal.sdp))
           const answer = await pc.createAnswer()
           await pc.setLocalDescription(answer)
@@ -167,25 +196,62 @@ export function MeetingRoomPage() {
         } else if (signal.type === 'answer') {
           await pc.setRemoteDescription(new RTCSessionDescription(signal.sdp))
         } else if (signal.type === 'candidate') {
-          await pc.addIceCandidate(new RTCIceCandidate(signal.candidate))
+          try {
+            await pc.addIceCandidate(new RTCIceCandidate(signal.candidate))
+          } catch(e) {
+            if (!pcAny.ignoreOffer) console.error("Error adding candidate", e)
+          }
         }
       } catch (err) {
         console.error("Error handling signal", err)
       }
     }
 
-    // Update track senders when local stream changes
+    // Update track senders when local stream or screen share changes
     peersRef.current.forEach((pc) => {
-      if (stream) {
-        const senders = pc.getSenders()
-        stream.getTracks().forEach((track) => {
-          const sender = senders.find((s) => s.track?.kind === track.kind)
-          if (sender) {
-            sender.replaceTrack(track)
-          } else {
-            pc.addTrack(track, stream)
-          }
-        })
+      const currentVideoTrack = (localIsScreenSharing && screenStream 
+        ? screenStream.getVideoTracks()[0] 
+        : stream?.getVideoTracks()[0]) || null;
+        
+      const currentAudioTrack = stream?.getAudioTracks()[0] || null;
+
+      const senders = pc.getSenders();
+      const transceivers = pc.getTransceivers();
+      
+      const isSending = (t: RTCRtpTransceiver) => 
+        t.direction === 'sendrecv' || t.direction === 'sendonly' || 
+        t.currentDirection === 'sendrecv' || t.currentDirection === 'sendonly';
+
+      let activeVideoSender = senders.find(s => s.track?.kind === 'video');
+      if (!activeVideoSender) {
+        const t = transceivers.find(t => t.receiver?.track?.kind === 'video');
+        if (t && isSending(t)) activeVideoSender = t.sender;
+      }
+
+      if (activeVideoSender) {
+        activeVideoSender.replaceTrack(currentVideoTrack).catch(e => console.error("Video replaceTrack error:", e));
+      } else if (currentVideoTrack && stream) {
+        try {
+          pc.addTrack(currentVideoTrack, stream);
+        } catch (e) {
+          console.warn("Could not add video track", e);
+        }
+      }
+
+      let activeAudioSender = senders.find(s => s.track?.kind === 'audio');
+      if (!activeAudioSender) {
+        const t = transceivers.find(t => t.receiver?.track?.kind === 'audio');
+        if (t && isSending(t)) activeAudioSender = t.sender;
+      }
+
+      if (activeAudioSender) {
+        activeAudioSender.replaceTrack(currentAudioTrack).catch(e => console.error("Audio replaceTrack error:", e));
+      } else if (currentAudioTrack && stream) {
+        try {
+          pc.addTrack(currentAudioTrack, stream);
+        } catch (e) {
+          console.warn("Could not add audio track", e);
+        }
       }
     })
 
@@ -193,9 +259,9 @@ export function MeetingRoomPage() {
     const activeParticipants = participants.filter(p => p.id !== localUserId)
     activeParticipants.forEach((p) => {
       if (!peersRef.current.has(p.id) && p.socketId) {
-        // Deterministic caller selection (lexicographical comparison of IDs)
-        const initiateCall = localUserId ? (localUserId < p.id) : false
-        createPeerConnection(p.id, p.socketId, initiateCall)
+        // Deterministic polite selection (lexicographical comparison of IDs)
+        const isPolite = localUserId ? (localUserId > p.id) : true
+        createPeerConnection(p.id, p.socketId, isPolite)
       }
     })
 
@@ -204,7 +270,7 @@ export function MeetingRoomPage() {
     return () => {
       socket.off('signal', onSignal)
     }
-  }, [status, participants, stream, localUserId, isDeviceInitDone])
+  }, [status, participants, stream, screenStream, localIsScreenSharing, localUserId, isDeviceInitDone])
 
   // Clean up peers that left
   useEffect(() => {
@@ -287,12 +353,7 @@ export function MeetingRoomPage() {
     }
   }, [])
 
-  // Safely bind the local stream to the video element whenever it is rendered
-  useEffect(() => {
-    if (videoRef.current && stream) {
-      videoRef.current.srcObject = stream
-    }
-  }, [stream, localIsVideoOff])
+  // Safely bind the local stream to the video element (handled via callback ref now)
 
   useEffect(() => {
     if (stream) {
@@ -328,6 +389,34 @@ export function MeetingRoomPage() {
     }
   }
 
+  const handleScreenShareToggle = async () => {
+    if (localIsScreenSharing) {
+      if (screenStream) {
+        const tracks = screenStream.getTracks();
+        tracks.forEach(track => {
+          track.onended = null;
+          track.stop();
+        })
+        setScreenStream(null)
+      }
+      toggleScreenShare()
+    } else {
+      try {
+        const displayStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false })
+        setScreenStream(displayStream)
+        
+        displayStream.getVideoTracks()[0].onended = () => {
+          setScreenStream(null)
+          useMeetingStore.getState().toggleScreenShare()
+        }
+        
+        toggleScreenShare()
+      } catch (err) {
+        console.error("Failed to share screen", err)
+      }
+    }
+  }
+
   const handleSendMessage = () => {
     if (!chatInput.trim()) return
     sendMessage(chatInput.trim())
@@ -345,11 +434,27 @@ export function MeetingRoomPage() {
     if (stream) {
       stream.getTracks().forEach(track => track.stop())
     }
+    if (screenStream) {
+      screenStream.getTracks().forEach(track => track.stop())
+    }
     navigate('/meeting/ended')
+  }
+
+  const handleForceMedia = (targetId: string, action: 'mute' | 'video-off') => {
+    const socket = getSocket()
+    if (socket && meetingId) {
+      socket.emit('force-media', meetingId, targetId, action)
+    }
   }
 
   const handleRemoveParticipant = () => {
     if (!removeTarget) return
+    
+    const socket = getSocket()
+    if (socket && meetingId) {
+      socket.emit('remove-user', meetingId, removeTarget)
+    }
+
     const targetName = participants.find(p => p.id === removeTarget)?.name || 'Participant'
     removeParticipant(removeTarget)
     addEvent({
@@ -364,6 +469,14 @@ export function MeetingRoomPage() {
 
   const localUser = participants.find(p => p.id === localUserId)
   const remoteParticipants = participants.filter(p => p.id !== localUserId)
+  
+  // Robust fallback: if state somehow lost the host designation, visually assign it to the oldest participant
+  const hasHost = participants.some(p => p.isHost);
+  const displayParticipants = participants.map((p, index) => {
+    if (hasHost) return p;
+    return index === 0 ? { ...p, isHost: true } : p;
+  });
+  
   const activeSpeaker = remoteParticipants[0] // First remote participant is "active speaker"
 
   const langMap: Record<string, { flag: string; name: string }> = {
@@ -453,42 +566,68 @@ export function MeetingRoomPage() {
         {/* Video Grid Area */}
         <div className="flex-1 relative p-6 flex flex-col items-center justify-center overflow-hidden bg-[var(--color-bg-primary)] pb-24">
           
-          {localIsScreenSharing ? (
+          {participants.filter(p => p.isScreenSharing).length > 0 ? (
             <div className="w-full h-full max-w-6xl relative bg-[var(--color-surface-card)] rounded-2xl overflow-hidden border border-[var(--color-border-default)] shadow-lg flex flex-col">
               {/* Header */}
               <div className="bg-black/50 px-4 py-2.5 flex items-center justify-between border-b border-[var(--color-border-default)]">
                 <div className="flex items-center gap-2 min-w-0">
                   <span className="h-2 w-2 rounded-full bg-red-500 animate-pulse shrink-0" />
-                  <span className="text-[12px] font-medium text-white truncate">You are sharing your screen</span>
-                </div>
-                <button 
-                  onClick={toggleScreenShare}
-                  className="bg-[#EF4444] hover:bg-[#D92626] text-white text-[11px] font-semibold px-2.5 py-1 rounded transition-colors"
-                >
-                  Stop Presenting
-                </button>
-              </div>
-              {/* Screen simulation content */}
-              <div className="flex-1 flex flex-col items-center justify-center p-6 text-center select-none bg-slate-950/60 relative">
-                <div className="w-full max-w-md p-6 bg-slate-900/95 rounded-xl border border-slate-800 shadow-2xl relative overflow-hidden backdrop-blur-md">
-                  <div className="absolute top-0 right-0 h-20 w-20 bg-gradient-to-br from-blue-500/20 to-transparent rounded-full blur-xl" />
-                  <Logo size={32} className="text-white mx-auto mb-4" />
-                  <h3 className="text-[15px] font-bold text-white mb-1">CPEC Quarterly Financial Review</h3>
-                  <p className="text-[11px] text-slate-400 mb-4 font-mono">Presenting window: Chrome Tab</p>
-                  
-                  {/* Simulated bar chart */}
-                  <div className="flex items-end justify-center gap-2 h-20 mt-2 mb-4">
-                    <div className="w-5 bg-gradient-to-t from-blue-600 to-cyan-400 rounded-t h-[40%] animate-pulse" />
-                    <div className="w-5 bg-gradient-to-t from-blue-600 to-cyan-400 rounded-t h-[75%] animate-pulse delay-75" />
-                    <div className="w-5 bg-gradient-to-t from-blue-600 to-cyan-400 rounded-t h-[60%] animate-pulse delay-150" />
-                    <div className="w-5 bg-gradient-to-t from-blue-600 to-cyan-400 rounded-t h-[95%] animate-pulse delay-200" />
-                    <div className="w-5 bg-gradient-to-t from-blue-600 to-cyan-400 rounded-t h-[50%] animate-pulse delay-300" />
-                  </div>
-                  
-                  <span className="text-[11px] font-mono text-cyan-400 bg-cyan-950/30 px-2 py-0.5 rounded border border-cyan-800/30">
-                    Real-time translation active: {srcLang.name} ⇄ {tgtLang.name}
+                  <span className="text-[12px] font-medium text-white truncate">
+                    {(() => {
+                      const sharers = participants.filter(p => p.isScreenSharing);
+                      if (sharers.length === 1) {
+                        return sharers[0].id === localUserId ? "You are sharing your screen" : `${sharers[0].name} is sharing their screen`;
+                      }
+                      return `${sharers.length} participants are sharing their screens`;
+                    })()}
                   </span>
                 </div>
+                {localIsScreenSharing && (
+                  <button 
+                    onClick={handleScreenShareToggle}
+                    className="bg-[#EF4444] hover:bg-[#D92626] text-white text-[11px] font-semibold px-2.5 py-1 rounded transition-colors"
+                  >
+                    Stop Presenting
+                  </button>
+                )}
+              </div>
+              {/* Actual Screen Content */}
+              <div className={`flex-1 grid gap-2 p-2 bg-slate-950 relative overflow-hidden ${
+                participants.filter(p => p.isScreenSharing).length === 1 ? 'grid-cols-1' : 
+                participants.filter(p => p.isScreenSharing).length === 2 ? 'grid-cols-2' : 
+                'grid-cols-2 lg:grid-cols-3'
+              }`}>
+                {participants.filter(p => p.isScreenSharing).map(p => {
+                  const isLocal = p.id === localUserId;
+                  const streamData = isLocal ? screenStream : remoteStreams.get(p.id);
+                  return (
+                    <div key={p.id} className="relative bg-black rounded-xl overflow-hidden flex items-center justify-center border border-white/10 w-full h-full">
+                      {/* Name badge */}
+                      <div className="absolute bottom-4 left-4 z-10 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-lg flex items-center gap-2 border border-white/10 shadow-md">
+                        <span className="text-white text-[11px] font-medium">{isLocal ? 'You (Presentation)' : `${p.name} (Presentation)`}</span>
+                      </div>
+                      
+                      {streamData ? (
+                        isLocal ? (
+                          <video 
+                            autoPlay 
+                            playsInline 
+                            muted 
+                            className="w-full h-full object-contain absolute inset-0"
+                            ref={(el) => { if (el) el.srcObject = streamData }}
+                          />
+                        ) : (
+                          <RemoteVideo stream={streamData} className="w-full h-full object-contain absolute inset-0" />
+                        )
+                      ) : (
+                        <div className="text-slate-400 flex flex-col items-center">
+                          <MonitorUp className="h-8 w-8 mb-2 opacity-50" />
+                          <p className="text-xs">Loading screen share...</p>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           ) : (
@@ -509,7 +648,7 @@ export function MeetingRoomPage() {
               <div 
                 className={`grid gap-4 w-full h-full px-12 transition-all duration-300 ${
                   (() => {
-                    const count = participants.slice(currentPage * pageSize, (currentPage + 1) * pageSize).length;
+                    const count = displayParticipants.slice(currentPage * pageSize, (currentPage + 1) * pageSize).length;
                     if (count === 1) return 'grid-cols-1 max-w-3xl';
                     if (count === 2) return 'grid-cols-1 md:grid-cols-2';
                     if (count === 3) return 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3';
@@ -519,7 +658,7 @@ export function MeetingRoomPage() {
                 }`}
                 style={{
                   gridTemplateRows: (() => {
-                    const count = participants.slice(currentPage * pageSize, (currentPage + 1) * pageSize).length;
+                    const count = displayParticipants.slice(currentPage * pageSize, (currentPage + 1) * pageSize).length;
                     if (count === 1) return '1fr';
                     if (count <= 3) return 'repeat(auto-fit, minmax(0, 1fr))';
                     return 'repeat(2, minmax(0, 1fr))';
@@ -527,7 +666,7 @@ export function MeetingRoomPage() {
                 }}
               >
                 <AnimatePresence mode="popLayout">
-                  {participants.slice(currentPage * pageSize, (currentPage + 1) * pageSize).map((p) => {
+                  {displayParticipants.slice(currentPage * pageSize, (currentPage + 1) * pageSize).map((p) => {
                     const isLocal = p.id === localUserId
                     return (
                       <motion.div 
@@ -545,7 +684,13 @@ export function MeetingRoomPage() {
                           // Local video card
                           (!localIsVideoOff && hasVideo) ? (
                             <video 
-                              ref={videoRef} 
+                              ref={(el) => {
+                                if (el && stream) {
+                                  if (el.srcObject !== stream) {
+                                    el.srcObject = stream;
+                                  }
+                                }
+                              }}
                               autoPlay 
                               playsInline 
                               muted 
@@ -563,20 +708,23 @@ export function MeetingRoomPage() {
                           )
                         ) : (
                           // Remote video card
-                          (p.isVideoOff || !remoteStreams.get(p.id)) ? (
-                            <div className="flex flex-col items-center gap-3 z-10 p-4">
-                              <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-full flex items-center justify-center text-white text-xl sm:text-2xl font-bold uppercase shadow-inner border-2 border-white/10 shrink-0" style={{ backgroundColor: p.avatarColor }}>
-                                {p.initials}
+                          <>
+                            {remoteStreams.get(p.id) && (
+                              <div className={`absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-blue-950 flex items-center justify-center overflow-hidden transition-opacity duration-300 ${p.isVideoOff ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+                                <RemoteVideo stream={remoteStreams.get(p.id)!} />
                               </div>
-                              <span className="text-[11px] sm:text-xs text-[var(--color-text-secondary)] bg-black/45 px-2.5 py-1 rounded-full border border-white/5">
-                                {p.isVideoOff ? "Camera is off" : "Connecting video..."}
-                              </span>
-                            </div>
-                          ) : (
-                            <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-blue-950 flex items-center justify-center overflow-hidden">
-                              <RemoteVideo stream={remoteStreams.get(p.id)!} />
-                            </div>
-                          )
+                            )}
+                            {(p.isVideoOff || !remoteStreams.get(p.id)) && (
+                              <div className="flex flex-col items-center gap-3 z-10 p-4">
+                                <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-full flex items-center justify-center text-white text-xl sm:text-2xl font-bold uppercase shadow-inner border-2 border-white/10 shrink-0" style={{ backgroundColor: p.avatarColor }}>
+                                  {p.initials}
+                                </div>
+                                <span className="text-[11px] sm:text-xs text-[var(--color-text-secondary)] bg-black/45 px-2.5 py-1 rounded-full border border-white/5">
+                                  {p.isVideoOff ? "Camera is off" : "Connecting video..."}
+                                </span>
+                              </div>
+                            )}
+                          </>
                         )}
 
                         {/* Participant Details Overlay */}
@@ -712,7 +860,7 @@ export function MeetingRoomPage() {
             </button>
 
             <button 
-              onClick={toggleScreenShare}
+              onClick={handleScreenShareToggle}
               className={`w-[48px] sm:w-[52px] flex flex-col items-center justify-center gap-1 rounded-xl transition-colors py-1 shrink-0 focus:outline-none ${localIsScreenSharing ? 'bg-[var(--color-brand-blue)]/20 text-[var(--color-brand-blue)]' : 'hover:bg-[var(--color-surface-light)] text-[var(--color-text-secondary)] hover:text-white'}`}
             >
               <MonitorUp className="h-4 sm:h-5 w-4 sm:w-5" />
@@ -853,13 +1001,25 @@ export function MeetingRoomPage() {
                         {p.isVideoOff ? <VideoOff className="h-4 w-4 text-[#EF4444]" /> : <Video className="h-4 w-4" />}
                       </div>
                       {/* Host Actions (only for remote participants) */}
-                      {p.id !== localUserId && (
+                      {p.id !== localUserId && localUser?.isHost && (
                         <div className="hidden group-hover:flex items-center gap-1 ml-1 pl-2 border-l border-[var(--color-border-default)]">
-                          <button className="h-7 w-7 rounded flex items-center justify-center text-[var(--color-text-secondary)] hover:text-[#EF4444] hover:bg-[#EF4444]/10 transition-colors">
+                          <button 
+                            onClick={() => handleForceMedia(p.id, 'mute')}
+                            title="Mute Participant"
+                            className="h-7 w-7 rounded flex items-center justify-center text-[var(--color-text-secondary)] hover:text-[#EF4444] hover:bg-[#EF4444]/10 transition-colors"
+                          >
                             <MicOff className="h-4 w-4" />
                           </button>
                           <button 
+                            onClick={() => handleForceMedia(p.id, 'video-off')}
+                            title="Turn Off Camera"
+                            className="h-7 w-7 rounded flex items-center justify-center text-[var(--color-text-secondary)] hover:text-[#EF4444] hover:bg-[#EF4444]/10 transition-colors"
+                          >
+                            <VideoOff className="h-4 w-4" />
+                          </button>
+                          <button 
                             onClick={() => { setRemoveTarget(p.id); setShowRemoveModal(true) }}
+                            title="Remove Participant"
                             className="h-7 w-7 rounded flex items-center justify-center text-[var(--color-text-secondary)] hover:text-[#EF4444] hover:bg-[#EF4444]/10 transition-colors"
                           >
                             <XCircle className="h-4 w-4" />
