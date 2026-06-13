@@ -13,6 +13,7 @@ export interface Participant {
   isVideoOff: boolean
   isHost: boolean
   joinedAt: number
+  socketId?: string
 }
 
 export interface ChatMessage {
@@ -156,7 +157,7 @@ export const useMeetingStore = create<MeetingState>((set, get) => ({
       flag: config.sourceLang === 'ur' ? '🇵🇰' : config.sourceLang === 'zh' ? '🇨🇳' : '🇬🇧',
       isMuted: !config.micOn,
       isVideoOff: !config.videoOn,
-      isHost: true,
+      isHost: false,
       joinedAt: Date.now(),
     }
 

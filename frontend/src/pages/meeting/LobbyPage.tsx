@@ -24,19 +24,42 @@ export function LobbyPage() {
   const [stream, setStream] = useState<MediaStream | null>(null)
 
   useEffect(() => {
-    // Request hardware access on mount
+    // Request hardware access on mount with fallback logic
     let activeStream: MediaStream | null = null
-    navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-      .then((mediaStream) => {
+
+    const initMedia = async () => {
+      try {
+        const mediaStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true })
         activeStream = mediaStream
         setStream(mediaStream)
         if (videoRef.current) {
           videoRef.current.srcObject = mediaStream
         }
-      })
-      .catch((err) => {
-        console.error("Failed to get media devices", err)
-      })
+      } catch (err) {
+        console.warn("Failed to get both video and audio in lobby, trying fallbacks...", err)
+        try {
+          // Fallback 1: Try getting audio only
+          const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true })
+          activeStream = audioStream
+          setStream(audioStream)
+        } catch (audioErr) {
+          console.warn("Failed to get audio stream in lobby:", audioErr)
+          try {
+            // Fallback 2: Try getting video only
+            const videoStream = await navigator.mediaDevices.getUserMedia({ video: true })
+            activeStream = videoStream
+            setStream(videoStream)
+            if (videoRef.current) {
+              videoRef.current.srcObject = videoStream
+            }
+          } catch (videoErr) {
+            console.error("Failed to get any media device in lobby:", videoErr)
+          }
+        }
+      }
+    }
+
+    initMedia()
 
     return () => {
       // Cleanup tracks on unmount
@@ -85,29 +108,34 @@ export function LobbyPage() {
         {/* Left/Main: Camera Preview */}
         <div className="lg:col-span-7 space-y-4">
           <div className="relative aspect-video bg-[#0F172A] rounded-2xl border border-[#E2E8F0] shadow-md overflow-hidden flex flex-col items-center justify-center group">
-            {videoOn ? (
-              <div className="w-full h-full bg-[#0F172A] flex items-center justify-center relative">
-                <video 
-                  ref={videoRef} 
-                  autoPlay 
-                  playsInline 
-                  muted 
-                  className="w-full h-full object-cover transform -scale-x-100" 
-                />
-                <div className="absolute bottom-4 left-4 z-20">
-                  <span className="bg-black/60 border border-white/10 px-3.5 py-1.5 rounded-xl text-[13px] font-medium backdrop-blur-md text-white/90">
-                    {displayName || user?.name || "You"}
-                  </span>
+            {(() => {
+              const hasVideo = !!(stream && stream.getVideoTracks().length > 0)
+              return (videoOn && hasVideo) ? (
+                <div className="w-full h-full bg-[#0F172A] flex items-center justify-center relative">
+                  <video 
+                    ref={videoRef} 
+                    autoPlay 
+                    playsInline 
+                    muted 
+                    className="w-full h-full object-cover transform -scale-x-100" 
+                  />
+                  <div className="absolute bottom-4 left-4 z-20">
+                    <span className="bg-black/60 border border-white/10 px-3.5 py-1.5 rounded-xl text-[13px] font-medium backdrop-blur-md text-white/90">
+                      {displayName || user?.name || "You"}
+                    </span>
+                  </div>
                 </div>
-              </div>
-            ) : (
-              <div className="flex flex-col items-center z-10">
-                <div className="h-24 w-24 rounded-full bg-[#EFF6FF] text-[#3B82F6] border border-[#BFDBFE] flex items-center justify-center text-3xl font-bold mb-4 shadow-sm">
-                  {(displayName || "U").substring(0, 2).toUpperCase()}
+              ) : (
+                <div className="flex flex-col items-center z-10">
+                  <div className="h-24 w-24 rounded-full bg-[#EFF6FF] text-[#3B82F6] border border-[#BFDBFE] flex items-center justify-center text-3xl font-bold mb-4 shadow-sm">
+                    {(displayName || "U").substring(0, 2).toUpperCase()}
+                  </div>
+                  <p className="text-white/60 font-medium text-sm">
+                    {!hasVideo && videoOn ? "Camera unavailable" : "Camera is turned off"}
+                  </p>
                 </div>
-                <p className="text-white/60 font-medium text-sm">Camera is turned off</p>
-              </div>
-            )}
+              )
+            })()}
             
             {/* Audio level visualizer mock */}
             {micOn && (

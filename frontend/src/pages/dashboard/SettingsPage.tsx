@@ -72,7 +72,7 @@ export function SettingsPage() {
         
         // Sync with Auth Store
         if (settings.general.displayName.trim()) {
-          updateProfile(settings.general.displayName.trim())
+          updateProfile({ name: settings.general.displayName.trim() })
         }
         
         addToast({ message: "Settings saved successfully!", variant: "success" })

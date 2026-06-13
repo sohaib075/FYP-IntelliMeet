@@ -6,6 +6,7 @@ import { useMeetingStore } from "@/store/useMeetingStore"
 import { useMeetingConnection } from "@/hooks/useMeetingConnection"
 import { useAuthStore } from "@/store/useAuthStore"
 import { Logo } from "@/components/common/Logo"
+import { getSocket } from "@/lib/socket"
 
 // ─── Helper ────────────────────────────────────────────────────────
 
@@ -16,10 +17,29 @@ function formatElapsed(totalSeconds: number): string {
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
 }
 
+function RemoteVideo({ stream }: { stream: MediaStream }) {
+  const ref = useRef<HTMLVideoElement>(null)
+  
+  useEffect(() => {
+    if (ref.current) {
+      ref.current.srcObject = stream
+    }
+  }, [stream])
+
+  return (
+    <video
+      ref={ref}
+      autoPlay
+      playsInline
+      className="w-full h-full object-cover absolute inset-0"
+    />
+  )
+}
+
 // ─── Component ──────────────────────────────────────────────────────
 
 export function MeetingRoomPage() {
-  const { id } = useParams()
+  const { meetingId } = useParams()
   const navigate = useNavigate()
 
   // Store
@@ -60,6 +80,145 @@ export function MeetingRoomPage() {
   const [stream, setStream] = useState<MediaStream | null>(null)
   const chatEndRef = useRef<HTMLDivElement>(null)
 
+  // WebRTC peers & streams
+  const peersRef = useRef<Map<string, RTCPeerConnection>>(new Map())
+  const [remoteStreams, setRemoteStreams] = useState<Map<string, MediaStream>>(new Map())
+
+  // ── Meeting Timer Ticking ──
+  useEffect(() => {
+    if (status !== 'active') return
+    const interval = setInterval(() => {
+      useMeetingStore.getState().tick()
+    }, 1000)
+    return () => clearInterval(interval)
+  }, [status])
+
+  // ── WebRTC Connection Management ──
+  useEffect(() => {
+    if (status !== 'active') return
+
+    const socket = getSocket()
+    if (!socket) return
+
+    const createPeerConnection = (remoteParticipantId: string, remoteSocketId: string, initiateCall: boolean) => {
+      const pc = new RTCPeerConnection({
+        iceServers: [{ urls: 'stun:stun.l.google.com:19002' }]
+      })
+
+      pc.onicecandidate = (event) => {
+        if (event.candidate && socket) {
+          socket.emit('signal', {
+            to: remoteSocketId,
+            signal: { type: 'candidate', candidate: event.candidate }
+          })
+        }
+      }
+
+      pc.ontrack = (event) => {
+        setRemoteStreams((prev) => {
+          const newMap = new Map(prev)
+          newMap.set(remoteParticipantId, event.streams[0])
+          return newMap
+        })
+      }
+
+      if (stream) {
+        stream.getTracks().forEach(track => pc.addTrack(track, stream))
+      }
+
+      if (initiateCall) {
+        pc.createOffer()
+          .then((offer) => pc.setLocalDescription(offer))
+          .then(() => {
+            socket.emit('signal', {
+              to: remoteSocketId,
+              signal: { type: 'offer', sdp: pc.localDescription }
+            })
+          })
+          .catch((err) => console.error("Error creating offer", err))
+      }
+
+      peersRef.current.set(remoteParticipantId, pc)
+      return pc
+    }
+
+    // Handle signal messages from peers
+    const onSignal = async ({ from, signal }: { from: string; signal: any }) => {
+      const peer = participants.find(p => p.socketId === from)
+      if (!peer) return
+
+      let pc = peersRef.current.get(peer.id)
+      if (!pc) {
+        pc = createPeerConnection(peer.id, from, false)
+      }
+
+      try {
+        if (signal.type === 'offer') {
+          await pc.setRemoteDescription(new RTCSessionDescription(signal.sdp))
+          const answer = await pc.createAnswer()
+          await pc.setLocalDescription(answer)
+          socket.emit('signal', {
+            to: from,
+            signal: { type: 'answer', sdp: pc.localDescription }
+          })
+        } else if (signal.type === 'answer') {
+          await pc.setRemoteDescription(new RTCSessionDescription(signal.sdp))
+        } else if (signal.type === 'candidate') {
+          await pc.addIceCandidate(new RTCIceCandidate(signal.candidate))
+        }
+      } catch (err) {
+        console.error("Error handling signal", err)
+      }
+    }
+
+    // Update track senders when local stream changes
+    peersRef.current.forEach((pc) => {
+      if (stream) {
+        const senders = pc.getSenders()
+        stream.getTracks().forEach((track) => {
+          const sender = senders.find((s) => s.track?.kind === track.kind)
+          if (sender) {
+            sender.replaceTrack(track)
+          } else {
+            pc.addTrack(track, stream)
+          }
+        })
+      }
+    })
+
+    // Establish connections with participants
+    const activeParticipants = participants.filter(p => p.id !== localUserId)
+    activeParticipants.forEach((p) => {
+      if (!peersRef.current.has(p.id) && p.socketId) {
+        // Deterministic caller selection (lexicographical comparison of IDs)
+        const initiateCall = localUserId ? (localUserId < p.id) : false
+        createPeerConnection(p.id, p.socketId, initiateCall)
+      }
+    })
+
+    socket.on('signal', onSignal)
+
+    return () => {
+      socket.off('signal', onSignal)
+    }
+  }, [status, participants, stream, localUserId])
+
+  // Clean up peers that left
+  useEffect(() => {
+    const participantIds = new Set(participants.map(p => p.id))
+    peersRef.current.forEach((pc, peerId) => {
+      if (!participantIds.has(peerId)) {
+        pc.close()
+        peersRef.current.delete(peerId)
+        setRemoteStreams((prev) => {
+          const newMap = new Map(prev)
+          newMap.delete(peerId)
+          return newMap
+        })
+      }
+    })
+  }, [participants])
+
   // ── Activate meeting on mount ─────────────────────────────────────
 
   useEffect(() => {
@@ -73,7 +232,7 @@ export function MeetingRoomPage() {
       const { joinMeeting } = useMeetingStore.getState()
       const authUser = useAuthStore.getState().user
       joinMeeting({
-        meetingId: id || 'direct-join',
+        meetingId: meetingId || 'direct-join',
         title: 'CPEC Quarterly Review',
         userName: authUser?.name || 'Guest',
         sourceLang: authUser?.preferences?.sourceLanguage || 'en',
@@ -83,23 +242,38 @@ export function MeetingRoomPage() {
       })
       setTimeout(() => setStatus('active'), 800)
     }
-  }, [status, setStatus, id])
+  }, [status, setStatus, meetingId])
 
   // ── Camera & Mic ──────────────────────────────────────────────────
 
   useEffect(() => {
     let activeStream: MediaStream | null = null
-    navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-      .then((mediaStream) => {
+
+    const initMedia = async () => {
+      try {
+        const mediaStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true })
         activeStream = mediaStream
         setStream(mediaStream)
-        if (videoRef.current) {
-          videoRef.current.srcObject = mediaStream
+      } catch (err) {
+        console.warn("Failed to get both video and audio in room, trying fallbacks...", err)
+        try {
+          const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true })
+          activeStream = audioStream
+          setStream(audioStream)
+        } catch (audioErr) {
+          console.warn("Failed to get audio stream in room:", audioErr)
+          try {
+            const videoStream = await navigator.mediaDevices.getUserMedia({ video: true })
+            activeStream = videoStream
+            setStream(videoStream)
+          } catch (videoErr) {
+            console.error("Failed to get any media device in room:", videoErr)
+          }
         }
-      })
-      .catch((err) => {
-        console.error("Failed to get media devices in room", err)
-      })
+      }
+    }
+
+    initMedia()
 
     return () => {
       if (activeStream) {
@@ -107,6 +281,13 @@ export function MeetingRoomPage() {
       }
     }
   }, [])
+
+  // Safely bind the local stream to the video element whenever it is rendered
+  useEffect(() => {
+    if (videoRef.current && stream) {
+      videoRef.current.srcObject = stream
+    }
+  }, [stream, localIsVideoOff])
 
   useEffect(() => {
     if (stream) {
@@ -187,6 +368,7 @@ export function MeetingRoomPage() {
   }
   const srcLang = langMap[sourceLang] || langMap.en
   const tgtLang = langMap[targetLang] || langMap.zh
+  const hasVideo = !!(stream && stream.getVideoTracks().length > 0)
 
   // ── Render ────────────────────────────────────────────────────────
 
@@ -197,29 +379,32 @@ export function MeetingRoomPage() {
       <div className="flex flex-col flex-1 relative min-w-0">
         
         {/* Top Bar */}
-        <div className="h-[52px] bg-[var(--color-bg-secondary)] border-b border-[var(--color-border-default)] flex items-center justify-between px-4 z-10 shrink-0 shadow-md">
+        <div className="h-[52px] bg-[var(--color-bg-secondary)] border-b border-[var(--color-border-default)] grid grid-cols-3 items-center px-4 z-10 shrink-0 shadow-md">
+          {/* Left Column: Logo, Title, ID */}
           <div className="flex items-center gap-3 min-w-0">
             <Logo size={24} className="text-white shrink-0" />
             <div className="h-4 w-[1px] bg-[var(--color-border-default)] shrink-0 hidden sm:block" />
-            <span className="text-[var(--color-text-primary)] text-[14px] font-semibold truncate max-w-[120px] sm:max-w-none">{title || 'CPEC Quarterly Review'}</span>
+            <span className="text-[var(--color-text-primary)] text-[14px] font-semibold truncate max-w-[80px] sm:max-w-none">{title || 'CPEC Quarterly Review'}</span>
             <div className="flex items-center gap-1.5 ml-2 shrink-0">
-              <span className="text-[var(--color-text-secondary)] font-mono text-[11px] sm:text-[12px]">{id || "intellimeet-xk7a-2b9c"}</span>
+              <span className="text-[var(--color-text-secondary)] font-mono text-[11px] sm:text-[12px] truncate max-w-[80px] sm:max-w-none">{meetingId || "intellimeet-xk7a-2b9c"}</span>
               <button 
                 className="text-[var(--color-text-secondary)] hover:text-[var(--color-border-hover)] transition-colors"
-                onClick={() => navigator.clipboard.writeText(id || '')}
+                onClick={() => navigator.clipboard.writeText(meetingId || '')}
               >
                 <Copy className="h-3 w-3" />
               </button>
             </div>
           </div>
           
-          <div className="absolute left-1/2 -translate-x-1/2 flex items-center">
+          {/* Center Column: Timer */}
+          <div className="flex justify-center items-center">
             <span className="text-[var(--color-text-primary)] font-mono text-[14px] sm:text-[16px] font-semibold tracking-wider bg-[var(--color-bg-primary)]/40 px-2 py-0.5 rounded">
               {formatElapsed(elapsedSeconds)}
             </span>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+          {/* Right Column: Actions */}
+          <div className="flex items-center justify-end gap-2 sm:gap-4 shrink-0">
             <div className="flex items-center text-[#10B981]" title="Good Network Quality">
               <Signal className="h-4 w-4" />
             </div>
@@ -353,7 +538,7 @@ export function MeetingRoomPage() {
                       >
                         {isLocal ? (
                           // Local video card
-                          !localIsVideoOff ? (
+                          (!localIsVideoOff && hasVideo) ? (
                             <video 
                               ref={videoRef} 
                               autoPlay 
@@ -366,38 +551,25 @@ export function MeetingRoomPage() {
                               <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-[var(--color-surface-light)] text-[var(--color-brand-blue)] border-2 border-[var(--color-brand-blue)]/25 flex items-center justify-center text-xl sm:text-2xl font-bold uppercase shadow-inner shrink-0">
                                 {p.initials}
                               </div>
-                              <span className="text-[11px] sm:text-xs text-[var(--color-text-secondary)] bg-black/45 px-2.5 py-1 rounded-full border border-white/5">Camera is off</span>
+                              <span className="text-[11px] sm:text-xs text-[var(--color-text-secondary)] bg-black/45 px-2.5 py-1 rounded-full border border-white/5">
+                                {!hasVideo && !localIsVideoOff ? "Camera unavailable" : "Camera is off"}
+                              </span>
                             </div>
                           )
                         ) : (
                           // Remote video card
-                          p.isVideoOff ? (
+                          (p.isVideoOff || !remoteStreams.get(p.id)) ? (
                             <div className="flex flex-col items-center gap-3 z-10 p-4">
                               <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-full flex items-center justify-center text-white text-xl sm:text-2xl font-bold uppercase shadow-inner border-2 border-white/10 shrink-0" style={{ backgroundColor: p.avatarColor }}>
                                 {p.initials}
                               </div>
-                              <span className="text-[11px] sm:text-xs text-[var(--color-text-secondary)] bg-black/45 px-2.5 py-1 rounded-full border border-white/5">Camera is off</span>
+                              <span className="text-[11px] sm:text-xs text-[var(--color-text-secondary)] bg-black/45 px-2.5 py-1 rounded-full border border-white/5">
+                                {p.isVideoOff ? "Camera is off" : "Connecting video..."}
+                              </span>
                             </div>
                           ) : (
                             <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-blue-950 flex items-center justify-center overflow-hidden">
-                              <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(59,130,246,0.15),transparent_50%)] animate-pulse" />
-                              <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(6,182,212,0.12),transparent_50%)]" />
-                              <div className="absolute inset-0 opacity-10 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[size:100%_4px,6px_100%]" />
-                              
-                              <div className="flex flex-col items-center gap-3 relative z-10">
-                                <div className="relative">
-                                  {!p.isMuted && (
-                                    <span className="absolute -inset-2.5 rounded-full bg-emerald-500/25 animate-ping" />
-                                  )}
-                                  <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-full flex items-center justify-center text-white text-xl sm:text-2xl font-bold shadow-2xl border-2 border-white/15" style={{ backgroundColor: p.avatarColor }}>
-                                    {p.initials}
-                                  </div>
-                                </div>
-                                <span className="text-[9px] sm:text-[10px] text-emerald-400 font-semibold bg-emerald-950/60 px-2.5 py-0.5 rounded-full border border-emerald-800/40 flex items-center gap-1">
-                                  <span className="h-1 w-1 rounded-full bg-emerald-400 animate-pulse" />
-                                  LIVE
-                                </span>
-                              </div>
+                              <RemoteVideo stream={remoteStreams.get(p.id)!} />
                             </div>
                           )
                         )}
@@ -723,7 +895,7 @@ export function MeetingRoomPage() {
           {activeTab === "participants" && (
              <div className="p-3 border-t border-[var(--color-border-default)]">
                 <button 
-                  onClick={() => navigator.clipboard.writeText(`https://intellimeet.app/join/${id}`)}
+                  onClick={() => navigator.clipboard.writeText(`https://intellimeet.app/join/${meetingId}`)}
                   className="w-full flex items-center justify-center gap-2 bg-[var(--color-surface-light)] border border-[var(--color-border-default)] hover:bg-[var(--color-surface-card)] text-[var(--color-brand-blue)] text-[13px] py-2.5 rounded-lg transition-colors font-semibold shadow-sm"
                 >
                   <Users className="h-4 w-4" />
