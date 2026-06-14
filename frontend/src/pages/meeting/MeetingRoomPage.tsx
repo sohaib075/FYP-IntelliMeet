@@ -64,6 +64,9 @@ export function MeetingRoomPage() {
   const [chatInput, setChatInput] = useState("")
   const [showLangMenu, setShowLangMenu] = useState(false)
   const [currentPage, setCurrentPage] = useState(0)
+  // Host-only leave/end modal (Google Meet-style)
+  const [showLeaveModal, setShowLeaveModal] = useState(false)
+  const [endCallError, setEndCallError] = useState<string | null>(null)
 
   const pageSize = 6
   const totalPages = Math.ceil(participants.length / pageSize)
@@ -429,15 +432,65 @@ export function MeetingRoomPage() {
     }
   }
 
-  const handleEndCall = () => {
-    leaveMeeting()
+  // ── Shared media cleanup ─────────────────────────────────────────
+  const stopAllLocalMedia = () => {
     if (stream) {
       stream.getTracks().forEach(track => track.stop())
     }
     if (screenStream) {
       screenStream.getTracks().forEach(track => track.stop())
     }
+    // Close all peer connections
+    peersRef.current.forEach(pc => pc.close())
+    peersRef.current.clear()
+    setRemoteStreams(new Map())
+  }
+
+  // ── "Leave Meeting" — host leaves, meeting continues ─────────────
+  const handleLeaveCall = () => {
+    const socket = getSocket()
+    const otherParticipants = participants.filter(p => p.id !== localUserId)
+
+    if (otherParticipants.length === 0) {
+      // Host is the only one left — treat this as ending the meeting
+      // to avoid a ghost empty room.
+      handleEndCallForEveryone(true)
+      return
+    }
+
+    // Emit explicit leave-room so backend keeps meeting alive
+    if (socket && meetingId && localUserId) {
+      socket.emit('leave-room', meetingId, localUserId)
+    }
+
+    stopAllLocalMedia()
+    leaveMeeting()
     navigate('/meeting/ended')
+  }
+
+  // ── "End Call for Everyone" — emit end-meeting directly ─────────
+  const handleEndCallForEveryone = () => {
+    setShowLeaveModal(false)
+    const socket = getSocket()
+    if (socket && meetingId && localUserId) {
+      socket.emit('end-meeting', meetingId, localUserId)
+    }
+    // Stop our own media eagerly; meeting-ended event handles everyone else
+    stopAllLocalMedia()
+    leaveMeeting()
+    navigate('/meeting/ended')
+  }
+
+  // ── Single leave button handler (both host and participant) ───────
+  // Host → opens Google Meet-style modal with two options.
+  // Participant → leaves immediately (no popup).
+  const handleLeaveButtonClick = () => {
+    if (localUser?.isHost) {
+      setEndCallError(null)
+      setShowLeaveModal(true)
+    } else {
+      handleLeaveCall()
+    }
   }
 
   const handleForceMedia = (targetId: string, action: 'mute' | 'video-off') => {
@@ -901,9 +954,13 @@ export function MeetingRoomPage() {
 
             <div className="w-[1px] h-8 bg-[var(--color-border-default)] mx-1 sm:mx-2 shrink-0" />
 
-            <button 
-              onClick={handleEndCall}
-              className="w-[48px] sm:w-[52px] flex flex-col items-center justify-center gap-1 rounded-xl bg-[#EF4444] hover:bg-[#D92626] transition-colors py-1 text-white ml-1 shadow-md shadow-red-500/10 shrink-0 focus:outline-none"
+            {/* Single leave/end button — same for Host and Participant.
+                Host gets a modal; Participant leaves immediately. */}
+            <button
+              id="leave-meeting-btn"
+              onClick={handleLeaveButtonClick}
+              className="w-[48px] sm:w-[52px] flex flex-col items-center justify-center gap-1 rounded-xl bg-[#EF4444] hover:bg-[#D92626] active:bg-[#B91C1C] transition-colors py-1 text-white ml-1 shadow-md shadow-red-500/15 shrink-0 focus:outline-none"
+              title={localUser?.isHost ? 'Leave or end meeting' : 'Leave meeting'}
             >
               <PhoneOff className="h-4 sm:h-5 w-4 sm:w-5" />
               <span className="text-[9px] font-medium">Leave</span>
@@ -1115,6 +1172,92 @@ export function MeetingRoomPage() {
                   Remove
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Host Leave / End Meeting — Google Meet-style modal ─────── */}
+      {showLeaveModal && (
+        // Click outside (backdrop) to dismiss
+        <div
+          className="absolute inset-0 z-[60] flex items-end sm:items-center justify-center"
+          onMouseDown={(e) => { if (e.target === e.currentTarget) setShowLeaveModal(false) }}
+        >
+          {/* Dark scrim */}
+          <div className="absolute inset-0 bg-black/65 backdrop-blur-sm" />
+
+          {/* Modal panel */}
+          <div className="relative z-10 w-full sm:max-w-[360px] mx-4 mb-6 sm:mb-0 bg-[var(--color-surface-card)] border border-[var(--color-border-default)] rounded-2xl shadow-2xl overflow-hidden">
+
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 pt-5 pb-3">
+              <h2 className="text-[16px] font-semibold text-white font-display">Leave meeting?</h2>
+              <button
+                id="leave-modal-close-btn"
+                onClick={() => setShowLeaveModal(false)}
+                className="h-7 w-7 flex items-center justify-center rounded-full text-[var(--color-text-secondary)] hover:text-white hover:bg-white/10 transition-colors focus:outline-none"
+                aria-label="Close"
+              >
+                <XCircle className="h-4.5 w-4.5" />
+              </button>
+            </div>
+
+            {/* Divider */}
+            <div className="h-[1px] bg-[var(--color-border-default)] mx-5" />
+
+            {/* Options */}
+            <div className="flex flex-col gap-2 px-5 py-4">
+
+              {/* ── Leave call — host exits, meeting continues ── */}
+              <button
+                id="leave-call-btn"
+                onClick={() => { setShowLeaveModal(false); handleLeaveCall() }}
+                className="group w-full flex items-center gap-4 px-4 py-3.5 rounded-xl border border-[var(--color-border-default)] hover:border-amber-500/40 hover:bg-amber-500/5 transition-all duration-150 text-left focus:outline-none"
+              >
+                <div className="h-10 w-10 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center shrink-0 group-hover:bg-amber-500/15 transition-colors">
+                  <PhoneOff className="h-5 w-5 text-amber-400" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[14px] font-semibold text-white leading-tight">Leave call</p>
+                  <p className="text-[12px] text-[var(--color-text-secondary)] mt-0.5 leading-snug">
+                    Others can continue the meeting
+                  </p>
+                </div>
+              </button>
+
+              {/* ── End call for everyone — destructive ── */}
+              <button
+                id="end-for-everyone-btn"
+                onClick={handleEndCallForEveryone}
+                className="group w-full flex items-center gap-4 px-4 py-3.5 rounded-xl border border-[#EF4444]/20 hover:border-[#EF4444]/50 bg-[#EF4444]/5 hover:bg-[#EF4444]/10 transition-all duration-150 text-left focus:outline-none"
+              >
+                <div className="h-10 w-10 rounded-full bg-[#EF4444]/10 border border-[#EF4444]/25 flex items-center justify-center shrink-0 group-hover:bg-[#EF4444]/20 transition-colors">
+                  <PhoneOff className="h-5 w-5 text-[#EF4444]" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[14px] font-semibold text-[#EF4444] leading-tight">End call for everyone</p>
+                  <p className="text-[12px] text-[var(--color-text-secondary)] mt-0.5 leading-snug">
+                    All {participants.length} participant{participants.length !== 1 ? 's' : ''} will be disconnected
+                  </p>
+                </div>
+              </button>
+
+            </div>
+
+            {endCallError && (
+              <p className="text-[12px] text-[#EF4444] px-5 pb-3 text-center">{endCallError}</p>
+            )}
+
+            {/* Cancel */}
+            <div className="px-5 pb-5">
+              <button
+                id="leave-modal-cancel-btn"
+                onClick={() => setShowLeaveModal(false)}
+                className="w-full h-10 rounded-xl border border-[var(--color-border-default)] bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)] text-[14px] font-medium hover:bg-[var(--color-surface-light)] hover:text-white transition-colors focus:outline-none"
+              >
+                Cancel
+              </button>
             </div>
           </div>
         </div>

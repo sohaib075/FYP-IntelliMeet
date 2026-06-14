@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { useMeetingStore } from '@/store/useMeetingStore';
 import { initSocket, getSocket } from '@/lib/socket';
 
@@ -77,6 +77,26 @@ export function useMeetingConnection() {
       }
     };
 
+    /**
+     * Received when the host calls "End Call for Everyone".
+     * All participants (including the host, if still in the room) get this.
+     * We must: stop all local tracks, close peer connections, reset store,
+     * and redirect to the ended page.
+     */
+    const onMeetingEnded = (_payload: { meetingId: string; endedBy: string }) => {
+      // The MeetingRoomPage listens to this via its own effect — but we also
+      // handle cleanup here at the connection layer so the redirect always fires
+      // even if the component has been unmounted or the store already reset.
+      useMeetingStore.getState().leaveMeeting();
+      // Use replace so the user can't navigate back into a dead meeting
+      window.location.replace('/meeting/ended');
+    };
+
+    const onEndMeetingError = (payload: { message: string }) => {
+      console.error('[Socket] end-meeting rejected:', payload.message);
+      // The MeetingRoomPage can surface this as a toast/alert if needed
+    };
+
     socket.on('connect', onConnect);
     socket.on('room-state', onRoomState);
     socket.on('user-joined', onUserJoined);
@@ -85,6 +105,8 @@ export function useMeetingConnection() {
     socket.on('media-toggled', onMediaToggled);
     socket.on('kicked', onKicked);
     socket.on('force-media', onForceMedia);
+    socket.on('meeting-ended', onMeetingEnded);
+    socket.on('end-meeting-error', onEndMeetingError);
 
     if (socket.connected) {
       onConnect();
@@ -99,6 +121,8 @@ export function useMeetingConnection() {
       socket.off('media-toggled', onMediaToggled);
       socket.off('kicked', onKicked);
       socket.off('force-media', onForceMedia);
+      socket.off('meeting-ended', onMeetingEnded);
+      socket.off('end-meeting-error', onEndMeetingError);
       socket.disconnect();
       hasConnected.current = false;
     };

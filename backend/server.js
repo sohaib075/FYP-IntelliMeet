@@ -251,6 +251,66 @@ io.on('connection', (socket) => {
     }
   });
 
+  // ── Host: Leave Meeting (meeting continues for others) ──────────────
+  // Emits user-left to remaining participants but does NOT end the meeting.
+  // Edge case: if the host was the last participant, the room becomes empty
+  // and we treat it like End Call (mark ended) to avoid a ghost room.
+  socket.on('leave-room', (roomId, userId) => {
+    console.log(`[Socket] leave-room: user ${userId} leaving room ${roomId}`);
+    const room = rooms.get(roomId);
+    if (!room) return;
+
+    // Remove the participant
+    room.participants = room.participants.filter((p) => p.id !== userId);
+
+    // Notify remaining participants
+    socket.to(roomId).emit('user-left', userId);
+    socket.leave(roomId);
+    socket.roomId = null;
+
+    if (room.participants.length === 0) {
+      // Room is now empty — clean it up
+      rooms.delete(roomId);
+      console.log(`[Socket] Room ${roomId} empty after host leave — deleted`);
+    } else {
+      console.log(
+        `[Socket] Room ${roomId} continues with ${room.participants.length} participant(s) after host left`
+      );
+    }
+  });
+
+  // ── Host: End Meeting for Everyone ──────────────────────────────────
+  // Only the host (validated by isHost flag in room state) may call this.
+  // Broadcasts meeting-ended to all sockets then removes them from the room.
+  socket.on('end-meeting', (roomId, userId) => {
+    console.log(`[Socket] end-meeting requested by ${userId} in room ${roomId}`);
+    const room = rooms.get(roomId);
+    if (!room) {
+      console.warn(`[Socket] end-meeting: room ${roomId} not found`);
+      return;
+    }
+
+    // Server-side host validation — re-read from room state (not client cache)
+    const requestingUser = room.participants.find((p) => p.id === userId);
+    if (!requestingUser || !requestingUser.isHost) {
+      console.warn(
+        `[Socket] end-meeting: user ${userId} is not the host of room ${roomId} — rejected`
+      );
+      socket.emit('end-meeting-error', { message: 'Only the host can end the meeting.' });
+      return;
+    }
+
+    // Broadcast meeting-ended to everyone in the room (including the host)
+    io.to(roomId).emit('meeting-ended', { meetingId: roomId, endedBy: userId });
+
+    // Force all sockets to leave the Socket.IO room
+    io.in(roomId).socketsLeave(roomId);
+
+    // Clean up in-memory room state
+    rooms.delete(roomId);
+    console.log(`[Socket] Room ${roomId} ended by host ${userId} and deleted`);
+  });
+
   // Handle disconnect
   socket.on('disconnect', () => {
     console.log(`[Socket] User disconnected: ${socket.id}`);
@@ -268,7 +328,8 @@ io.on('connection', (socket) => {
           (p) => p.socketId !== socket.id
         );
 
-        // Notify others
+        // Notify others — meeting continues even if host disconnected abruptly.
+        // Meeting only ends via explicit end-meeting or when room is empty.
         disconnectedUsers.forEach((user) => {
           socket.to(socket.roomId).emit('user-left', user.id);
         });
