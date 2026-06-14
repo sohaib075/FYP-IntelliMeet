@@ -95,8 +95,18 @@ export function LandingPage() {
           </motion.div>
 
           {/* Headline */}
-          <motion.h1 variants={fadeInUp} className="text-[42px] md:text-[64px] font-bold text-[var(--color-dash-text)] dark:text-white font-display tracking-tight leading-[1.1] mb-6">
-            Break Language Barriers in Real-Time Meetings
+          <motion.h1 className="text-[42px] md:text-[64px] font-bold text-[var(--color-dash-text)] dark:text-white font-display tracking-tight leading-[1.1] mb-6 overflow-hidden flex flex-wrap justify-center gap-x-4">
+            {["Break", "Language", "Barriers", "in", "Real-Time", "Meetings"].map((word, i) => (
+              <motion.span
+                key={i}
+                initial={{ y: "100%", opacity: 0, rotateZ: 10 }}
+                animate={{ y: 0, opacity: 1, rotateZ: 0 }}
+                transition={{ duration: 0.7, delay: i * 0.1, ease: [0.2, 0.65, 0.3, 0.9] }}
+                className="inline-block origin-bottom-left"
+              >
+                {word}
+              </motion.span>
+            ))}
           </motion.h1>
 
           {/* Subheadline */}
@@ -149,8 +159,9 @@ export function LandingPage() {
               <motion.div
                 key={i}
                 variants={fadeInUp}
-                whileHover={{ y: -8, transition: { duration: 0.2 } }}
-                className="bg-[var(--color-dash-bg)] dark:bg-[var(--color-surface-card)] border border-[#E2E8F0] dark:border-[var(--color-border-default)] rounded-[var(--radius-lg)] p-8 hover:border-[var(--color-brand-blue)]/50 hover:shadow-[var(--shadow-lg)] transition-all group relative overflow-hidden"
+                whileHover={{ scale: 1.05, rotateY: 5, rotateX: 5, zIndex: 10, transition: { duration: 0.4, ease: "easeOut" } }}
+                style={{ perspective: 1000 }}
+                className="bg-[var(--color-dash-bg)] dark:bg-[var(--color-surface-card)] border border-[#E2E8F0] dark:border-[var(--color-border-default)] rounded-[var(--radius-lg)] p-8 hover:border-[var(--color-brand-blue)]/50 hover:shadow-2xl transition-colors group relative overflow-hidden"
               >
                 {/* Subtle gradient hover background */}
                 <div className="absolute inset-0 bg-gradient-to-br from-[var(--color-brand-blue)]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
@@ -198,9 +209,13 @@ export function LandingPage() {
                 transition={{ delay: i * 0.3, duration: 0.5 }}
                 className="flex-1 flex flex-col items-center text-center relative z-10 group"
               >
-                <div className="h-14 w-14 rounded-full bg-[var(--color-brand-blue)] text-white flex items-center justify-center text-[20px] font-bold mb-6 shadow-[var(--shadow-md)] ring-8 ring-[var(--color-dash-bg)] dark:ring-[var(--color-bg-primary)] group-hover:scale-110 group-hover:bg-[var(--color-brand-blue-hover)] transition-all duration-300">
+                <motion.div 
+                  whileHover={{ scale: 1.2, rotate: 360 }}
+                  transition={{ duration: 0.6, type: "spring", bounce: 0.5 }}
+                  className="h-14 w-14 rounded-full bg-[var(--color-brand-blue)] text-white flex items-center justify-center text-[20px] font-bold mb-6 shadow-[var(--shadow-md)] ring-8 ring-[var(--color-dash-bg)] dark:ring-[var(--color-bg-primary)] cursor-default"
+                >
                   {step.num}
-                </div>
+                </motion.div>
                 <h3 className="text-[20px] font-bold text-[var(--color-dash-text)] dark:text-white mb-3">{step.title}</h3>
                 <p className="text-[15px] text-[#64748B] dark:text-[var(--color-text-secondary)] max-w-[280px] leading-[1.6]">{step.desc}</p>
               </motion.div>
@@ -223,10 +238,18 @@ export function LandingPage() {
           >
             <h2 className="text-[32px] md:text-[48px] font-bold text-[var(--color-dash-text)] dark:text-white font-display mb-6">Ready to transform your meetings?</h2>
             <p className="text-[18px] text-[#64748B] dark:text-[var(--color-text-secondary)] mb-10 max-w-[500px] mx-auto">Join thousands of professionals breaking language barriers every day.</p>
-            <Link to="/register" className="inline-flex items-center gap-2 bg-[var(--color-brand-blue)] hover:bg-[var(--color-brand-blue-hover)] text-white text-[18px] font-semibold px-10 h-16 rounded-[var(--radius-lg)] transition-all hover:scale-105 hover:shadow-[var(--shadow-glow)]">
-              Create Free Account
-              <ArrowRight className="h-5 w-5" />
-            </Link>
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              animate={{ boxShadow: ["0px 0px 0px 0px rgba(59,130,246,0)", "0px 0px 30px 10px rgba(59,130,246,0.4)", "0px 0px 0px 0px rgba(59,130,246,0)"] }}
+              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+              className="inline-block rounded-[var(--radius-lg)]"
+            >
+              <Link to="/register" className="inline-flex items-center gap-2 bg-[var(--color-brand-blue)] hover:bg-[var(--color-brand-blue-hover)] text-white text-[18px] font-semibold px-10 h-16 rounded-[var(--radius-lg)] transition-colors">
+                Create Free Account
+                <ArrowRight className="h-5 w-5" />
+              </Link>
+            </motion.div>
             <div className="mt-6 flex items-center justify-center gap-2 text-[13px] text-[#64748B] dark:text-[var(--color-text-secondary)] font-medium">
               <CheckCircle2 className="h-4 w-4 text-[var(--color-success)]" /> No credit card required
             </div>
