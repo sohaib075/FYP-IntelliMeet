@@ -47,9 +47,9 @@ export function PublicLayout() {
             <span>Break Language Barriers. Connect Intelligently.</span>
           </div>
           <div className="flex gap-6">
-            <a href="#" className="hover:text-[#0F172A] dark:hover:text-white transition-colors">Privacy Policy</a>
-            <a href="#" className="hover:text-[#0F172A] dark:hover:text-white transition-colors">Terms of Service</a>
-            <a href="#" className="hover:text-[#0F172A] dark:hover:text-white transition-colors">Contact</a>
+            <Link to="/privacy" className="hover:text-[#0F172A] dark:hover:text-white transition-colors">Privacy Policy</Link>
+            <Link to="/terms" className="hover:text-[#0F172A] dark:hover:text-white transition-colors">Terms of Service</Link>
+            <Link to="/contact" className="hover:text-[#0F172A] dark:hover:text-white transition-colors">Contact</Link>
           </div>
         </div>
       </footer>

@@ -230,7 +230,7 @@ export function RegisterPage() {
             <label className="flex items-start gap-2.5 pt-2 cursor-pointer group select-none">
               <input type="checkbox" required className="mt-1 w-4.5 h-4.5 rounded border-[#CBD5E1] text-[#3B82F6] focus:ring-[#3B82F6]/20 transition-all cursor-pointer" />
               <span className="text-[13px] text-[#64748B] leading-normal group-hover:text-[#0F172A] transition-colors">
-                I agree to the <a href="#" className="text-[#3B82F6] hover:text-[#2563EB] font-semibold">Terms & Conditions</a> and <a href="#" className="text-[#3B82F6] hover:text-[#2563EB] font-semibold">Privacy Policy</a>
+                I agree to the <Link to="/terms" className="text-[#3B82F6] hover:text-[#2563EB] font-semibold">Terms & Conditions</Link> and <Link to="/privacy" className="text-[#3B82F6] hover:text-[#2563EB] font-semibold">Privacy Policy</Link>
               </span>
             </label>
 

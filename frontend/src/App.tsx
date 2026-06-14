@@ -5,6 +5,7 @@ import { PublicLayout } from "./layouts/PublicLayout"
 import { DashboardLayout } from "./layouts/DashboardLayout"
 
 import { ProtectedRoute } from "./components/auth/ProtectedRoute"
+import { ScrollToTop } from "./components/layout/ScrollToTop"
 
 // Public Pages
 import { LandingPage } from "./pages/public/LandingPage"
@@ -15,7 +16,9 @@ import { ResetPasswordPage } from "./pages/public/ResetPasswordPage"
 import { VerifyEmailPage } from "./pages/public/VerifyEmailPage"
 import { StatusPreviewPage } from "./pages/public/StatusPreviewPage"
 import { NotFoundPage } from "./pages/public/NotFoundPage"
-
+import { PrivacyPage } from "./pages/public/PrivacyPage"
+import { TermsPage } from "./pages/public/TermsPage"
+import { ContactPage } from "./pages/public/ContactPage"
 // Dashboard Pages
 import { DashboardPage } from "./pages/dashboard/DashboardPage"
 import { ProfilePage } from "./pages/dashboard/ProfilePage"
@@ -32,7 +35,9 @@ import { MeetingEndedPage } from "./pages/meeting/MeetingEndedPage"
 
 export function App() {
   return (
-    <Routes>
+    <>
+      <ScrollToTop />
+      <Routes>
       {/* Auth Routes (Standalone) */}
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
@@ -44,6 +49,9 @@ export function App() {
       <Route element={<PublicLayout />}>
         <Route path="/" element={<LandingPage />} />
         <Route path="/status-preview" element={<StatusPreviewPage />} />
+        <Route path="/privacy" element={<PrivacyPage />} />
+        <Route path="/terms" element={<TermsPage />} />
+        <Route path="/contact" element={<ContactPage />} />
       </Route>
 
       {/* Authenticated User Routes */}
@@ -74,5 +82,6 @@ export function App() {
       {/* Fallback */}
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
+    </>
   )
 }
