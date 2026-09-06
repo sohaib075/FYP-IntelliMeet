@@ -19,6 +19,7 @@ dotenv.config({ path: path.resolve(__dirname, '..', '.env') });
 const REQUIRED_VARS = [
   'MONGODB_URI',
   'JWT_SECRET',
+  'GOOGLE_CLIENT_ID',
 ];
 
 const missing = REQUIRED_VARS.filter((key) => !process.env[key]);
@@ -61,6 +62,21 @@ module.exports = {
 
   /** Bcrypt cost factor — higher = slower + more secure */
   BCRYPT_SALT_ROUNDS: parseInt(process.env.BCRYPT_SALT_ROUNDS, 10) || 10,
+
+  /** Google OAuth client id (audience for ID-token verification) */
+  GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
+
+  /**
+   * Public URL of the frontend. Used to build links we put in emails
+   * (password reset) and meeting invitations. NEVER derived from
+   * request headers, which an attacker controls.
+   */
+  FRONTEND_URL: (process.env.FRONTEND_URL || 'http://localhost:5173').replace(/\/$/, ''),
+
+  /** LiveKit (optional until the media migration lands) */
+  LIVEKIT_URL: process.env.LIVEKIT_URL || null,
+  LIVEKIT_API_KEY: process.env.LIVEKIT_API_KEY || null,
+  LIVEKIT_API_SECRET: process.env.LIVEKIT_API_SECRET || null,
 
   /** Allowed CORS origins (parsed into an array) */
   CORS_ORIGIN: process.env.NODE_ENV === 'development' || !process.env.NODE_ENV

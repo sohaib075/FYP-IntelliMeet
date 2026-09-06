@@ -8,14 +8,13 @@
  */
 
 const { body } = require('express-validator');
-const { validate } = require('./authValidators');
+const { validate, mustBeText } = require('./authValidators');
 
 // ============================================================
 // Update Profile Validation Rules
 // ============================================================
 const updateProfileValidation = [
-  body('fullName')
-    .optional()
+  mustBeText(body('fullName').optional(), 'Full name')
     .trim()
     .notEmpty()
     .withMessage('Full name cannot be empty')
@@ -24,8 +23,7 @@ const updateProfileValidation = [
     .matches(/^[a-zA-Z0-9\s.,'-]+$/)
     .withMessage('Full name contains invalid characters'),
 
-  body('email')
-    .optional()
+  mustBeText(body('email').optional(), 'Email')
     .trim()
     .notEmpty()
     .withMessage('Email cannot be empty')
@@ -33,8 +31,10 @@ const updateProfileValidation = [
     .withMessage('Please provide a valid email address')
     .normalizeEmail(),
 
-  body('phoneNumber')
-    .optional()
+  // Required by the controller only when the email is actually changing.
+  mustBeText(body('currentPassword').optional(), 'Current password'),
+
+  mustBeText(body('phoneNumber').optional(), 'Phone number')
     .trim()
     .matches(/^[0-9+\-\s()]*$/)
     .withMessage('Please provide a valid phone number')
@@ -48,19 +48,13 @@ const updateProfileValidation = [
 // Update Preferences Validation Rules
 // ============================================================
 const updatePreferencesValidation = [
-  body('spokenLanguage')
-    .optional()
+  mustBeText(body('spokenLanguage').optional(), 'Spoken language')
     .trim()
-    .isString()
-    .withMessage('Spoken language must be a string')
     .isLength({ min: 2, max: 10 })
     .withMessage('Spoken language code must be between 2 and 10 characters'),
 
-  body('listeningLanguage')
-    .optional()
+  mustBeText(body('listeningLanguage').optional(), 'Listening language')
     .trim()
-    .isString()
-    .withMessage('Listening language must be a string')
     .isLength({ min: 2, max: 10 })
     .withMessage('Listening language code must be between 2 and 10 characters'),
 
@@ -71,11 +65,11 @@ const updatePreferencesValidation = [
 // Update Password Validation Rules
 // ============================================================
 const updatePasswordValidation = [
-  body('currentPassword')
+  mustBeText(body('currentPassword'), 'Current password')
     .notEmpty()
     .withMessage('Current password is required'),
 
-  body('newPassword')
+  mustBeText(body('newPassword'), 'New password')
     .trim()
     .notEmpty()
     .withMessage('New password is required')

@@ -24,7 +24,7 @@ const config = require('../config/environment');
  * Mongoose CastError — e.g. invalid ObjectId format.
  */
 const handleCastError = (err) => {
-  return ApiError.badRequest(`Invalid ${err.path}: ${err.value}`);
+  return ApiError.of(400, 'INVALID_ID', `Invalid ${err.path}: ${err.value}`);
 };
 
 /**
@@ -32,9 +32,7 @@ const handleCastError = (err) => {
  */
 const handleDuplicateKeyError = (err) => {
   const field = Object.keys(err.keyValue)[0];
-  return ApiError.conflict(
-    `An account with this ${field} already exists`
-  );
+  return ApiError.of(409, 'DUPLICATE_KEY', `An account with this ${field} already exists`);
 };
 
 /**
@@ -45,21 +43,49 @@ const handleValidationError = (err) => {
     field: e.path,
     message: e.message,
   }));
-  return ApiError.unprocessable('Validation failed', errors);
+  return ApiError.of(422, 'VALIDATION_FAILED', 'Validation failed', errors);
 };
 
 /**
  * jsonwebtoken — invalid token signature / format.
  */
 const handleJWTError = () => {
-  return ApiError.unauthorized('Invalid token — please log in again');
+  // TOKEN_INVALID tells the frontend to clear the session, unlike a 401 from
+  // a wrong password, which must not log the user out.
+  return ApiError.of(401, 'TOKEN_INVALID', 'Invalid token — please log in again');
 };
 
 /**
  * jsonwebtoken — token expired.
  */
 const handleJWTExpiredError = () => {
-  return ApiError.unauthorized('Token has expired — please log in again');
+  return ApiError.of(401, 'TOKEN_INVALID', 'Token has expired — please log in again');
+};
+
+/**
+ * body-parser / http-errors failures — oversized or unparseable request bodies.
+ *
+ * These need their own transformer because http-errors defines `status` and
+ * `statusCode` as NON-ENUMERABLE properties. The spread this handler does to
+ * avoid mutating the original error silently drops them, so without this every
+ * such error surfaced as a 500 ("request entity too large") instead of the
+ * 413 or 400 the client should get.
+ */
+const handleBodyParserError = (err) => {
+  switch (err.type) {
+    case 'entity.too.large':
+      return ApiError.of(413, 'PAYLOAD_TOO_LARGE', 'That request was too large.');
+    case 'entity.parse.failed':
+      return ApiError.of(400, 'INVALID_JSON', 'The request body was not valid JSON.');
+    case 'encoding.unsupported':
+      return ApiError.of(415, 'UNSUPPORTED_ENCODING', 'That content encoding is not supported.');
+    default:
+      return ApiError.of(
+        err.status || err.statusCode || 400,
+        'BAD_REQUEST',
+        'The request could not be read.'
+      );
+  }
 };
 
 // ============================================================
@@ -76,10 +102,27 @@ const errorHandler = (err, req, res, _next) => {
   if (err.name === 'ValidationError') error = handleValidationError(err);
   if (err.name === 'JsonWebTokenError') error = handleJWTError();
   if (err.name === 'TokenExpiredError') error = handleJWTExpiredError();
+  // body-parser errors carry a `type` and are safe to expose.
+  if (typeof err.type === 'string' && err.type.startsWith('entity.')) error = handleBodyParserError(err);
+  if (err.type === 'encoding.unsupported') error = handleBodyParserError(err);
 
   // ---- Determine status code ----
-  const statusCode = error.statusCode || 500;
-  const isOperational = error.isOperational || false;
+  // Fall back to the ORIGINAL error: http-errors keeps status/statusCode
+  // non-enumerable, so the spread above cannot see them.
+  const statusCode = error.statusCode || err.statusCode || err.status || 500;
+  const isOperational = error.isOperational || err.expose === true || false;
+  const code =
+    error.code && typeof error.code === 'string'
+      ? error.code
+      : statusCode === 401
+        ? 'UNAUTHORIZED'
+        : statusCode === 403
+          ? 'FORBIDDEN'
+          : statusCode === 422
+            ? 'VALIDATION_FAILED'
+            : statusCode === 429
+              ? 'RATE_LIMITED'
+              : null;
 
   // ---- Log unexpected (non-operational) errors ----
   if (!isOperational) {
@@ -93,16 +136,16 @@ const errorHandler = (err, req, res, _next) => {
       ...(error.errors || []),
       // Include stack trace as the last item for dev convenience
       ...(err.stack ? [{ stack: err.stack }] : []),
-    ]);
+    ], code);
   }
 
   // Production — only expose operational error messages
   if (isOperational) {
-    return sendError(res, statusCode, error.message, error.errors || []);
+    return sendError(res, statusCode, error.message, error.errors || [], code);
   }
 
   // Non-operational in production — return a generic message
-  return sendError(res, 500, 'Something went wrong — please try again later');
+  return sendError(res, 500, 'Something went wrong — please try again later', [], 'INTERNAL_ERROR');
 };
 
 module.exports = errorHandler;

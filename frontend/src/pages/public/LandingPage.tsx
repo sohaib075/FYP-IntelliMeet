@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom"
 import { Globe2, Mic, Volume2, Video, MessageSquare, Monitor, Users, FileText, Lock, Zap, ArrowRight, Shield, Sparkles, CheckCircle2 } from "lucide-react"
-import { motion } from "framer-motion"
+import { motion, type Variants } from "framer-motion"
 import { Logo } from "@/components/common/Logo"
 
 export function LandingPage() {
@@ -21,7 +21,7 @@ export function LandingPage() {
     { num: "03", title: "Collaborate Seamlessly", desc: "Speak naturally while everyone hears you in their preferred language." }
   ]
 
-  const staggerContainer = {
+  const staggerContainer: Variants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
@@ -29,12 +29,12 @@ export function LandingPage() {
     }
   }
 
-  const fadeInUp = {
+  const fadeInUp: Variants = {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } }
   }
 
-  const blobAnimation = {
+  const blobAnimation: Variants = {
     animate: {
       scale: [1, 1.05, 1],
       rotate: [0, 90, 0],

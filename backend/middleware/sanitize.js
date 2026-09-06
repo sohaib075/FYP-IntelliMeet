@@ -12,46 +12,64 @@
  * Which would bypass authentication on an unprotected MongoDB
  * query. This middleware neutralises such payloads before they
  * reach any controller or database query.
+ *
+ * IMPORTANT — why this mutates in place:
+ * Under Express 5, `req.query` is a getter on the request prototype.
+ * Assigning `req.query = sanitised` is silently discarded in sloppy
+ * mode, so the query string was never actually being cleaned. Deleting
+ * the offending keys from the existing object works for all three.
  * ============================================================
  */
 
 /**
- * Recursively remove keys that start with '$' from an object.
+ * Recursively remove keys that start with '$', mutating the object given.
  *
- * @param   {*} obj - Any value (object, array, primitive)
- * @returns {*}     - Sanitised value with dangerous keys removed
+ * @param {*} value    - Any value (object, array, primitive)
+ * @param {number} depth - Guards against pathologically nested payloads
  */
-const sanitizeValue = (obj) => {
-  if (obj === null || obj === undefined) return obj;
+const stripDollarKeys = (value, depth = 0) => {
+  if (depth > 10 || value === null || typeof value !== 'object') return;
 
-  // Handle arrays — sanitise each element
-  if (Array.isArray(obj)) {
-    return obj.map(sanitizeValue);
+  if (Array.isArray(value)) {
+    for (const entry of value) stripDollarKeys(entry, depth + 1);
+    return;
   }
 
-  // Handle plain objects — strip '$' keys and recurse
-  if (typeof obj === 'object') {
-    const sanitized = {};
-    for (const key of Object.keys(obj)) {
-      // Skip any key starting with '$' (MongoDB operator)
-      if (key.startsWith('$')) continue;
-
-      sanitized[key] = sanitizeValue(obj[key]);
+  for (const key of Object.keys(value)) {
+    // MongoDB operators are the whole attack surface here.
+    if (key.startsWith('$')) {
+      delete value[key];
+      continue;
     }
-    return sanitized;
+    stripDollarKeys(value[key], depth + 1);
   }
-
-  // Primitives pass through unchanged
-  return obj;
 };
 
 /**
  * Express middleware that sanitises all request inputs.
  */
 const sanitize = (req, _res, next) => {
-  if (req.body) req.body = sanitizeValue(req.body);
-  if (req.query) req.query = sanitizeValue(req.query);
-  if (req.params) req.params = sanitizeValue(req.params);
+  stripDollarKeys(req.body);
+  stripDollarKeys(req.params);
+
+  // `req.query` is a prototype getter in Express 5 that re-parses the query
+  // string on every access, so neither assigning to it nor mutating what it
+  // returns has any effect. Read it once, clean that object, then pin it onto
+  // the request instance so handlers see the sanitised version.
+  try {
+    const query = req.query;
+    stripDollarKeys(query);
+    Object.defineProperty(req, 'query', {
+      value: query,
+      writable: true,
+      configurable: true,
+      enumerable: true,
+    });
+  } catch {
+    // If the property cannot be redefined, fall through: the pinned "simple"
+    // query parser still yields flat strings rather than operator objects.
+  }
+
   next();
 };
 

@@ -17,12 +17,15 @@ class ApiError extends Error {
    * @param {string}  message     - Human-readable error message
    * @param {Array}   [errors]    - Optional array of detailed validation errors
    */
-  constructor(statusCode, message, errors = []) {
+  constructor(statusCode, message, errors = [], code = null) {
     super(message);
 
     this.statusCode = statusCode;
     this.status = `${statusCode}`.startsWith('4') ? 'fail' : 'error';
     this.errors = errors;
+
+    /** Stable machine-readable code, e.g. MEETING_NOT_FOUND */
+    this.code = code;
 
     /**
      * Operational errors are expected (bad input, auth failure, etc.)
@@ -36,6 +39,11 @@ class ApiError extends Error {
   }
 
   // ---- Static Factory Methods ----
+
+  /** Any status with an explicit machine-readable code */
+  static of(statusCode, code, message, errors = []) {
+    return new ApiError(statusCode, message, errors, code);
+  }
 
   /** 400 — Malformed request or validation failure */
   static badRequest(message = 'Bad request', errors = []) {

@@ -1,4 +1,5 @@
 import { io, Socket } from 'socket.io-client';
+import { useAuthStore } from '@/store/useAuthStore';
 
 let socket: Socket | null = null;
 
@@ -8,8 +9,8 @@ const getSocketUrl = () => {
     try {
       const url = new URL(apiUrl);
       return `${url.protocol}//${url.host}`;
-    } catch (e) {
-      // ignore
+    } catch {
+      // ignore — fall through to the location-based default
     }
   }
   if (typeof window !== 'undefined') {
@@ -18,14 +19,20 @@ const getSocketUrl = () => {
   return 'http://localhost:3001';
 };
 
+/**
+ * Lazily create the singleton socket. The JWT is supplied through the
+ * handshake `auth` callback so a token refreshed after a re-login is
+ * picked up on the next (re)connect without recreating the socket.
+ */
 export const initSocket = (url?: string) => {
   if (!socket) {
     const finalUrl = url || getSocketUrl();
-    console.log(`[Socket] Initializing socket on URL: ${finalUrl}`);
-    socket = io(finalUrl, { autoConnect: false });
+    socket = io(finalUrl, {
+      autoConnect: false,
+      auth: (cb) => cb({ token: useAuthStore.getState().token }),
+    });
   }
   return socket;
 };
 
 export const getSocket = () => socket;
-

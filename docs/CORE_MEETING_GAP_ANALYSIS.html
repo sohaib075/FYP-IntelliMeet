@@ -1,0 +1,1271 @@
+<title>IntelliMeet Core Meeting Dossier</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&family=Source+Sans+3:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{
+  --bg:#F7F8F9;--surface:#FFFFFF;--ink:#1A212B;--muted:#5C6673;--rule:#D9DEE4;--rule-soft:#E9ECF0;
+  --accent:#0F6E78;--accent-ink:#0B565E;--accent-soft:#E3F1F2;
+  --crit:#A8231C;--crit-soft:#FBE9E7;--high:#B4520A;--high-soft:#FDEEDF;--med:#8A6D00;--med-soft:#FBF3D5;--ok:#1E6F3F;--ok-soft:#E2F2E8;--info:#2E5AAC;--info-soft:#E5ECF9;
+  --code-bg:#F0F2F5;--shadow:0 1px 2px rgba(20,30,40,.06);
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#12161B;--surface:#191E25;--ink:#E4E8ED;--muted:#98A2AE;--rule:#2C343E;--rule-soft:#232A33;
+  --accent:#4FB7C1;--accent-ink:#7FD0D8;--accent-soft:#16333A;
+  --crit:#F0857C;--crit-soft:#3A1E1C;--high:#F0A45E;--high-soft:#3A2A18;--med:#E4C25A;--med-soft:#36301A;--ok:#6CC58F;--ok-soft:#1B3325;--info:#8FB0EE;--info-soft:#1C2740;
+  --code-bg:#10141A;--shadow:none;
+}}
+:root[data-theme="dark"]{
+  --bg:#12161B;--surface:#191E25;--ink:#E4E8ED;--muted:#98A2AE;--rule:#2C343E;--rule-soft:#232A33;
+  --accent:#4FB7C1;--accent-ink:#7FD0D8;--accent-soft:#16333A;
+  --crit:#F0857C;--crit-soft:#3A1E1C;--high:#F0A45E;--high-soft:#3A2A18;--med:#E4C25A;--med-soft:#36301A;--ok:#6CC58F;--ok-soft:#1B3325;--info:#8FB0EE;--info-soft:#1C2740;
+  --code-bg:#10141A;--shadow:none;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Source Sans 3","Segoe UI",system-ui,sans-serif;font-size:16.5px;line-height:1.55;-webkit-font-smoothing:antialiased}
+a{color:var(--accent-ink);text-decoration:none;border-bottom:1px solid transparent}
+a:hover,a:focus-visible{border-bottom-color:currentColor;outline:none}
+.wrap{display:grid;grid-template-columns:minmax(0,1fr);gap:0;max-width:1180px;margin:0 auto;padding:0 20px 80px}
+@media(min-width:1040px){.wrap{grid-template-columns:230px minmax(0,1fr);gap:48px}}
+nav.toc{display:none}
+@media(min-width:1040px){nav.toc{display:block;position:sticky;top:0;align-self:start;max-height:100vh;overflow:auto;padding:36px 0 24px;font-size:13.5px}}
+nav.toc .eyebrow{margin-bottom:10px}
+nav.toc ol{list-style:none;margin:0;padding:0;counter-reset:toc}
+nav.toc li{counter-increment:toc;margin:0;padding:3px 0;border-left:2px solid var(--rule-soft);padding-left:10px}
+nav.toc li::before{content:counter(toc,decimal-leading-zero);font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--muted);margin-right:8px}
+nav.toc a{color:var(--muted)}
+nav.toc a:hover{color:var(--ink);border-bottom:none}
+main{max-width:100%;min-width:0}
+header.masthead{padding:48px 0 28px;border-bottom:1px solid var(--rule);margin-bottom:12px}
+.eyebrow{font-family:"Source Sans 3",sans-serif;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600}
+h1{font-family:"Source Serif 4",Georgia,serif;font-weight:600;font-size:40px;line-height:1.1;margin:10px 0 14px;text-wrap:balance;letter-spacing:-.01em}
+.lede{font-size:19px;color:var(--muted);max-width:70ch;margin:0 0 20px}
+.meta{display:flex;flex-wrap:wrap;gap:22px;font-size:13.5px;color:var(--muted)}
+.meta b{color:var(--ink);font-weight:600}
+section{padding:36px 0 8px;border-bottom:1px solid var(--rule-soft)}
+section:last-of-type{border-bottom:none}
+h2{font-family:"Source Serif 4",Georgia,serif;font-weight:600;font-size:28px;line-height:1.2;margin:0 0 16px;text-wrap:balance;display:flex;gap:14px;align-items:baseline}
+h2 .num{font-family:"JetBrains Mono",monospace;font-size:13px;color:var(--accent);font-weight:600;letter-spacing:.04em}
+h3{font-family:"Source Serif 4",Georgia,serif;font-weight:600;font-size:20px;margin:28px 0 8px;text-wrap:balance}
+h4{font-size:15px;font-weight:700;margin:20px 0 6px;letter-spacing:.01em}
+p,li{max-width:72ch}
+p{margin:0 0 12px}
+ul,ol{margin:0 0 14px;padding-left:22px}
+li{margin:0 0 5px}
+code{font-family:"JetBrains Mono",monospace;font-size:.86em;background:var(--code-bg);padding:1px 5px;border-radius:3px;color:var(--ink)}
+pre{font-family:"JetBrains Mono",monospace;font-size:13px;line-height:1.5;background:var(--code-bg);border:1px solid var(--rule-soft);border-radius:4px;padding:14px 16px;overflow-x:auto;margin:10px 0 18px;max-width:100%}
+pre code{background:none;padding:0;font-size:inherit}
+.tablewrap{overflow-x:auto;margin:10px 0 22px;border:1px solid var(--rule);border-radius:4px;background:var(--surface);box-shadow:var(--shadow)}
+table{border-collapse:collapse;width:100%;font-size:14px;line-height:1.45}
+th,td{text-align:left;vertical-align:top;padding:9px 12px;border-bottom:1px solid var(--rule-soft)}
+th{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);background:var(--bg);font-weight:700;white-space:nowrap}
+tbody tr:last-child td{border-bottom:none}
+td code{white-space:nowrap}
+.tag{display:inline-block;font-size:11.5px;font-weight:700;letter-spacing:.04em;padding:2px 7px;border-radius:3px;white-space:nowrap;line-height:1.5}
+.crit{background:var(--crit-soft);color:var(--crit)}.high{background:var(--high-soft);color:var(--high)}.med{background:var(--med-soft);color:var(--med)}.low,.ok{background:var(--ok-soft);color:var(--ok)}.info{background:var(--info-soft);color:var(--info)}.neutral{background:var(--code-bg);color:var(--muted)}
+.callout{border-left:3px solid var(--accent);background:var(--accent-soft);padding:12px 16px;border-radius:0 4px 4px 0;margin:14px 0 18px;max-width:80ch}
+.callout.warn{border-left-color:var(--crit);background:var(--crit-soft)}
+.callout p:last-child{margin-bottom:0}
+.flow{font-family:"JetBrains Mono",monospace;font-size:13px;line-height:1.6;background:var(--surface);border:1px solid var(--rule);border-radius:4px;padding:14px 18px;margin:10px 0 18px;overflow-x:auto;max-width:100%}
+.flow .step{display:block;white-space:pre}
+.flow .arrow{color:var(--muted);display:block;padding-left:6px}
+.flow .broken{color:var(--crit);font-weight:600}
+.flow .note{color:var(--muted)}
+.path{font-family:"JetBrains Mono",monospace;font-size:.86em;color:var(--accent-ink)}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin:12px 0 20px}
+.panel{background:var(--surface);border:1px solid var(--rule);border-radius:4px;padding:16px 18px}
+.panel h4{margin-top:0}
+.panel ul{margin-bottom:0}
+.kv{display:grid;grid-template-columns:max-content 1fr;gap:6px 18px;font-size:14.5px;margin:8px 0 16px}
+.kv dt{color:var(--muted);font-weight:600}
+.kv dd{margin:0}
+.check{list-style:none;padding-left:0;columns:2;column-gap:32px}
+@media(max-width:700px){.check{columns:1}}
+.check li{break-inside:avoid;padding-left:26px;position:relative;margin-bottom:7px;font-size:14.5px}
+.check li::before{content:"";position:absolute;left:0;top:4px;width:14px;height:14px;border:1.5px solid var(--muted);border-radius:2px}
+.decisions ol{padding-left:0;list-style:none;counter-reset:dec}
+.decisions li{counter-increment:dec;padding:12px 0 12px 44px;position:relative;border-top:1px solid var(--rule-soft);max-width:80ch}
+.decisions li::before{content:counter(dec);position:absolute;left:0;top:12px;font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--accent);font-weight:600;width:30px}
+.decisions li b{display:block;margin-bottom:3px}
+.diagram{font-family:"JetBrains Mono",monospace;font-size:12.5px;line-height:1.45;white-space:pre;overflow-x:auto;background:var(--surface);border:1px solid var(--rule);border-radius:4px;padding:18px 20px;margin:10px 0 20px}
+.tabnum{font-variant-numeric:tabular-nums}
+@media(prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
+</style>
+
+<div class="wrap">
+<nav class="toc" aria-label="Sections">
+<div class="eyebrow">Sections</div>
+<ol>
+<li><a href="#s1">Executive summary</a></li>
+<li><a href="#s2">Current architecture</a></li>
+<li><a href="#s3">Current meeting flows</a></li>
+<li><a href="#s4">Expected architecture</a></li>
+<li><a href="#s5">Feature comparison</a></li>
+<li><a href="#s6">Critical problems</a></li>
+<li><a href="#s7">Meeting ID problem</a></li>
+<li><a href="#s8">Meeting ID solution</a></li>
+<li><a href="#s9">LiveKit migration</a></li>
+<li><a href="#s10">Authentication</a></li>
+<li><a href="#s11">Create meeting</a></li>
+<li><a href="#s12">Join meeting</a></li>
+<li><a href="#s13">Audio and video</a></li>
+<li><a href="#s14">Screen sharing</a></li>
+<li><a href="#s15">Host controls</a></li>
+<li><a href="#s16">Participant management</a></li>
+<li><a href="#s17">Database</a></li>
+<li><a href="#s18">API design</a></li>
+<li><a href="#s19">Security review</a></li>
+<li><a href="#s20">Error handling</a></li>
+<li><a href="#s21">File-by-file plan</a></li>
+<li><a href="#s22">LiveKit integration</a></li>
+<li><a href="#s23">Target diagram</a></li>
+<li><a href="#s24">Roadmap</a></li>
+<li><a href="#s25">Test plan</a></li>
+<li><a href="#s26">Checklist and decisions</a></li>
+</ol>
+</nav>
+
+<main>
+<header class="masthead">
+<div class="eyebrow">Final Year Project · Core conferencing audit</div>
+<h1>IntelliMeet Core Meeting Dossier</h1>
+<p class="lede">A code-traced comparison of IntelliMeet's meeting system against Google Meet-style behaviour, with a LiveKit migration architecture, API and schema design, security findings by severity, and a phased roadmap. AI translation features are deliberately out of scope.</p>
+<div class="meta">
+<span>Source read <b>77 files</b>, all in full</span>
+<span>Stack <b>React 19 · Express 5 · Mongoose 8 · Socket.IO 4 · raw WebRTC</b></span>
+<span>Verified by <b>tsc, runtime probes, grep sweep</b></span>
+<span>Dated <b>5 September 2026</b></span>
+</div>
+</header>
+
+<!-- ============================================================ 1 -->
+<section id="s1">
+<h2><span class="num">01</span>Executive summary</h2>
+<p><b>Verdict.</b> IntelliMeet has a solid authentication and user service, and a working two-to-four-person mesh WebRTC call. It does not yet have a meeting system. There is no Meeting model, no meeting API, and no server-side concept of a meeting existing before someone joins. Any string typed into the URL becomes a live room, hosting is awarded to whoever connects first, and the signaling server accepts every command from every socket without checking who sent it.</p>
+<p>The core recommendation is to <b>replace the custom peer-to-peer media layer with LiveKit</b> and to put a real Meeting record, server-generated IDs, and a token-issuing endpoint in front of it. That single change resolves NAT traversal, reconnection, host mute and removal, scaling past four participants, and most of the WebRTC bugs found in the room page, while shrinking the frontend meeting code by roughly two thirds.</p>
+<div class="grid2">
+<div class="panel"><h4>What is genuinely good</h4><ul>
+<li>Express layering: Helmet, CORS, rate limits, validators, error envelope, graceful shutdown.</li>
+<li>Registration with hashed OTP, verified email, Google sign-in, hashed reset tokens, JWT invalidation on password change.</li>
+<li>Frontend auth pages call real endpoints with sensible validation and error mapping.</li>
+<li>Perfect-negotiation structure and track replacement for screen share show real WebRTC understanding.</li>
+</ul></div>
+<div class="panel"><h4>What blocks a credible demo</h4><ul>
+<li>Meetings are not created anywhere. Rooms materialise on first socket join.</li>
+<li>No socket authentication. No host check on kick or force-mute. Host is stealable.</li>
+<li>STUN only, no TURN, no ICE queue. Calls fail on real campus networks.</li>
+<li>Production build fails with 8 TypeScript errors. No tests exist.</li>
+<li>Dashboard, scheduling, join validation, and settings are facades over localStorage.</li>
+</ul></div>
+</div>
+<p><b>Scope of this document.</b> Everything below traces the actual code with file and line references. Findings marked <span class="tag ok">verified</span> were reproduced by running code, not only by reading it.</p>
+</section>
+
+<!-- ============================================================ 2 -->
+<section id="s2">
+<h2><span class="num">02</span>Current IntelliMeet architecture</h2>
+<p>The repository is a two-package monolith: <span class="path">IntelliMeet/backend</span> (CommonJS, Express 5) and <span class="path">IntelliMeet/frontend</span> (Vite, React 19, TypeScript). There is no shared types package, no test directory, and no lint configuration. A grep sweep for <code>livekit</code>, <code>AccessToken</code>, <code>RoomServiceClient</code>, <code>mediasoup</code> and <code>turn:</code> returns only two README sentences. There is exactly one WebRTC implementation and one socket client. No duplicate or abandoned meeting implementations exist.</p>
+
+<h3>Frontend</h3>
+<dl class="kv">
+<dt>Framework</dt><dd>React 19.2, Vite 8, TypeScript 6 with <code>strict</code> off, Tailwind 4, react-router 7, Zustand 5, Framer Motion, lucide icons.</dd>
+<dt>Routing</dt><dd><span class="path">src/App.tsx:40-84</span>. Public pages under <code>PublicLayout</code>; dashboard pages under <code>DashboardLayout</code> behind <code>ProtectedRoute</code>; meeting pages <code>/meeting/lobby/:meetingId</code> and <code>/meeting/room/:meetingId</code> are protected but layout-less; <code>/meeting/ended</code> is public.</dd>
+<dt>Auth pages</dt><dd><span class="path">src/pages/public/</span> Login, Register, VerifyEmail, ForgotPassword, ResetPassword. All call real endpoints.</dd>
+<dt>Meeting pages</dt><dd><span class="path">src/pages/meeting/</span> CreateMeetingPage (client-side ID, localStorage), JoinMeetingPage (length check only), LobbyPage (camera preview, fake connect delay), MeetingRoomPage (1268 lines: WebRTC, media, chat, participants, modals, layout), MeetingEndedPage, MeetingSummaryPage (static, AI, out of scope).</dd>
+<dt>State</dt><dd><span class="path">src/store/useAuthStore.ts</span> persisted to localStorage key <code>intellimeet-auth-storage</code> including the JWT. <span class="path">src/store/useMeetingStore.ts</span> in-memory only: participants, messages, local media flags, timer, and a dead <code>signalingLog</code>. <span class="path">src/store/useToastStore.ts</span>.</dd>
+<dt>API client</dt><dd><span class="path">src/lib/api.ts</span>. Fetch wrapper, Bearer token from localStorage, base URL <code>VITE_API_URL</code> falling back to <code>http://localhost:3001/api</code>. Exposes <code>authApi</code> and <code>userApi</code>. There is <b>no</b> <code>meetingApi</code>.</dd>
+<dt>Sockets</dt><dd><span class="path">src/lib/socket.ts:21-28</span> singleton socket.io-client, <code>autoConnect:false</code>, <b>no auth payload</b>. <span class="path">src/hooks/useMeetingConnection.ts</span> registers ten listeners and emits <code>join-room</code> on connect.</dd>
+<dt>WebRTC</dt><dd>Entirely inside one effect in <span class="path">src/pages/meeting/MeetingRoomPage.tsx:102-276</span>. One <code>RTCPeerConnection</code> per remote participant in <code>peersRef</code>, STUN only, perfect-negotiation with monkey-patched flags, sender reconciliation loop for camera and screen tracks.</dd>
+<dt>Media</dt><dd><code>getUserMedia</code> three-tier fallback duplicated in <span class="path">LobbyPage.tsx:30-60</span> and <span class="path">MeetingRoomPage.tsx:321-357</span>. <code>getDisplayMedia</code> in <span class="path">MeetingRoomPage.tsx:395-421</span>.</dd>
+</dl>
+
+<h3>Backend</h3>
+<dl class="kv">
+<dt>Entry</dt><dd><span class="path">backend/server.js</span>. Express app, Helmet, general limiter on <code>/api</code>, CORS, 10 kB body limit, NoSQL key sanitizer, two routers, 404, error handler. Then an HTTP server with Socket.IO attached and the whole signaling implementation inline at lines 125-350.</dd>
+<dt>Auth</dt><dd><span class="path">routes/authRoutes.js</span> → <span class="path">controllers/authController.js</span>: register, login, verify-otp, resend-otp, forgot-password, reset-password, google. <span class="path">middleware/authMiddleware.js</span> <code>protect()</code> verifies the JWT and loads the user fresh. <span class="path">utils/jwt.js</span> signs <code>{ id }</code> with configurable expiry.</dd>
+<dt>Users API</dt><dd><span class="path">routes/userRoutes.js</span>: profile get/put/delete, preferences patch, password put. All behind <code>protect</code>.</dd>
+<dt>Meeting API</dt><dd><b>None.</b> No meeting routes, controller, service, or validator exists.</dd>
+<dt>Room logic</dt><dd>In-memory <code>rooms</code> Map at <span class="path">server.js:125</span>. Created implicitly inside the <code>join-room</code> handler at <span class="path">server.js:154-156</span>. Deleted when empty or on <code>end-meeting</code>.</dd>
+<dt>Room validation</dt><dd>None. Any <code>roomId</code> string is accepted.</dd>
+<dt>Database</dt><dd><span class="path">config/db.js</span> Mongoose with 5 retries and SIGINT/SIGTERM shutdown. <span class="path">config/environment.js</span> validates only <code>MONGODB_URI</code> and <code>JWT_SECRET</code>.</dd>
+<dt>Middleware</dt><dd>Helmet, <code>generalLimiter</code> and <code>authLimiter</code> (<span class="path">middleware/rateLimiter.js</span>), <code>sanitize</code>, <code>protect</code>, <code>errorHandler</code>, express-validator chains in <span class="path">validators/</span>.</dd>
+<dt>Email</dt><dd><span class="path">utils/email.js</span> Nodemailer SMTP, OTP and reset templates. Throws if SMTP is not configured.</dd>
+</dl>
+
+<h3>Database models that actually exist</h3>
+<div class="tablewrap"><table>
+<thead><tr><th>Model</th><th>File</th><th>Purpose</th><th>Notes</th></tr></thead>
+<tbody>
+<tr><td><b>User</b></td><td><span class="path">models/User.js</span></td><td>Accounts: name, email, phone, googleId, provider, hashed password, preferences, reset token, timestamps.</td><td><code>preferences</code> is declared as a <code>Map</code> while a proper sub-schema sits unused above it. Dot-assignment in the controllers is a silent no-op. <span class="tag ok">verified</span></td></tr>
+<tr><td><b>PendingUser</b></td><td><span class="path">models/PendingUser.js</span></td><td>Unverified sign-ups with hashed password and hashed OTP, TTL 10 minutes.</td><td>Sound design.</td></tr>
+<tr><td colspan="4" style="color:var(--muted)">No Meeting, Participant, Session, Room, or Message model exists. Meetings, participants, and chat live only in the process-memory <code>rooms</code> Map and vanish on restart.</td></tr>
+</tbody></table></div>
+</section>
+
+<!-- ============================================================ 3 -->
+<section id="s3">
+<h2><span class="num">03</span>Current meeting flows, traced</h2>
+<p>Each flow below follows the real code path. Where a flow breaks, the break is marked in red.</p>
+
+<h3>Create meeting</h3>
+<div class="flow">
+<span class="step">DashboardPage.tsx:28-31  handleStartInstant()      or  CreateMeetingPage.tsx:38-70  handleCreate()</span>
+<span class="arrow">↓</span>
+<span class="step">generate id client-side:  `im-${Math.random().toString(36).substring(2,6)}-${...}`   (CreateMeetingPage.tsx:42)</span>
+<span class="arrow">↓</span>
+<span class="step">setTimeout 1000 ms   <span class="note">// fake network latency</span></span>
+<span class="arrow">↓</span>
+<span class="step">localStorage["intellimeet_scheduled_meetings"] ← { id, title, duration:"1h", participants:1, host:"You" }   (:53-63)</span>
+<span class="arrow">↓</span>
+<span class="step"><span class="broken">BREAK: no HTTP request. No POST /api/meetings exists. No Meeting record. Backend has never heard of this ID.</span></span>
+<span class="arrow">↓</span>
+<span class="step">navigate(`/meeting/lobby/${id}`)</span>
+</div>
+
+<h3>Join meeting by code</h3>
+<div class="flow">
+<span class="step">JoinMeetingPage.tsx:29-41  handleJoin()</span>
+<span class="arrow">↓</span>
+<span class="step">if (parsedId.length &lt; 4) error   <span class="note">// "just length for testing flexibility"</span></span>
+<span class="arrow">↓</span>
+<span class="step">setTimeout 1500 ms with button text "Verifying meeting..."</span>
+<span class="arrow">↓</span>
+<span class="step"><span class="broken">BREAK: nothing is verified. No GET request. Any 4+ character string passes.</span></span>
+<span class="arrow">↓</span>
+<span class="step">navigate(`/meeting/lobby/${parsedId}`)</span>
+<span class="arrow">↓</span>
+<span class="step">LobbyPage.tsx:91-101  handleJoin()  →  useMeetingStore.joinMeeting({ meetingId, title:'CPEC Quarterly Review', ... })   <span class="note">// title hard-coded</span></span>
+<span class="arrow">↓</span>
+<span class="step">setTimeout 1500 ms  →  navigate(`/meeting/room/${meetingId}`)</span>
+<span class="arrow">↓</span>
+<span class="step">MeetingRoomPage.tsx:303-316  mount effect: if store.status === 'idle' → joinMeeting(meetingId || 'direct-join')   <span class="note">// direct URL entry also works</span></span>
+<span class="arrow">↓</span>
+<span class="step">useMeetingConnection.ts:19-23  onConnect → socket.emit('join-room', meetingId, localUser)   <span class="note">// localUser.id = `${Date.now()}-${counter}` generated in useMeetingStore.ts:114-115</span></span>
+<span class="arrow">↓</span>
+<span class="step">server.js:131-189  'join-room' handler</span>
+<span class="step">    if (!rooms.has(roomId)) rooms.set(roomId, { participants: [], messages: [] })    <span class="broken">← ROOM CREATED ON DEMAND (server.js:154-156)</span></span>
+<span class="step">    isHost = existingIndex &gt;= 0 ? previous.isHost : room.participants.length === 0     <span class="broken">← FIRST SOCKET BECOMES HOST (server.js:162-166)</span></span>
+<span class="arrow">↓</span>
+<span class="step">socket.emit('room-state', { participants, messages })  →  useMeetingConnection.ts:25-43 onRoomState   <span class="note">// messages discarded</span></span>
+<span class="step">socket.to(roomId).emit('user-joined', updatedUser)  →  MeetingRoomPage.tsx:262-269 creates RTCPeerConnection per participant</span>
+</div>
+
+<h3>Leave meeting</h3>
+<div class="flow">
+<span class="step">MeetingRoomPage.tsx:450-470  handleLeaveCall()</span>
+<span class="step">    if no other participants → handleEndCallForEveryone(true)     <span class="broken">← TS2554: function takes 0 args. A non-host last participant emits end-meeting and is rejected silently</span></span>
+<span class="arrow">↓</span>
+<span class="step">socket.emit('leave-room', meetingId, localUserId)   (:463)</span>
+<span class="arrow">↓</span>
+<span class="step">server.js:258-280  removes participant by userId   <span class="broken">← no check that the socket owns that userId; anyone can remove anyone</span></span>
+<span class="arrow">↓</span>
+<span class="step">stopAllLocalMedia() (:436-447) closes peers, stops tracks  →  leaveMeeting() resets store to status:'idle'  →  navigate('/dashboard')</span>
+<span class="step"><span class="broken">RACE: before unmount, the mount effect at :303-316 sees status 'idle' and re-joins a phantom room; its 800 ms timer is never cleared</span></span>
+</div>
+
+<h3>End meeting for everyone</h3>
+<div class="flow">
+<span class="step">MeetingRoomPage.tsx:472-480  handleEndCallForEveryone()  →  socket.emit('end-meeting', meetingId, localUserId)</span>
+<span class="arrow">↓</span>
+<span class="step">server.js:285-312  finds participant by userId, checks isHost   <span class="note">// the ONLY host-validated action</span></span>
+<span class="step">    io.to(roomId).emit('meeting-ended') → socketsLeave → rooms.delete(roomId)</span>
+<span class="arrow">↓</span>
+<span class="step">useMeetingConnection.ts:86-93  onMeetingEnded → leaveMeeting() → window.location.replace('/meeting/ended')   <span class="note">// peers not closed; full reload does the cleanup</span></span>
+</div>
+
+<h3>Remove participant and force mute</h3>
+<div class="flow">
+<span class="step">MeetingRoomPage.tsx:503-519 handleRemoveParticipant() → socket.emit('remove-user', meetingId, targetId)   <span class="note">// button hidden unless localUser.isHost, client-side only</span></span>
+<span class="step">MeetingRoomPage.tsx:499       handleForceMedia()        → socket.emit('force-media', meetingId, targetId, 'mute'|'video-off')</span>
+<span class="arrow">↓</span>
+<span class="step">server.js:230-252 'remove-user'  <span class="broken">← no isHost check. Emits 'kicked' and disconnects target after 500 ms</span></span>
+<span class="step">server.js:216-227 'force-media'  <span class="broken">← no isHost check. Relays the action to the target socket</span></span>
+<span class="arrow">↓</span>
+<span class="step">useMeetingConnection.ts:71-78 onForceMedia → toggleMic()/toggleVideo() if not already in that state   <span class="note">// honours the request client-side; nothing stops re-enabling</span></span>
+</div>
+
+<h3>Mute, camera, screen share (local)</h3>
+<div class="flow">
+<span class="step">useMeetingStore.ts:296-315 toggleMic()      → set localIsMuted → socket.emit('toggle-media', meetingId, localUserId, { isMuted })</span>
+<span class="step">useMeetingStore.ts:317-335 toggleVideo()    → set localIsVideoOff → emit { isVideoOff }</span>
+<span class="step">useMeetingStore.ts:337-357 toggleScreenShare() → emit { isScreenSharing }</span>
+<span class="arrow">↓</span>
+<span class="step">server.js:192-201 'toggle-media' → Object.assign(participant, mediaState)   <span class="broken">← merges ANY keys, including isHost and socketId</span></span>
+<span class="arrow">↓</span>
+<span class="step">MeetingRoomPage.tsx:213-259 sender reconciliation on every effect re-run: replaceTrack(currentVideoTrack | null), replaceTrack(currentAudioTrack | null)</span>
+<span class="step">MeetingRoomPage.tsx:395-421 handleScreenShareToggle() → getDisplayMedia({ video:true, audio:false }) → setScreenStream → effect swaps the single video sender</span>
+</div>
+</section>
+
+<!-- ============================================================ 4 -->
+<section id="s4">
+<h2><span class="num">04</span>Google Meet-like expected architecture</h2>
+<p>This is a behavioural baseline, not a reconstruction of Google's internals. For each concern the table states what a user expects, and which tier owns it. The tiers are the three the brief insists on: MongoDB for durable application state, the Node API for security and business rules, LiveKit for live media and session state.</p>
+<div class="tablewrap"><table>
+<thead><tr><th>Concern</th><th>Expected behaviour</th><th>Backend</th><th>Frontend</th><th>Real-time (LiveKit)</th><th>Database</th></tr></thead>
+<tbody>
+<tr><td>Identity</td><td>You are who you signed in as. Display name comes from your account.</td><td>Verify JWT on every meeting call. Never trust a userId in a body.</td><td>Send Bearer token. Show account name.</td><td>Participant identity equals the verified user id embedded in the token.</td><td>User</td></tr>
+<tr><td>Create meeting</td><td>One click yields a unique code and link that exists immediately and can be shared before anyone joins.</td><td>Generate ID, persist Meeting with host, return ID and URL.</td><td>Call API, then navigate. Never invent IDs.</td><td>Room is created lazily when the first token holder connects, or explicitly to set room options.</td><td>Meeting row with status CREATED.</td></tr>
+<tr><td>Validate code</td><td>A wrong code says "not found". It never creates anything.</td><td>Lookup by ID. 404 if absent. Report status if ended.</td><td>Validate format locally, then ask the server before showing the lobby.</td><td>Nothing. LiveKit is never touched for a lookup.</td><td>Indexed unique meetingId.</td></tr>
+<tr><td>Lobby</td><td>Preview camera and mic, pick devices, choose initial mute state, see the meeting title, then join.</td><td>Provide meeting title and host name.</td><td>Device enumeration, permission errors, preference persistence.</td><td>Not connected yet.</td><td>None.</td></tr>
+<tr><td>Join</td><td>Authorised users connect within seconds; banned or locked-out users see a clear reason.</td><td>Authorise, decide role, mint a short-lived token with grants.</td><td>Exchange token for a connection, publish chosen tracks.</td><td>Validates token signature and grants, admits participant, fans out tracks.</td><td>Optionally record first-join time.</td></tr>
+<tr><td>Host</td><td>The creator is host. Host controls appear only for them and only work for them.</td><td>Derive role from Meeting.hostId, never from the client.</td><td>Render controls based on role from the server or token metadata.</td><td>Token metadata carries role; server API calls enforce it.</td><td>Meeting.hostId</td></tr>
+<tr><td>Mute and camera</td><td>Instant local feedback; others see the state within a second.</td><td>Nothing for self-mute.</td><td>Toggle track via SDK.</td><td>Track mute state propagates to all subscribers automatically.</td><td>None.</td></tr>
+<tr><td>Screen share</td><td>Picker, then everyone sees the screen as a separate stage while the camera stays visible.</td><td>Optionally restrict who may share via token grants.</td><td>Publish a screen-share source; render by source type.</td><td>Separate track source; simulcast and adaptive bitrate.</td><td>None.</td></tr>
+<tr><td>Remove participant</td><td>Host removes; the person is disconnected immediately and told why.</td><td>Verify host, call LiveKit RoomService.removeParticipant, optionally ban.</td><td>Host menu; removed user sees "removed by host".</td><td>Executes the disconnect.</td><td>bannedUserIds if banning.</td></tr>
+<tr><td>Host mute</td><td>Host mutes a participant; the participant may unmute themselves later.</td><td>Verify host, call RoomService.mutePublishedTrack.</td><td>Show "muted by host" hint.</td><td>Executes the mute server-side.</td><td>None.</td></tr>
+<tr><td>Leave vs end</td><td>Anyone can leave. Only host can end for everyone. Ending closes the room and rejects future joins.</td><td>End: verify host, set ENDED, delete LiveKit room.</td><td>Distinct buttons; ended screen.</td><td>deleteRoom disconnects all.</td><td>status, endedAt.</td></tr>
+<tr><td>Refresh and reconnect</td><td>Refresh returns you to the same meeting with the same role. Brief network loss recovers silently.</td><td>Re-issue token on demand.</td><td>Re-validate, re-fetch token, reconnect.</td><td>Automatic reconnection and duplicate identity replacement.</td><td>None.</td></tr>
+<tr><td>Cleanup</td><td>Empty rooms do not linger forever.</td><td>Webhook marks meeting ENDED on room_finished.</td><td>None.</td><td>emptyTimeout closes empty rooms.</td><td>status, endedAt.</td></tr>
+<tr><td>Errors</td><td>Every failure names the cause and the fix in plain words.</td><td>Stable error codes.</td><td>Map codes to messages and screens.</td><td>SDK connection errors surfaced.</td><td>None.</td></tr>
+</tbody></table></div>
+</section>
+
+<!-- ============================================================ 5 -->
+<section id="s5">
+<h2><span class="num">05</span>Comprehensive feature comparison</h2>
+<p>Classification: <span class="tag info">ESSENTIAL</span> must exist before the AI module starts. <span class="tag ok">RECOMMENDED</span> makes the demo credible. <span class="tag neutral">OPTIONAL</span> is nice to have. <span class="tag med">OUT OF SCOPE</span> is not an FYP goal.</p>
+<div class="tablewrap"><table>
+<thead><tr><th>Module</th><th>Google Meet-like behaviour</th><th>IntelliMeet today (traced)</th><th>Gap</th><th>Class</th><th>Priority</th><th>Recommendation</th></tr></thead>
+<tbody>
+<tr><td>Authentication</td><td>Verified account, session that survives refresh, server-side revocation.</td><td>JWT auth works. <span class="path">authController.js</span>, <span class="path">authMiddleware.js</span>. Token in localStorage, no revocation, socket unauthenticated.</td><td>Socket and meeting layer ignore auth entirely.</td><td><span class="tag info">ESSENTIAL</span></td><td>P0</td><td>Keep the REST auth. Require the JWT on every meeting endpoint and embed identity in LiveKit tokens.</td></tr>
+<tr><td>Create meeting</td><td>Server creates a persistent meeting owned by the creator.</td><td>Client-side random ID and localStorage. <span class="path">CreateMeetingPage.tsx:38-70</span>, <span class="path">DashboardPage.tsx:28-31</span>.</td><td>No backend, no record, no owner.</td><td><span class="tag info">ESSENTIAL</span></td><td>P0</td><td>POST /api/meetings, Meeting model, hostId.</td></tr>
+<tr><td>Meeting IDs</td><td>Unguessable, readable, server-issued.</td><td><code>im-xxxx-xxxx</code> from Math.random, 8 base-36 chars.</td><td>Not cryptographically random, not registered.</td><td><span class="tag info">ESSENTIAL</span></td><td>P0</td><td><code>abc-defg-hij</code> from crypto.randomBytes, unique index.</td></tr>
+<tr><td>ID validation</td><td>Format check then existence check. Unknown code is refused.</td><td>Length ≥ 4. <span class="path">JoinMeetingPage.tsx:29-33</span>. Server creates room on join. <span class="path">server.js:154-156</span>.</td><td>Any string becomes a room.</td><td><span class="tag info">ESSENTIAL</span></td><td>P0</td><td>GET /api/meetings/:id before lobby; token endpoint refuses unknown IDs.</td></tr>
+<tr><td>Join meeting</td><td>Authorised, role-aware, token-gated.</td><td>Socket join with client-chosen id and name. <span class="path">useMeetingConnection.ts:19-23</span>.</td><td>No authorisation. Impersonation trivial.</td><td><span class="tag info">ESSENTIAL</span></td><td>P0</td><td>POST /api/meetings/:id/token issues LiveKit token.</td></tr>
+<tr><td>Lobby</td><td>Preview, device picker, toggles, permission errors, name.</td><td>Preview and toggles exist. <span class="path">LobbyPage.tsx</span>. No device picker, random audio meter, fake delay, hard-coded title.</td><td>Partial.</td><td><span class="tag ok">RECOMMENDED</span></td><td>P2</td><td>Add enumerateDevices, real level meter, error states, persist choices.</td></tr>
+<tr><td>Audio</td><td>Publish mic, mute propagates, device switching.</td><td>Works via replaceTrack. No device switching, no level detection.</td><td>Fragile under renegotiation.</td><td><span class="tag info">ESSENTIAL</span></td><td>P1</td><td>LiveKit setMicrophoneEnabled and switchActiveDevice.</td></tr>
+<tr><td>Mute and unmute</td><td>Immediate, consistent across peers and reconnects.</td><td>Store flag plus socket broadcast. Reconnect re-sends stale snapshot. <span class="path">useMeetingConnection.ts:17-23</span>.</td><td>State drift on reconnect.</td><td><span class="tag info">ESSENTIAL</span></td><td>P1</td><td>Let LiveKit track state be the single source of truth.</td></tr>
+<tr><td>Camera</td><td>On and off, switching, avatar when off.</td><td>Works. Avatar tile exists. No switching.</td><td>Minor.</td><td><span class="tag info">ESSENTIAL</span></td><td>P1</td><td>setCameraEnabled; device switch in lobby and in-call.</td></tr>
+<tr><td>Screen sharing</td><td>Separate stage, camera stays, one sharer at a time, stop via browser.</td><td>Replaces the camera track. <span class="path">MeetingRoomPage.tsx:234-238</span>. Camera disappears for viewers. No audio. Browser stop handled.</td><td>Wrong topology.</td><td><span class="tag info">ESSENTIAL</span></td><td>P1</td><td>Publish as ScreenShare source; enforce single sharer in UI.</td></tr>
+<tr><td>Participant list</td><td>Names, host badge, mic and camera state, sharer, count.</td><td>Exists. <span class="path">MeetingRoomPage.tsx:1042-1110</span>. Host badge fallback shows on grid only. <span class="path">:526-531</span>.</td><td>Inconsistent host badge.</td><td><span class="tag info">ESSENTIAL</span></td><td>P1</td><td>Drive from LiveKit participants plus role metadata.</td></tr>
+<tr><td>Host role</td><td>Creator is host; server enforces.</td><td>First socket to join is host. <span class="path">server.js:162-166</span>.</td><td>Role is a race.</td><td><span class="tag info">ESSENTIAL</span></td><td>P0</td><td>Meeting.hostId; requireHost middleware.</td></tr>
+<tr><td>Remove participant</td><td>Host only, immediate disconnect, optional ban.</td><td>Any socket may kick anyone. <span class="path">server.js:230-252</span>.</td><td>No authorisation.</td><td><span class="tag info">ESSENTIAL</span></td><td>P0</td><td>DELETE participants/:identity behind requireHost → RoomService.removeParticipant.</td></tr>
+<tr><td>Host mute</td><td>Host mutes; participant can unmute.</td><td>Any socket may force-mute anyone. <span class="path">server.js:216-227</span>. Client merely toggles.</td><td>No authorisation, not enforced.</td><td><span class="tag info">ESSENTIAL</span></td><td>P0</td><td>RoomService.mutePublishedTrack behind requireHost.</td></tr>
+<tr><td>End meeting</td><td>Host only, room closed, rejoin refused.</td><td>Host-checked in memory. <span class="path">server.js:285-312</span>. Rejoin recreates the room.</td><td>No persistent ENDED state.</td><td><span class="tag info">ESSENTIAL</span></td><td>P0</td><td>POST /end sets ENDED and deletes LiveKit room.</td></tr>
+<tr><td>Leave meeting</td><td>Anyone leaves; meeting continues.</td><td>Works, but with the phantom rejoin race. <span class="path">MeetingRoomPage.tsx:303-316</span>.</td><td>Bug.</td><td><span class="tag info">ESSENTIAL</span></td><td>P1</td><td>room.disconnect(); no server call needed.</td></tr>
+<tr><td>Meeting status</td><td>Created, active, ended.</td><td>Implicit: present in Map or not.</td><td>Missing.</td><td><span class="tag info">ESSENTIAL</span></td><td>P0</td><td>Enum on Meeting.</td></tr>
+<tr><td>Rejoin after refresh</td><td>Same meeting, same role.</td><td>Store is not persisted. New random user id. Role lost. <span class="path">useMeetingStore.ts:114-115</span>.</td><td>Broken.</td><td><span class="tag info">ESSENTIAL</span></td><td>P1</td><td>Identity = user id; re-fetch token on mount.</td></tr>
+<tr><td>Reconnect</td><td>Silent recovery within seconds.</td><td>No connection-state handling. <span class="path">MeetingRoomPage.tsx:108-160</span> has no state listeners.</td><td>Missing.</td><td><span class="tag info">ESSENTIAL</span></td><td>P1</td><td>LiveKit handles it; show Reconnecting banner.</td></tr>
+<tr><td>Invalid IDs</td><td>"Meeting not found."</td><td>Creates a room.</td><td>Critical.</td><td><span class="tag info">ESSENTIAL</span></td><td>P0</td><td>See section 08.</td></tr>
+<tr><td>Meeting URL</td><td>One canonical link that validates on load.</td><td>Share link points to <code>https://intellimeet.app/join/&lt;id&gt;</code>, a route that does not exist. <span class="path">CreateMeetingPage.tsx:80</span>, <span class="path">MeetingRoomPage.tsx:1120</span>.</td><td>Broken link.</td><td><span class="tag info">ESSENTIAL</span></td><td>P0</td><td><code>/meet/:meetingId</code> built from window.location.origin.</td></tr>
+<tr><td>Security</td><td>Server enforces everything.</td><td>Client-trusted throughout the meeting layer.</td><td>Critical.</td><td><span class="tag info">ESSENTIAL</span></td><td>P0</td><td>Section 19.</td></tr>
+<tr><td>Permissions and devices</td><td>Named errors for denied, busy, missing, unsupported.</td><td>Fallback ladder logs to console only. <span class="path">LobbyPage.tsx:30-60</span>.</td><td>No user-facing errors.</td><td><span class="tag ok">RECOMMENDED</span></td><td>P2</td><td>Map DOMException names to messages.</td></tr>
+<tr><td>Active speaker</td><td>Highlight and ordering.</td><td>Fake: first remote participant, unused. <span class="path">MeetingRoomPage.tsx:533</span>.</td><td>Missing.</td><td><span class="tag ok">RECOMMENDED</span></td><td>P2</td><td>RoomEvent.ActiveSpeakersChanged.</td></tr>
+<tr><td>Chat</td><td>In-meeting messages, history on join.</td><td>Works via Socket.IO; history sent and discarded. <span class="path">useMeetingConnection.ts:25-43</span>.</td><td>Partial.</td><td><span class="tag ok">RECOMMENDED</span></td><td>P1</td><td>LiveKit data messages; drop Socket.IO.</td></tr>
+<tr><td>Grid layout</td><td>Responsive tiles, share stage, avatar, badges.</td><td>Exists and is decent. Re-renders every second from the timer. <span class="path">MeetingRoomPage.tsx:93-99</span>.</td><td>Performance.</td><td><span class="tag ok">RECOMMENDED</span></td><td>P2</td><td>Split into components, select store slices.</td></tr>
+<tr><td>Database</td><td>Meetings persist.</td><td>Only users persist.</td><td>Missing.</td><td><span class="tag info">ESSENTIAL</span></td><td>P0</td><td>Meeting model.</td></tr>
+<tr><td>Dashboard and My Meetings</td><td>Real history.</td><td>Hard-coded stats and mock rows. <span class="path">DashboardPage.tsx:80-84,165-168</span>, <span class="path">MyMeetingsPage.tsx:22-103</span>.</td><td>Facade.</td><td><span class="tag ok">RECOMMENDED</span></td><td>P2</td><td>GET /api/meetings for the signed-in user.</td></tr>
+<tr><td>LiveKit readiness</td><td>Token endpoint, service wrapper, env separation.</td><td>None.</td><td>Missing.</td><td><span class="tag info">ESSENTIAL</span></td><td>P1</td><td>Sections 09 and 22.</td></tr>
+<tr><td>Error handling</td><td>Stable codes, friendly copy.</td><td>Envelope exists without codes. <span class="path">utils/ApiError.js</span>. Socket errors logged only. <span class="path">useMeetingConnection.ts:95-98</span>.</td><td>Partial.</td><td><span class="tag info">ESSENTIAL</span></td><td>P1</td><td>Add <code>code</code> to ApiError.</td></tr>
+<tr><td>Responsive UI</td><td>Works on laptop and phone.</td><td>Reasonable on desktop; tile grid adapts.</td><td>Minor.</td><td><span class="tag ok">RECOMMENDED</span></td><td>P2</td><td>Verify after component split.</td></tr>
+<tr><td>Meeting lock, admit or deny</td><td>Host gates entry.</td><td>None. The "require login" switch is inert. <span class="path">CreateMeetingPage.tsx:185-188</span>.</td><td>Missing.</td><td><span class="tag neutral">OPTIONAL</span></td><td>P3</td><td>Lock is a boolean and cheap; admit queue is not.</td></tr>
+<tr><td>Co-host</td><td>Delegated controls.</td><td>None.</td><td>Missing.</td><td><span class="tag neutral">OPTIONAL</span></td><td>P3</td><td>Skip unless time remains.</td></tr>
+<tr><td>Recording, breakout rooms, live streaming, admin console, dial-in</td><td>Enterprise features.</td><td>None.</td><td>Not required.</td><td><span class="tag med">OUT OF SCOPE</span></td><td>—</td><td>Mention as future work only.</td></tr>
+</tbody></table></div>
+</section>
+
+<!-- ============================================================ 6 -->
+<section id="s6">
+<h2><span class="num">06</span>Critical problems</h2>
+<p>Ordered by how badly each undermines the demo or the security story. Fuller security scoring is in section 19.</p>
+<ol>
+<li><b>Any URL creates a meeting.</b> <span class="path">server.js:154-156</span> instantiates a room for whatever <code>roomId</code> arrives. Combined with <span class="path">MeetingRoomPage.tsx:303-316</span>, which joins on mount, visiting <code>/meeting/room/anything</code> yields a working call.</li>
+<li><b>Hosting is a race and is stealable.</b> First socket wins at <span class="path">server.js:162-166</span>. Rejoining with another user's id at line 161 inherits their role. Sending <code>{ isHost: true }</code> through <code>toggle-media</code> is merged verbatim at line 197.</li>
+<li><b>Kick and force-mute are unauthorised.</b> <span class="path">server.js:216-252</span>. The README claims server enforcement; the code enforces only <code>end-meeting</code>.</li>
+<li><b>No socket authentication.</b> <span class="path">socket.ts:25</span> sends nothing; <span class="path">server.js:114-127</span> checks nothing. Names and ids are client-chosen.</li>
+<li><b>Calls fail on real networks.</b> STUN only at <span class="path">MeetingRoomPage.tsx:109-111</span>, no TURN, no ICE candidate queue (line 202 drops early candidates), early offers dropped (line 163), no connection-state feedback. Symmetric NAT on a campus network means a permanent "Connecting video…".</li>
+<li><b>Build is broken.</b> <code>npm run build</code> runs <code>tsc</code> first and fails with 8 errors: 7 Framer Motion variant typings in <span class="path">LandingPage.tsx:73-161</span> and the real bug at <span class="path">MeetingRoomPage.tsx:457</span>. <span class="tag ok">verified</span></li>
+<li><b>Password reset link poisoning.</b> <span class="path">authController.js:438-450</span> builds the reset URL from the request's Origin or Referer header, which a non-browser client sets freely.</li>
+<li><b>Google sign-in links accounts without checking <code>email_verified</code>.</b> <span class="path">authController.js:540-554</span>.</li>
+<li><b>Preferences never save.</b> Map-typed field plus dot assignment. <span class="path">User.js:114</span>, <span class="path">authController.js:186-191,220-224</span>. <span class="tag ok">verified</span></li>
+<li><b>Auth rate limit is half the configured value.</b> Limiter applied by the router and again per route. <span class="path">authRoutes.js:24-36</span>. Five successful logins per 15 minutes in production. <span class="tag ok">verified</span></li>
+<li><b>Peer connections leak on unmount.</b> Cleanup at <span class="path">MeetingRoomPage.tsx:273-275</span> removes only the socket listener.</li>
+<li><b>Leave re-joins a phantom room.</b> Store reset to <code>idle</code> races the mount effect; uncancelled 800 ms timer. <span class="path">MeetingRoomPage.tsx:303-316</span>, <span class="path">useMeetingStore.ts:192-194</span>.</li>
+<li><b>Refresh loses everything.</b> No persisted meeting state, new random user id each load. <span class="path">useMeetingStore.ts:114-115</span>.</li>
+<li><b>Meeting state is process memory.</b> A restart drops every meeting. Only one server instance can ever run.</li>
+</ol>
+</section>
+
+<!-- ============================================================ 7 -->
+<section id="s7">
+<h2><span class="num">07</span>The meeting ID problem</h2>
+<p><b>Yes, random IDs create rooms today.</b> There are three cooperating causes, and all three must change.</p>
+<h4>Cause 1: the server creates rooms on demand</h4>
+<pre><code>// backend/server.js:152-156
+socket.join(roomId);
+
+if (!rooms.has(roomId)) {
+  rooms.set(roomId, { participants: [], messages: [] });
+}</code></pre>
+<p>There is no lookup against anything persistent because nothing persistent exists. The Map is the only registry, and this line populates it.</p>
+<h4>Cause 2: the room page joins on mount for any URL</h4>
+<pre><code>// frontend/src/pages/meeting/MeetingRoomPage.tsx:303-316
+if (status === 'idle') {
+  joinMeeting({
+    meetingId: meetingId || 'direct-join',
+    title: 'CPEC Quarterly Review',
+    ...
+  })
+  setTimeout(() =&gt; setStatus('active'), 800)
+}</code></pre>
+<p>Direct navigation to <code>/meeting/room/random123</code> is treated as a legitimate join. The connection hook then emits <code>join-room</code> as soon as the socket connects.</p>
+<h4>Cause 3: the join page validates only length</h4>
+<pre><code>// frontend/src/pages/meeting/JoinMeetingPage.tsx:29-41
+// Basic validation check (just length for testing flexibility)
+if (parsedId.length &lt; 4) { setError('...'); return }
+setIsLoading(true)
+setTimeout(() =&gt; { setIsLoading(false); navigate(`/meeting/lobby/${parsedId}`) }, 1500)</code></pre>
+<p>The "Verifying meeting…" button text is cosmetic. The lobby then hard-codes the title and forwards to the room.</p>
+<div class="callout warn"><p><b>Consequence for a LiveKit migration.</b> If the token endpoint were written to mint a token for any room name the client asks for, the same defect would reappear one layer down, because LiveKit also creates rooms on first connect. The fix is not "validate in the frontend". The fix is that the backend refuses to issue a token for a meeting it cannot find in MongoDB.</p></div>
+</section>
+
+<!-- ============================================================ 8 -->
+<section id="s8">
+<h2><span class="num">08</span>Meeting ID solution</h2>
+<h3>Format choice</h3>
+<div class="tablewrap"><table>
+<thead><tr><th>Option</th><th>Example</th><th>Entropy</th><th>Readability</th><th>URL</th><th>Enumeration risk</th><th>Verdict</th></tr></thead>
+<tbody>
+<tr><td>UUID v4</td><td><code>3f9c2a1e-8b7d-4c6a-9e2f-1a2b3c4d5e6f</code></td><td class="tabnum">122 bits</td><td>Poor. Cannot be read aloud or typed.</td><td>36 characters, ugly.</td><td>None.</td><td>Over-strong, hostile to users.</td></tr>
+<tr><td>NanoID (21)</td><td><code>V1StGXR8_Z5jdHi6B-myT</code></td><td class="tabnum">126 bits</td><td>Poor. Mixed case, ambiguous glyphs.</td><td>Fine.</td><td>None.</td><td>Good for API keys, wrong for a code people say over the phone.</td></tr>
+<tr><td>Meet-style letters</td><td><code>abc-defg-hij</code></td><td class="tabnum">≈47 bits (26<sup>10</sup> ≈ 1.4×10<sup>14</sup>)</td><td>Excellent. Lowercase, grouped, dictated easily.</td><td>12 characters, clean.</td><td>Negligible with an authenticated, rate-limited lookup. At 100 lookups per 15 minutes an attacker needs about 10<sup>10</sup> years to find one live meeting.</td><td><b>Recommended.</b></td></tr>
+</tbody></table></div>
+<p>Uniqueness is guaranteed by a unique index plus retry, not by probability alone. Collision probability for 10<sup>6</sup> meetings is about 3.5×10<sup>-3</sup> across the whole lifetime of the deployment, and the retry loop makes even that harmless.</p>
+<h3>Generator</h3>
+<pre><code>// backend/utils/meetingId.js
+const crypto = require('crypto');
+const ALPHABET = 'abcdefghijklmnopqrstuvwxyz';
+const PATTERN = /^[a-z]{3}-[a-z]{4}-[a-z]{3}$/;
+
+function generateMeetingId() {
+  const bytes = crypto.randomBytes(10);
+  let s = '';
+  for (const b of bytes) s += ALPHABET[b % 26];     // tiny bias is irrelevant at 47 bits
+  return `${s.slice(0,3)}-${s.slice(3,7)}-${s.slice(7,10)}`;
+}
+function isValidMeetingId(id) { return PATTERN.test(id); }
+function normalizeMeetingId(raw) {
+  const letters = String(raw).toLowerCase().replace(/[^a-z]/g, '');
+  return letters.length === 10 ? `${letters.slice(0,3)}-${letters.slice(3,7)}-${letters.slice(7)}` : null;
+}
+module.exports = { generateMeetingId, isValidMeetingId, normalizeMeetingId };</code></pre>
+<p><code>normalizeMeetingId</code> lets users paste <code>abcdefghij</code>, <code>ABC DEFG HIJ</code>, or a full URL and still be understood. The service loops on <code>E11000</code> duplicate-key errors, which will essentially never happen.</p>
+
+<h3>Validation flow</h3>
+<div class="flow">
+<span class="step">User types a code or opens /meet/abc-defg-hij</span>
+<span class="arrow">↓</span>
+<span class="step">Frontend: normalizeMeetingId → null? show "That doesn't look like a meeting code. Codes look like abc-defg-hij."</span>
+<span class="arrow">↓</span>
+<span class="step">GET /api/meetings/abc-defg-hij   (Bearer JWT)</span>
+<span class="arrow">↓</span>
+<span class="step">Backend: validator rejects bad format → 400 INVALID_MEETING_ID</span>
+<span class="step">         Meeting.findOne({ meetingId }) → null → 404 MEETING_NOT_FOUND     <span class="note">// nothing created, LiveKit untouched</span></span>
+<span class="step">         status === 'ENDED' → 200 with status so the UI can show "This meeting has ended"</span>
+<span class="step">         bannedUserIds includes user → 403 PARTICIPANT_BANNED</span>
+<span class="step">         settings.locked and user is not host → 423 MEETING_LOCKED</span>
+<span class="arrow">↓</span>
+<span class="step">200 → show lobby with real title and host name. Join button requests a token; the token endpoint re-runs the same checks.</span>
+</div>
+<p>Every rejection is terminal. The frontend never redirects to a fresh meeting, never generates a code, and the room page refuses to mount without a successful lookup result in state.</p>
+</section>
+
+<!-- ============================================================ 9 -->
+<section id="s9">
+<h2><span class="num">09</span>LiveKit migration analysis</h2>
+<p><b>Decision: migrate.</b> The custom mesh is not a bad piece of student work, but it is the wrong topology for anything past four participants, and every hard problem it currently gets wrong (NAT traversal, candidate ordering, glare, reconnection, host-side mute, screen share as a second track) is exactly what an SFU with a mature SDK solves for free. The migration also deletes the entire Socket.IO signaling path, which is where the security holes live.</p>
+<div class="grid2">
+<div class="panel"><h4>Today: mesh</h4>
+<pre style="margin:0">Browser A ⇄ Browser B
+    ⇅          ⇅
+Browser C ⇄ Browser D
+(6 connections, each uploads 3 copies)</pre></div>
+<div class="panel"><h4>Target: SFU</h4>
+<pre style="margin:0">Browser A ─┐
+Browser B ─┼─▶ LiveKit SFU ─▶ fan-out
+Browser C ─┤   (1 upload each,
+Browser D ─┘    N downloads)</pre></div>
+</div>
+<div class="tablewrap"><table>
+<thead><tr><th>Concern</th><th>Custom WebRTC now</th><th>With LiveKit</th></tr></thead>
+<tbody>
+<tr><td>Scalability</td><td>Upload bandwidth and CPU grow linearly per peer. README admits 6 to 8 is the ceiling; in practice 4 on a laptop.</td><td>One upload per participant. Dozens of participants on a free-tier server.</td></tr>
+<tr><td>NAT and ICE</td><td>STUN only. No TURN. Early candidates dropped.</td><td>LiveKit Cloud and self-hosted server both bundle TURN and handle ICE internally.</td></tr>
+<tr><td>Signaling</td><td>Hand-written over Socket.IO, unauthenticated.</td><td>Built into the SDK over a signed WebSocket. Socket.IO can be removed.</td></tr>
+<tr><td>Participants and rooms</td><td>In-memory Map, first-come host.</td><td>Server-side room state, listParticipants, participant metadata, permissions per token.</td></tr>
+<tr><td>Tracks</td><td>One video sender; screen share replaces camera.</td><td>Typed sources: Camera, Microphone, ScreenShare, ScreenShareAudio. Camera and screen coexist.</td></tr>
+<tr><td>Reconnection</td><td>None. Stale state on socket reconnect.</td><td>Automatic with Reconnecting and Reconnected events; duplicate identity replacement.</td></tr>
+<tr><td>Mute</td><td>Client flag plus broadcast; host mute is advisory.</td><td>Track mute is protocol-level; host mute via RoomService is enforced server-side.</td></tr>
+<tr><td>Bandwidth</td><td>Fixed quality.</td><td>Simulcast, dynacast, adaptive stream by tile size.</td></tr>
+<tr><td>Recording later</td><td>Not possible without a media server.</td><td>Egress is available when the FYP is over.</td></tr>
+<tr><td>AI pipeline later</td><td>Would need a server tapping audio, impossible in mesh.</td><td>LiveKit Agents or a server participant can subscribe to audio and publish data or TTS audio.</td></tr>
+</tbody></table></div>
+
+<h3>Exactly what happens to the existing WebRTC code</h3>
+<div class="tablewrap"><table>
+<thead><tr><th>Location</th><th>What it does</th><th>Fate</th></tr></thead>
+<tbody>
+<tr><td><span class="path">MeetingRoomPage.tsx:82-90</span> refs <code>peersRef</code>, <code>videoRef</code>, <code>stream</code>, <code>screenStream</code></td><td>Peer map and local streams</td><td><span class="tag crit">Remove</span>. LiveKit's Room owns tracks.</td></tr>
+<tr><td><span class="path">MeetingRoomPage.tsx:102-276</span> WebRTC effect: <code>createPeerConnection</code>, <code>onSignal</code>, sender reconciliation</td><td>All negotiation and track plumbing</td><td><span class="tag crit">Remove</span>. Replaced by <code>useLiveKitRoom</code> hook.</td></tr>
+<tr><td><span class="path">MeetingRoomPage.tsx:321-357</span> local media acquisition</td><td>getUserMedia ladder</td><td><span class="tag crit">Remove</span>. <code>room.localParticipant.enableCameraAndMicrophone()</code> or per-source enable with device ids from the lobby.</td></tr>
+<tr><td><span class="path">MeetingRoomPage.tsx:395-421</span> <code>handleScreenShareToggle</code></td><td>getDisplayMedia and onended</td><td><span class="tag crit">Remove</span>. <code>setScreenShareEnabled(true)</code> handles picker, track end, and unpublish.</td></tr>
+<tr><td><span class="path">MeetingRoomPage.tsx:436-447</span> <code>stopAllLocalMedia</code></td><td>Cleanup</td><td><span class="tag crit">Remove</span>. <code>room.disconnect()</code>.</td></tr>
+<tr><td><span class="path">MeetingRoomPage.tsx:450-520</span> leave, end, force, remove handlers</td><td>Socket emits</td><td><span class="tag high">Rewrite</span>. Leave becomes disconnect; end, mute, remove become REST calls.</td></tr>
+<tr><td><span class="path">MeetingRoomPage.tsx:526-541</span> host fallback, active speaker, lang map</td><td>Display logic</td><td><span class="tag crit">Remove</span>. Role from token metadata; speakers from SDK.</td></tr>
+<tr><td><span class="path">MeetingRoomPage.tsx:560-1268</span> layout, grid, tiles, chat panel, participants panel, modals, control bar</td><td>UI</td><td><span class="tag ok">Retain</span> the markup and styling, split into components, feed from LiveKit hooks instead of the store. This is most of the visual work and it is worth keeping.</td></tr>
+<tr><td><span class="path">RemoteVideo</span> component at <span class="path">MeetingRoomPage.tsx:18-30</span></td><td>Binds srcObject</td><td><span class="tag high">Rewrite</span> as a <code>ParticipantTile</code> using <code>track.attach()</code> or <code>VideoTrack</code> from <code>@livekit/components-react</code>.</td></tr>
+<tr><td><span class="path">useMeetingConnection.ts</span> entire file</td><td>Socket listeners</td><td><span class="tag crit">Remove</span>. Every event has a LiveKit RoomEvent equivalent.</td></tr>
+<tr><td><span class="path">lib/socket.ts</span></td><td>Socket singleton</td><td><span class="tag crit">Remove</span>, with the <code>socket.io-client</code> dependency.</td></tr>
+<tr><td><span class="path">useMeetingStore.ts</span> <code>participants</code>, <code>toggleMic/Video/ScreenShare</code>, <code>sendMessage</code>, <code>signalingLog</code>, <code>reset</code></td><td>Mirrors of socket state</td><td><span class="tag high">Rewrite</span>. Keep meetingId, title, role, elapsed timer, chat messages, events, unread count. Drop participants and media flags; read them from the Room.</td></tr>
+<tr><td><span class="path">LobbyPage.tsx:30-69</span> preview acquisition</td><td>getUserMedia ladder</td><td><span class="tag ok">Retain</span> the idea, rewrite with <code>createLocalTracks</code> or the components PreJoin so the same tracks are published on join and the camera does not blink twice.</td></tr>
+<tr><td><span class="path">server.js:112-350</span> Socket.IO server and all handlers</td><td>Signaling and rooms</td><td><span class="tag crit">Remove</span>. Keep <code>http.createServer(app)</code> only if you later need websockets for something else; otherwise <code>app.listen</code>.</td></tr>
+<tr><td><span class="path">server.js:1-107</span> Express setup</td><td>Middleware chain</td><td><span class="tag ok">Retain</span>, add <code>meetingRoutes</code> and the webhook route.</td></tr>
+</tbody></table></div>
+<p><b>Explicit room creation versus lazy.</b> LiveKit creates a room the moment a participant with a valid <code>roomJoin</code> grant connects, and deletes it after <code>emptyTimeout</code>. Because the security boundary is the token endpoint, which only issues tokens for meetings found in MongoDB, lazy creation is safe. The one reason to call <code>RoomServiceClient.createRoom</code> is to set options such as <code>emptyTimeout</code> and <code>maxParticipants</code>. Recommendation: call <code>createRoom</code> idempotently from the token endpoint the first time a token is issued for that meeting. It is one line, it is safe to repeat, and it keeps meeting creation itself a pure database write with no external dependency.</p>
+</section>
+
+<!-- ============================================================ 10 -->
+<section id="s10">
+<h2><span class="num">10</span>Authentication analysis</h2>
+<p>Flows as they exist. Login: <span class="path">LoginPage.tsx:64</span> → <code>authApi.login</code> (<span class="path">api.ts</span>) → <code>POST /api/auth/login</code> → <span class="path">authRoutes.js:29</span> → <span class="path">authController.js:106</span> <code>login()</code> → <code>User.findOne().select('+password')</code> → <code>comparePassword</code> → <code>generateToken</code> → frontend <code>useAuthStore.login()</code> at <span class="path">useAuthStore.ts:70</span> → navigate to dashboard. Signup: <span class="path">RegisterPage.tsx:109</span> → <code>POST /api/auth/register</code> → <span class="path">authController.js:48</span> → hashed PendingUser upsert → <code>sendOtpEmail</code> → <span class="path">VerifyEmailPage.tsx:88</span> → <code>POST /api/auth/verify-otp</code> → <span class="path">authController.js:292</span> → raw <code>User.collection.insertOne</code> → JWT. Protection: <span class="path">authMiddleware.js:31</span> <code>protect()</code> on every <code>/api/users</code> route; frontend <span class="path">ProtectedRoute.tsx:4-12</span> reads a persisted boolean.</p>
+<div class="tablewrap"><table>
+<thead><tr><th>Feature</th><th>Expected</th><th>IntelliMeet current</th><th>Status</th><th>Recommended change</th></tr></thead>
+<tbody>
+<tr><td>Signup</td><td>Email verified before account exists.</td><td>PendingUser with hashed OTP, TTL 10 min. Verify promotes to User.</td><td><span class="tag ok">Complete</span></td><td>Replace the raw insert at <span class="path">authController.js:335</span> with <code>new User(...).save()</code> after marking password unmodified, or store the hashed password and skip the hook with a flag. Delete the thinking-aloud comments at lines 317-333.</td></tr>
+<tr><td>Login</td><td>Generic failure message, hashed compare, last-login stamp.</td><td>Exactly this at <span class="path">authController.js:106-137</span>.</td><td><span class="tag ok">Complete</span></td><td>None.</td></tr>
+<tr><td>Logout</td><td>Client clears session; optional server revocation.</td><td><span class="path">useAuthStore.ts:73-74</span> clears local state only. No server call.</td><td><span class="tag med">Needs Improvement</span></td><td>Acceptable for stateless JWT with a 7 day expiry. Shorten expiry to 24 h or add a <code>tokenVersion</code> field on User checked in <code>protect</code> so password change and logout-everywhere both revoke.</td></tr>
+<tr><td>Password hashing</td><td>bcrypt, cost 10 to 12.</td><td>Pre-save hook at <span class="path">User.js:191-210</span> with configured rounds. Register path hashes with hard-coded 10 at <span class="path">authController.js:63</span>.</td><td><span class="tag ok">Complete</span></td><td>Use <code>config.BCRYPT_SALT_ROUNDS</code> in register too.</td></tr>
+<tr><td>Password validation</td><td>Length and complexity.</td><td><span class="path">authValidators.js:65-77</span> 8+ chars, upper, lower, digit, special. Reset path checks length only at <span class="path">authController.js:482</span>.</td><td><span class="tag med">Partially Complete</span></td><td>Reuse the register chain for reset-password.</td></tr>
+<tr><td>JWT handling</td><td>Signed, short payload, verified per request, invalidated on password change.</td><td><span class="path">utils/jwt.js</span> signs <code>{ id }</code>; <code>protect</code> reloads user and checks <code>passwordChangedAfter</code>.</td><td><span class="tag ok">Complete</span></td><td>None.</td></tr>
+<tr><td>Refresh tokens</td><td>Optional for an FYP.</td><td>None.</td><td><span class="tag neutral">Missing</span></td><td>Not needed. A 24 h access token with silent re-login is enough.</td></tr>
+<tr><td>Protected routes (server)</td><td>Every meeting and user route authenticated.</td><td>Users routes yes. Meeting layer has none because it is socket-only.</td><td><span class="tag crit">Security Risk</span></td><td>All new meeting routes behind <code>protect</code>. Webhook route behind LiveKit signature check instead.</td></tr>
+<tr><td>Protected routes (client)</td><td>Guard plus server enforcement.</td><td>Guard trusts localStorage boolean. <span class="path">ProtectedRoute.tsx:7</span>.</td><td><span class="tag med">Needs Improvement</span></td><td>Fine as UX. On app start call <code>GET /users/profile</code>; if 401, log out. Preserve the attempted URL so <code>/meet/abc-defg-hij</code> survives the login redirect.</td></tr>
+<tr><td>Token storage</td><td>Memory or httpOnly cookie preferred; localStorage acceptable with XSS discipline.</td><td>localStorage via Zustand persist with no <code>partialize</code>. <span class="path">useAuthStore.ts:87</span>.</td><td><span class="tag high">Security Risk</span></td><td>Keep localStorage for the FYP but persist only <code>token</code> and minimal user fields. Confirm no <code>dangerouslySetInnerHTML</code> (confirmed: none).</td></tr>
+<tr><td>Token expiration</td><td>Handled gracefully.</td><td>Backend returns 401 with message. Frontend <span class="path">api.ts:103-108</span> clears storage but not the in-memory store.</td><td><span class="tag med">Incorrect</span></td><td>Call <code>useAuthStore.getState().logout()</code> and redirect to login with a toast.</td></tr>
+<tr><td>Invalid token</td><td>401, generic.</td><td><span class="path">jwt.js:40-52</span> maps both cases to 401.</td><td><span class="tag ok">Complete</span></td><td>None.</td></tr>
+<tr><td>Duplicate accounts</td><td>Unique email, case-insensitive.</td><td>Unique index, lowercase, pre-check, duplicate-key handler.</td><td><span class="tag ok">Complete</span></td><td>None.</td></tr>
+<tr><td>Email validation</td><td>Format and normalisation.</td><td>express-validator <code>isEmail</code> + <code>normalizeEmail</code>. Note normalizeEmail strips Gmail dots, so <code>a.b@gmail.com</code> and <code>ab@gmail.com</code> collide by design.</td><td><span class="tag ok">Complete</span></td><td>Document the Gmail behaviour or pass <code>{ gmail_remove_dots: false }</code>.</td></tr>
+<tr><td>Name validation</td><td>Reasonable length, safe characters.</td><td>Letters and spaces only at register; wider set at profile update.</td><td><span class="tag med">Needs Improvement</span></td><td>Unify. Letters-only rejects names like O'Brien and Ali-Khan.</td></tr>
+<tr><td>Google OAuth</td><td>Verify audience and <code>email_verified</code>.</td><td>Audience checked; <code>email_verified</code> not. <span class="path">authController.js:540</span>.</td><td><span class="tag high">Security Risk</span></td><td>Reject when <code>payload.email_verified !== true</code>. Read client id from <code>config</code>, not <code>process.env</code>, and add it to <code>REQUIRED_VARS</code>.</td></tr>
+<tr><td>Password reset</td><td>Hashed token, expiry, URL from config.</td><td>Hashed token and 15 min expiry correct. URL from Origin header. <span class="path">authController.js:438</span>.</td><td><span class="tag high">Security Risk</span></td><td>Add <code>FRONTEND_URL</code> to config and build the link from it.</td></tr>
+<tr><td>Rate limiting</td><td>Strict on auth, sane elsewhere.</td><td>Double-applied, so 5 per 15 min in production. General 100 per 15 min per IP.</td><td><span class="tag med">Incorrect</span></td><td>Remove the per-route <code>authLimiter</code> at <span class="path">authRoutes.js:28-36</span>. Raise general to 600 per 15 min; meeting polling will need it.</td></tr>
+<tr><td>Preferences</td><td>Saved.</td><td>Never saved. <span class="tag ok">verified</span></td><td><span class="tag crit">Incorrect</span></td><td>Use the existing <code>preferencesSchema</code> at <span class="path">User.js:26-44</span> as the field type.</td></tr>
+</tbody></table></div>
+</section>
+
+<!-- ============================================================ 11 -->
+<section id="s11">
+<h2><span class="num">11</span>Create meeting analysis</h2>
+<p><b>Which button.</b> Two entry points: the "Start instant meeting" action in <span class="path">DashboardPage.tsx:28-31</span> <code>handleStartInstant()</code>, and the Create page's submit in <span class="path">CreateMeetingPage.tsx:38-70</span> <code>handleCreate()</code>. <b>Which endpoint.</b> None. <b>Where the ID is generated.</b> Frontend, <code>Math.random</code>. <b>Database record.</b> None. <b>Does WebRTC create rooms.</b> No, WebRTC has no rooms; Socket.IO does, on first join. <b>Does the meeting exist before someone joins.</b> No. <b>Can any random ID create a room.</b> Yes.</p>
+<h3>Target flow</h3>
+<div class="flow">
+<span class="step">DashboardPage "New meeting"  or  CreateMeetingPage "Create"</span>
+<span class="arrow">↓</span>
+<span class="step">meetingApi.create({ title })          <span class="note">// frontend/src/lib/api.ts, new meetingApi namespace</span></span>
+<span class="arrow">↓</span>
+<span class="step">POST /api/meetings   Authorization: Bearer &lt;jwt&gt;</span>
+<span class="arrow">↓</span>
+<span class="step">backend/routes/meetingRoutes.js   router.post('/', protect, createMeetingValidation, createMeeting)</span>
+<span class="arrow">↓</span>
+<span class="step">backend/controllers/meetingController.js  createMeeting(req)  →  meetingService.createMeeting({ hostId: req.user._id, title })</span>
+<span class="arrow">↓</span>
+<span class="step">backend/services/meetingService.js  loop { meetingId = generateMeetingId(); try Meeting.create({...}) catch E11000 → retry }</span>
+<span class="arrow">↓</span>
+<span class="step">201 { meetingId:'abc-defg-hij', title, status:'CREATED', host:{ id, name }, url:'/meet/abc-defg-hij', createdAt }</span>
+<span class="arrow">↓</span>
+<span class="step">navigate(`/meet/abc-defg-hij`)   →  lobby loads via GET /api/meetings/:id  →  join requests token</span>
+</div>
+<p>No LiveKit call happens at creation. The room comes into being when the host, or the first participant with a token, connects. The meeting transitions CREATED → ACTIVE at that moment through the <code>participant_joined</code> webhook, or, if webhooks are not yet wired, inside the token endpoint when the host requests their first token.</p>
+<p><b>Scheduled meetings.</b> The Create page's "Scheduled" mode currently writes a date to localStorage. Either drop the mode for now or accept an optional <code>scheduledFor</code> date on the Meeting and show it on the dashboard. It changes nothing about the join path, so it is cheap to keep as metadata only.</p>
+</section>
+
+<!-- ============================================================ 12 -->
+<section id="s12">
+<h2><span class="num">12</span>Join meeting analysis</h2>
+<p>Current path is traced in section 03. Its defects: no server validation, no authorisation, client-chosen identity, camera acquired twice (lobby then room), fake delays, hard-coded title, and a lobby with a random-height audio meter at <span class="path">LobbyPage.tsx:140-147</span>.</p>
+<h3>Target join flow</h3>
+<div class="flow">
+<span class="step">/join page or /meet/:meetingId direct link</span>
+<span class="arrow">↓</span>
+<span class="step">normalizeMeetingId(input) → invalid → inline error, stop</span>
+<span class="arrow">↓</span>
+<span class="step">GET /api/meetings/:meetingId → 404 → "Meeting not found" screen with "Check the code" and "Back to dashboard"</span>
+<span class="step">                             → 200 status ENDED → "This meeting has ended" screen</span>
+<span class="step">                             → 403 PARTICIPANT_BANNED → "You were removed from this meeting and can't rejoin"</span>
+<span class="step">                             → 200 → LobbyPage with real title, host name, your role</span>
+<span class="arrow">↓</span>
+<span class="step">LobbyPage: createLocalTracks({ audio: deviceId, video: deviceId }) → preview → toggles → device pickers → remembered choices</span>
+<span class="arrow">↓</span>
+<span class="step">Join → POST /api/meetings/:meetingId/token → { token, url, role }</span>
+<span class="arrow">↓</span>
+<span class="step">room.connect(url, token) → publish the lobby's tracks (or enable sources) → navigate to room view</span>
+<span class="arrow">↓</span>
+<span class="step">Room renders from RoomEvents. Role from participant metadata. Timer from meeting.startedAt.</span>
+</div>
+<h3>Pre-join screen requirements</h3>
+<div class="tablewrap"><table>
+<thead><tr><th>Requirement</th><th>Today</th><th>Target</th></tr></thead>
+<tbody>
+<tr><td>Camera preview</td><td>Yes, <span class="path">LobbyPage.tsx:130-150</span></td><td>Keep, from a LocalVideoTrack.</td></tr>
+<tr><td>Mic level meter</td><td>Random bars</td><td>AudioContext AnalyserNode on the local audio track, or the components-react PreJoin which has one.</td></tr>
+<tr><td>Camera and mic toggles</td><td>Yes</td><td>Keep; pass initial state into the room.</td></tr>
+<tr><td>Device selection</td><td>None</td><td><code>Room.getLocalDevices('videoinput' | 'audioinput' | 'audiooutput')</code>; selects for each; persist chosen ids in localStorage key <code>intellimeet-devices</code>.</td></tr>
+<tr><td>Permission denied</td><td>Console log only</td><td>Show "IntelliMeet needs camera and microphone access. Allow it in your browser's site settings, then reload." with a Retry button. Allow joining audio-only or with nothing.</td></tr>
+<tr><td>No camera or mic</td><td>Falls through silently</td><td>Show an avatar tile and a notice; allow join.</td></tr>
+<tr><td>Device already in use</td><td>Unhandled</td><td>Map <code>NotReadableError</code> to "Your camera is being used by another app."</td></tr>
+<tr><td>Display name</td><td>From account</td><td>From account. No free-text name for signed-in users.</td></tr>
+<tr><td>Meeting title and code</td><td>Hard-coded</td><td>From the lookup response; code shown with a copy button.</td></tr>
+<tr><td>Join and Back</td><td>Join only</td><td>Both. Back stops the preview tracks.</td></tr>
+<tr><td>Validation before showing lobby</td><td>None</td><td>Lobby route loader calls GET first; renders error screens otherwise.</td></tr>
+</tbody></table></div>
+</section>
+
+<!-- ============================================================ 13 -->
+<section id="s13">
+<h2><span class="num">13</span>Audio and video analysis</h2>
+<h3>Audio today</h3>
+<p>Acquisition at <span class="path">MeetingRoomPage.tsx:321-357</span> with a three-tier fallback. Mute is a store flag (<span class="path">useMeetingStore.ts:296-315</span>) broadcast over the socket; the actual audio sender receives <code>replaceTrack(null)</code> through the reconciliation loop at <span class="path">MeetingRoomPage.tsx:241-259</span>, which correctly stops transmitting. Indicators are driven by the broadcast flag, not by the track. There is no device switching, no level detection, no handling of device removal, and reconnect re-sends a stale snapshot.</p>
+<h3>Video today</h3>
+<p>Same acquisition. Camera off replaces the video sender's track with null. Avatar tile renders when <code>isVideoOff</code>. Remote streams are cloned on every <code>ontrack</code> at <span class="path">MeetingRoomPage.tsx:143-152</span>, which causes a visible restart on every renegotiation. No camera switching, no active speaker, no quality adaptation.</p>
+<h3>Target with LiveKit</h3>
+<div class="tablewrap"><table>
+<thead><tr><th>Action</th><th>Frontend call</th><th>What LiveKit does</th><th>What IntelliMeet still owns</th></tr></thead>
+<tbody>
+<tr><td>Enable mic</td><td><code>localParticipant.setMicrophoneEnabled(true, { deviceId })</code></td><td>Acquires, publishes, applies noise suppression and echo cancellation by default.</td><td>Button state, error toast.</td></tr>
+<tr><td>Mute</td><td><code>setMicrophoneEnabled(false)</code></td><td>Mutes the published track; all subscribers get <code>TrackMuted</code>. Track stays published so unmute is instant.</td><td>Nothing else.</td></tr>
+<tr><td>Unmute</td><td><code>setMicrophoneEnabled(true)</code></td><td>Unmutes.</td><td>If the host disabled publishing via permissions, this fails; show "The host has turned off your microphone".</td></tr>
+<tr><td>Switch mic</td><td><code>room.switchActiveDevice('audioinput', id)</code></td><td>Republishes seamlessly.</td><td>Device picker in settings sheet.</td></tr>
+<tr><td>Device unplugged</td><td>Listen <code>RoomEvent.MediaDevicesChanged</code></td><td>Emits the event; may fail the track.</td><td>Re-enumerate; fall back to default device; toast.</td></tr>
+<tr><td>Enable camera</td><td><code>setCameraEnabled(true, { deviceId, resolution })</code></td><td>Publishes with simulcast layers.</td><td>Tile shows video.</td></tr>
+<tr><td>Camera off</td><td><code>setCameraEnabled(false)</code></td><td>Mutes video track; camera LED turns off because LiveKit stops the underlying track for video by default.</td><td>Avatar tile.</td></tr>
+<tr><td>Remote render</td><td><code>track.attach(videoEl)</code> on <code>TrackSubscribed</code>, or <code>&lt;VideoTrack&gt;</code></td><td>Adaptive stream picks the layer for the element's size.</td><td>Tile layout.</td></tr>
+<tr><td>Active speaker</td><td><code>RoomEvent.ActiveSpeakersChanged</code></td><td>Audio-level detection server-side.</td><td>Border highlight; optional reorder.</td></tr>
+<tr><td>Bandwidth limits</td><td><code>adaptiveStream: true, dynacast: true</code> in RoomOptions</td><td>Pauses unused layers.</td><td>Nothing.</td></tr>
+<tr><td>Permission revoked mid-call</td><td>Track ends; <code>LocalTrackUnpublished</code></td><td>Unpublishes.</td><td>Show the denied-permission message and a retry.</td></tr>
+</tbody></table></div>
+<h3>Mute edge cases</h3>
+<div class="tablewrap"><table>
+<thead><tr><th>Case</th><th>LiveKit behaviour</th><th>IntelliMeet must add</th></tr></thead>
+<tbody>
+<tr><td>Self mute and unmute</td><td>Native.</td><td>Button and indicator bound to <code>isMicrophoneEnabled</code>.</td></tr>
+<tr><td>Host mutes participant</td><td><code>RoomService.mutePublishedTrack(room, identity, trackSid, true)</code> is enforced server-side. Participant receives <code>TrackMuted</code>.</td><td>REST endpoint behind requireHost; toast "You were muted by the host".</td></tr>
+<tr><td>Participant unmutes afterwards</td><td>Allowed by default. Server-side unmute is disabled unless the server config sets <code>room.enable_remote_unmute</code>.</td><td>Decide policy. Recommended: allow self-unmute, like Google Meet.</td></tr>
+<tr><td>Host disables mic entirely</td><td><code>RoomService.updateParticipant(room, identity, { permission: { canPublish: false } })</code> or narrower <code>canPublishSources</code>.</td><td>Optional P3 "disable microphone" control.</td></tr>
+<tr><td>Permission revoked</td><td>Track ends; publication removed.</td><td>Error UI and retry.</td></tr>
+<tr><td>Device removed</td><td><code>MediaDevicesChanged</code>; track may end.</td><td>Re-select default device.</td></tr>
+<tr><td>Network reconnect</td><td>Automatic; tracks and mute state restored by the SDK.</td><td>Reconnecting banner only.</td></tr>
+<tr><td>Multiple tabs</td><td>Same identity replaces the previous session; the old tab receives <code>Disconnected</code> with reason <code>DUPLICATE_IDENTITY</code>.</td><td>Show "You joined from another tab" in the old one.</td></tr>
+<tr><td>Browser refresh</td><td>New session with the same identity; the old session is cleaned up within seconds.</td><td>Re-fetch token on mount. Mute state resets to the lobby choice, which matches Meet.</td></tr>
+</tbody></table></div>
+</section>
+
+<!-- ============================================================ 14 -->
+<section id="s14">
+<h2><span class="num">14</span>Screen sharing analysis</h2>
+<p><b>Today.</b> <span class="path">MeetingRoomPage.tsx:395-421</span> <code>handleScreenShareToggle()</code> calls <code>getDisplayMedia({ video: true, audio: false })</code>, stores the stream, and sets <code>track.onended</code> so stopping via the browser's own bar works. The store broadcasts <code>isScreenSharing</code>. The reconciliation loop then <b>replaces the camera track</b> on the single video sender (<span class="path">:234-238</span>), so viewers lose the sharer's face, and the sharer's tile and the share stage read the same stream. Layout at <span class="path">:622-683</span> switches to a stage when any participant has the flag. Nothing prevents two people sharing simultaneously; the layout shows the first.</p>
+<h3>Target</h3>
+<ul>
+<li><code>localParticipant.setScreenShareEnabled(true, { audio: true })</code>. LiveKit publishes a track with <code>Track.Source.ScreenShare</code> and, when the user ticks "share audio" in the picker, a second <code>ScreenShareAudio</code> track. The camera track is untouched.</li>
+<li>The browser picker (monitor, window, tab) is the browser's; nothing to build. The SDK listens for the track's <code>ended</code> event and unpublishes automatically when the user hits the browser's Stop button.</li>
+<li>Render by source: tiles subscribe to <code>Camera</code> tracks, the stage subscribes to the <code>ScreenShare</code> track. The <code>useTracks([Track.Source.ScreenShare])</code> hook from components-react returns exactly the list of active shares.</li>
+<li><b>One share at a time, enforced in the UI.</b> When a share is active, other participants' Share buttons show "Someone is already presenting" and are disabled. Server-side enforcement would need the host to update permissions per participant; that is P3. Google Meet itself lets a second share take over, so the UI rule is a defensible FYP choice.</li>
+<li>Screen share indicator: participant list shows a "Presenting" chip when a participant has a ScreenShare publication.</li>
+</ul>
+<p>Recommendation for the FYP: <b>single share, camera stays visible</b>, share audio allowed. Multiple simultaneous shares add layout complexity for no demo value.</p>
+</section>
+
+<!-- ============================================================ 15 -->
+<section id="s15">
+<h2><span class="num">15</span>Host controls analysis</h2>
+<p><b>Today.</b> Host is the first socket in the room (<span class="path">server.js:162-166</span>). Client-side <code>localUser?.isHost</code> gates the buttons at <span class="path">MeetingRoomPage.tsx:1061</span>. Server checks the role only for <code>end-meeting</code>. Force-mute is advisory: the target client runs <code>toggleMic()</code> and may re-enable. Remove works but is unauthorised. There is a "prevent rejoin" checkbox at <span class="path">MeetingRoomPage.tsx:1157</span> whose value is never read. No lock, no admit, no permission restriction.</p>
+<h3>Role model</h3>
+<p>Two roles: <code>HOST</code> and <code>PARTICIPANT</code>. The creator is host, stored as <code>Meeting.hostId</code>. Role is computed server-side in the token endpoint as <code>String(meeting.hostId) === String(req.user._id) ? 'HOST' : 'PARTICIPANT'</code>, written into the LiveKit token's <code>metadata</code> as <code>{"role":"HOST"}</code>, and re-derived on every host action by the <code>requireHost</code> middleware. The frontend reads role from <code>participant.metadata</code> to render controls, but every control's effect is a REST call the server authorises again.</p>
+<p><b>Co-host.</b> Not worth it for the FYP. It adds a <code>coHostIds</code> array, an endpoint to promote, and metadata refresh on live participants via <code>updateParticipant</code>. Two days of work for a feature examiners rarely probe. Put it in future work.</p>
+<h3>Control-by-control</h3>
+<div class="tablewrap"><table>
+<thead><tr><th>Control</th><th>Flow</th><th>LiveKit capability</th><th>FYP verdict</th></tr></thead>
+<tbody>
+<tr><td>Remove participant</td><td>Host menu → <code>DELETE /api/meetings/:id/participants/:identity?ban=true</code> → requireHost → <code>livekitService.removeParticipant(roomName, identity)</code> → optional push to <code>bannedUserIds</code></td><td><code>RoomServiceClient.removeParticipant</code> disconnects immediately; the client gets <code>Disconnected</code> with reason <code>PARTICIPANT_REMOVED</code>.</td><td><span class="tag info">ESSENTIAL</span></td></tr>
+<tr><td>Mute participant</td><td>Host menu → <code>POST /participants/:identity/mute { source:'microphone' }</code> → requireHost → find the participant's mic publication via <code>getParticipant</code> → <code>mutePublishedTrack(room, identity, sid, true)</code></td><td>Enforced server-side. Unmute by server not allowed by default; participant self-unmutes.</td><td><span class="tag info">ESSENTIAL</span></td></tr>
+<tr><td>Turn off participant camera</td><td>Same endpoint with <code>source:'camera'</code></td><td>Same mechanism on the camera publication.</td><td><span class="tag ok">RECOMMENDED</span> (same code path)</td></tr>
+<tr><td>Prevent re-entry</td><td>Ban flag on removal adds the user id to <code>Meeting.bannedUserIds</code>; token endpoint returns 403 PARTICIPANT_BANNED</td><td>Nothing needed; the token is the gate.</td><td><span class="tag ok">RECOMMENDED</span> (10 lines)</td></tr>
+<tr><td>End meeting for everyone</td><td><code>POST /api/meetings/:id/end</code> → requireHost → set status ENDED, endedAt → <code>deleteRoom(roomName)</code> → 200</td><td><code>deleteRoom</code> disconnects everyone with reason <code>ROOM_DELETED</code>; clients navigate to the ended screen.</td><td><span class="tag info">ESSENTIAL</span></td></tr>
+<tr><td>Lock meeting</td><td><code>PATCH /api/meetings/:id { locked:true }</code>; token endpoint returns 423 MEETING_LOCKED for non-hosts</td><td>Nothing needed.</td><td><span class="tag neutral">OPTIONAL</span> (cheap)</td></tr>
+<tr><td>Admit or deny (waiting room)</td><td>Requires a pending-join queue, a host notification channel, and per-user approval before token issue</td><td>Could be built with a restricted token that grants <code>roomJoin</code> but no publish or subscribe, plus <code>updateParticipant</code> to lift permissions on approval.</td><td><span class="tag neutral">OPTIONAL</span>, only if ahead of schedule</td></tr>
+<tr><td>Disable participant mic or camera (cannot self-enable)</td><td><code>updateParticipant</code> with <code>canPublishSources</code> excluding that source</td><td>Supported.</td><td><span class="tag neutral">OPTIONAL</span></td></tr>
+<tr><td>Restrict screen sharing to host</td><td>Issue participant tokens with <code>canPublishSources: [camera, microphone]</code></td><td>Supported at token level.</td><td><span class="tag neutral">OPTIONAL</span> (one setting)</td></tr>
+</tbody></table></div>
+<h3>Leave versus end</h3>
+<ul>
+<li><b>Participant leaves.</b> <code>room.disconnect()</code>, navigate to dashboard. No REST call. The <code>participant_left</code> webhook records <code>lastLeftAt</code> if you keep participant history.</li>
+<li><b>Host leaves.</b> Same as above. The meeting stays ACTIVE and <code>hostId</code> is unchanged, so the host can return with full controls. No role transfer. This is the simplest robust choice and matches how Meet behaves for the organiser.</li>
+<li><b>Host ends for everyone.</b> The confirmation modal that already exists at <span class="path">MeetingRoomPage.tsx:1133-1180</span> stays; its confirm button calls the end endpoint.</li>
+<li><b>Everyone gone.</b> LiveKit's <code>emptyTimeout</code> (recommended 300 s) closes the room and fires <code>room_finished</code>; the webhook marks the meeting ENDED. If the host wants to reuse the code the next day they create a new meeting. Trade-off: a meeting that empties for six minutes during a break ends. Raise the timeout to 900 s if that worries you; the cost is only an idle room on the server.</li>
+</ul>
+</section>
+
+<!-- ============================================================ 16 -->
+<section id="s16">
+<h2><span class="num">16</span>Participant management</h2>
+<p>The current <code>Participant</code> type in <span class="path">useMeetingStore.ts:8-22</span> mixes identity, role, media flags, language, and socket id into one object mirrored on both server and client. Under LiveKit most of it becomes derived state.</p>
+<div class="tablewrap"><table>
+<thead><tr><th>Field</th><th>MongoDB</th><th>LiveKit</th><th>Frontend only</th><th>Notes</th></tr></thead>
+<tbody>
+<tr><td>userId</td><td>Meeting.hostId, participants[].userId, bannedUserIds</td><td>Participant identity</td><td>—</td><td>One value, three homes. The token binds them.</td></tr>
+<tr><td>participantId / LiveKit identity</td><td>—</td><td><code>participant.identity</code> = userId string; <code>participant.sid</code> per session</td><td>—</td><td>Use identity for API calls; sid changes on reconnect.</td></tr>
+<tr><td>displayName</td><td>User.fullName</td><td><code>participant.name</code> from the token</td><td>—</td><td>Set at token time; never trust client input.</td></tr>
+<tr><td>role</td><td>Derived from Meeting.hostId</td><td><code>participant.metadata</code> JSON <code>{ role }</code></td><td>Read from metadata</td><td>Metadata is set by the token and can be refreshed by <code>updateParticipant</code>.</td></tr>
+<tr><td>Mic state</td><td>—</td><td><code>participant.isMicrophoneEnabled</code>, TrackMuted events</td><td>—</td><td>Never persist.</td></tr>
+<tr><td>Camera state</td><td>—</td><td><code>isCameraEnabled</code></td><td>—</td><td>Never persist.</td></tr>
+<tr><td>Screen sharing</td><td>—</td><td><code>isScreenShareEnabled</code></td><td>—</td><td>Never persist.</td></tr>
+<tr><td>Join time</td><td>participants[].firstJoinedAt via webhook</td><td><code>participant.joinedAt</code></td><td>—</td><td>Persist only if the dashboard needs history.</td></tr>
+<tr><td>Connection state</td><td>—</td><td><code>connectionQuality</code>, <code>ConnectionStateChanged</code></td><td>Banner state</td><td>Replaces the static green icon at <span class="path">MeetingRoomPage.tsx:579</span>.</td></tr>
+<tr><td>Speaking</td><td>—</td><td><code>isSpeaking</code>, <code>audioLevel</code></td><td>—</td><td>Drives highlight.</td></tr>
+<tr><td>Language preference</td><td>User.preferences</td><td>Could ride in metadata later for the AI phase</td><td>—</td><td>Out of scope now.</td></tr>
+</tbody></table></div>
+<h3>Participant list UI</h3>
+<p>The existing panel at <span class="path">MeetingRoomPage.tsx:1042-1110</span> already has the right rows: avatar, name, "You", host badge, mic and camera icons, and a host-only menu. Rebuild it as <code>ParticipantsPanel</code> fed by <code>useParticipants()</code>. Add a "Presenting" chip, a count in the header, sort host first then alphabetical, and show connection quality as a small bar icon per row. The host-only menu gets Mute, Turn off camera, Remove, and Remove and block.</p>
+</section>
+
+<!-- ============================================================ 17 -->
+<section id="s17">
+<h2><span class="num">17</span>Database recommendations</h2>
+<p>There is no Meeting schema to inspect, so this is a design. The rule is: store what must survive a restart and what the dashboard or an auditor would ask for. Do not store anything LiveKit already knows live.</p>
+<pre><code>// backend/models/Meeting.js
+const meetingSchema = new mongoose.Schema({
+  meetingId:  { type: String, required: true, unique: true, index: true,
+                match: /^[a-z]{3}-[a-z]{4}-[a-z]{3}$/ },
+  title:      { type: String, trim: true, maxlength: 100, default: 'Untitled meeting' },
+  hostId:     { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
+  status:     { type: String, enum: ['CREATED', 'ACTIVE', 'ENDED'], default: 'CREATED', index: true },
+  roomName:   { type: String, required: true },          // equals meetingId today; kept explicit
+  startedAt:  { type: Date, default: null },
+  endedAt:    { type: Date, default: null },
+  endedReason:{ type: String, enum: ['HOST_ENDED', 'EMPTY_TIMEOUT', null], default: null },
+  settings: {
+    locked:                 { type: Boolean, default: false },
+    screenShareHostOnly:    { type: Boolean, default: false },
+  },
+  bannedUserIds: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  participants: [{                                       // history, not presence
+    userId:        { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    displayName:   String,
+    firstJoinedAt: Date,
+    lastLeftAt:    Date,
+  }],
+}, { timestamps: true });
+
+meetingSchema.index({ hostId: 1, createdAt: -1 });        // dashboard "my meetings"
+meetingSchema.index({ 'participants.userId': 1, createdAt: -1 });</code></pre>
+<div class="tablewrap"><table>
+<thead><tr><th>Field</th><th>Keep?</th><th>Why</th></tr></thead>
+<tbody>
+<tr><td>meetingId</td><td>Yes</td><td>The public code. Unique index is the collision guard.</td></tr>
+<tr><td>title</td><td>Yes</td><td>Shown in lobby, room header, dashboard.</td></tr>
+<tr><td>hostId</td><td>Yes</td><td>The only source of host authority.</td></tr>
+<tr><td>status</td><td>Yes</td><td>Gates token issue and rejoin.</td></tr>
+<tr><td>roomName</td><td>Yes, cheap</td><td>Lets you change the naming scheme later without touching lookups. Set equal to meetingId.</td></tr>
+<tr><td>startedAt, endedAt</td><td>Yes</td><td>Timer origin for late joiners; duration on the dashboard.</td></tr>
+<tr><td>settings.locked</td><td>Optional</td><td>One boolean; only if you implement lock.</td></tr>
+<tr><td>bannedUserIds</td><td>Yes</td><td>Makes "remove and block" real.</td></tr>
+<tr><td>participants[]</td><td>Optional</td><td>Only for dashboard history. Populated by webhooks or by the token endpoint on first token. Never used for presence.</td></tr>
+<tr><td>createdBy</td><td>No</td><td>Duplicate of hostId.</td></tr>
+<tr><td>scheduledFor</td><td>Optional</td><td>If the Create page keeps its scheduled mode.</td></tr>
+<tr><td>Participant, Session, Room, Message models</td><td>No</td><td>Presence lives in LiveKit. Chat persistence is P3; add a Message model then, not now.</td></tr>
+</tbody></table></div>
+<h3>Lifecycle</h3>
+<div class="flow">
+<span class="step">CREATED   ──(first token issued to host, or participant_joined webhook)──▶  ACTIVE</span>
+<span class="step">ACTIVE    ──(POST /end by host)──────────────────────────────────────────▶  ENDED  endedReason HOST_ENDED</span>
+<span class="step">ACTIVE    ──(room_finished webhook after emptyTimeout)──────────────────▶  ENDED  endedReason EMPTY_TIMEOUT</span>
+<span class="step">CREATED   ──(never joined; optional daily sweep after 24 h)─────────────▶  ENDED  endedReason EMPTY_TIMEOUT</span>
+<span class="step">ENDED     ──▶ terminal. Token endpoint returns 410 MEETING_ENDED. GET returns 200 with status so the UI can explain.</span>
+</div>
+<p>Three states are enough. SCHEDULED, CANCELLED and EXPIRED only earn their place once scheduling is a real feature with its own UI.</p>
+<h3>User model fix</h3>
+<pre><code>// backend/models/User.js:113-118  replace
+preferences: { type: Map, of: String, default: () =&gt; ({}) },
+// with
+preferences: { type: preferencesSchema, default: () =&gt; ({}) },</code></pre>
+</section>
+
+<!-- ============================================================ 18 -->
+<section id="s18">
+<h2><span class="num">18</span>API recommendations</h2>
+<p>Existing auth and user routes stay as they are. The meeting API is new. Join and token are the same operation, so there is no separate join endpoint. Leave needs no endpoint because disconnecting from LiveKit is the leave, and the webhook records it.</p>
+<div class="tablewrap"><table>
+<thead><tr><th>Method and route</th><th>Auth</th><th>Authz</th><th>Request</th><th>Response</th><th>Errors</th><th>Purpose</th></tr></thead>
+<tbody>
+<tr><td><code>POST /api/meetings</code></td><td>JWT</td><td>Any user</td><td><code>{ title? }</code></td><td>201 <code>{ meetingId, title, status, host:{id,name}, url, createdAt }</code></td><td>401, 422 VALIDATION_FAILED, 500 ROOM_CREATION_FAILED</td><td>Create a meeting owned by the caller.</td></tr>
+<tr><td><code>GET /api/meetings</code></td><td>JWT</td><td>Any user</td><td>query <code>?role=host|participant&amp;status=</code></td><td>200 <code>{ meetings:[...] }</code></td><td>401</td><td>Dashboard and My Meetings. Replaces the mock arrays.</td></tr>
+<tr><td><code>GET /api/meetings/:meetingId</code></td><td>JWT</td><td>Any user, unless banned</td><td>—</td><td>200 <code>{ meetingId, title, status, host:{id,name}, isHost, startedAt, endedAt, locked }</code></td><td>400 INVALID_MEETING_ID, 404 MEETING_NOT_FOUND, 403 PARTICIPANT_BANNED</td><td>Validate before showing the lobby. Never creates anything.</td></tr>
+<tr><td><code>POST /api/meetings/:meetingId/token</code></td><td>JWT</td><td>Not banned; not locked unless host; meeting not ENDED</td><td><code>{ }</code></td><td>200 <code>{ token, url, roomName, identity, role, expiresIn }</code></td><td>404, 410 MEETING_ENDED, 403 PARTICIPANT_BANNED, 423 MEETING_LOCKED, 500 TOKEN_GENERATION_FAILED</td><td>Authorise and mint a LiveKit token. Transitions CREATED → ACTIVE when the host first requests one.</td></tr>
+<tr><td><code>POST /api/meetings/:meetingId/end</code></td><td>JWT</td><td>Host</td><td>—</td><td>200 <code>{ meetingId, status:'ENDED', endedAt }</code></td><td>403 NOT_HOST, 404, 410 already ended</td><td>Set ENDED, delete LiveKit room.</td></tr>
+<tr><td><code>DELETE /api/meetings/:meetingId/participants/:identity</code></td><td>JWT</td><td>Host; cannot target self</td><td>query <code>?ban=true</code></td><td>200 <code>{ removed:true, banned }</code></td><td>403 NOT_HOST, 404 PARTICIPANT_NOT_FOUND, 502 LIVEKIT_ERROR</td><td>Kick, optionally ban.</td></tr>
+<tr><td><code>POST /api/meetings/:meetingId/participants/:identity/mute</code></td><td>JWT</td><td>Host</td><td><code>{ source:'microphone'|'camera' }</code></td><td>200 <code>{ muted:true }</code></td><td>403, 404 PARTICIPANT_NOT_FOUND or TRACK_NOT_FOUND, 502</td><td>Server-side mute of a published track.</td></tr>
+<tr><td><code>PATCH /api/meetings/:meetingId</code></td><td>JWT</td><td>Host</td><td><code>{ title?, locked? }</code></td><td>200 meeting</td><td>403, 404, 422</td><td>Rename or lock. Optional.</td></tr>
+<tr><td><code>POST /api/livekit/webhook</code></td><td>LiveKit signature via <code>WebhookReceiver</code></td><td>—</td><td>raw body, <code>Authorization</code> header from LiveKit</td><td>200</td><td>401 on bad signature</td><td><code>participant_joined</code> → ACTIVE and history; <code>participant_left</code> → lastLeftAt; <code>room_finished</code> → ENDED.</td></tr>
+</tbody></table></div>
+<p><b>Route file shape</b>, following the existing convention in <span class="path">routes/userRoutes.js</span>:</p>
+<pre><code>// backend/routes/meetingRoutes.js
+router.use(protect);
+router.post('/',                       createMeetingValidation, createMeeting);
+router.get('/',                        listMyMeetings);
+router.get('/:meetingId',              meetingIdParam, loadMeeting, getMeeting);
+router.post('/:meetingId/token',       meetingIdParam, loadMeeting, issueToken);
+router.post('/:meetingId/end',         meetingIdParam, loadMeeting, requireHost, endMeeting);
+router.patch('/:meetingId',            meetingIdParam, loadMeeting, requireHost, updateMeetingValidation, updateMeeting);
+router.delete('/:meetingId/participants/:identity',    meetingIdParam, loadMeeting, requireHost, removeParticipant);
+router.post('/:meetingId/participants/:identity/mute', meetingIdParam, loadMeeting, requireHost, muteValidation, muteParticipant);</code></pre>
+<p>The webhook must be mounted <b>before</b> <code>express.json()</code> with <code>express.raw({ type: 'application/webhook+json' })</code>, because the signature is computed over the raw bytes. It also sits outside the general rate limiter.</p>
+</section>
+
+<!-- ============================================================ 19 -->
+<section id="s19">
+<h2><span class="num">19</span>Security review</h2>
+<div class="tablewrap"><table>
+<thead><tr><th>Severity</th><th>Finding</th><th>Location</th><th>Impact</th><th>Fix</th></tr></thead>
+<tbody>
+<tr><td><span class="tag crit">CRITICAL</span></td><td>Unauthenticated signaling; any client joins any room with any identity.</td><td><span class="path">socket.ts:25</span>, <span class="path">server.js:114-131</span></td><td>Eavesdropping and impersonation.</td><td>Removed by migration. Token endpoint is the only door.</td></tr>
+<tr><td><span class="tag crit">CRITICAL</span></td><td>No host check on remove-user, force-media, leave-room.</td><td><span class="path">server.js:216-280</span></td><td>Anyone kicks or mutes anyone.</td><td><code>requireHost</code> on REST; LiveKit executes.</td></tr>
+<tr><td><span class="tag crit">CRITICAL</span></td><td>Host role obtainable by joining first, by re-joining with the host's broadcast id, or by merging <code>isHost</code> through toggle-media.</td><td><span class="path">server.js:161-166, 197</span></td><td>Meeting takeover.</td><td>Role from <code>Meeting.hostId</code> only.</td></tr>
+<tr><td><span class="tag crit">CRITICAL</span></td><td>Arbitrary room names create rooms.</td><td><span class="path">server.js:154-156</span>, <span class="path">MeetingRoomPage.tsx:303-316</span></td><td>Squatting, resource abuse, phantom meetings.</td><td>Section 08.</td></tr>
+<tr><td><span class="tag high">HIGH</span></td><td>Reset URL built from Origin or Referer header.</td><td><span class="path">authController.js:438-450</span></td><td>Reset-token theft by a crafted request.</td><td><code>FRONTEND_URL</code> from config.</td></tr>
+<tr><td><span class="tag high">HIGH</span></td><td><code>email_verified</code> not checked on Google sign-in; existing local account auto-linked by email.</td><td><span class="path">authController.js:540-554</span></td><td>Account linking without proof of ownership.</td><td>Require <code>email_verified === true</code>.</td></tr>
+<tr><td><span class="tag high">HIGH</span></td><td>JWT plus full user object persisted in localStorage.</td><td><span class="path">useAuthStore.ts:63-90</span></td><td>Any XSS steals a 7 day session.</td><td><code>partialize</code> to token only; expiry 24 h. No XSS sinks exist today, keep it that way.</td></tr>
+<tr><td><span class="tag high">HIGH</span></td><td>Google client id read from <code>process.env</code> without validation; if unset, audience check is skipped.</td><td><span class="path">authController.js:33, 533</span></td><td>Tokens minted for other Google apps would be accepted.</td><td>Add to <code>REQUIRED_VARS</code>.</td></tr>
+<tr><td><span class="tag med">MEDIUM</span></td><td>Auth limiter double-applied; general limiter too low for a polling dashboard.</td><td><span class="path">authRoutes.js:24-36</span>, <span class="path">rateLimiter.js:45-47</span></td><td>Legitimate lockouts, especially behind campus NAT.</td><td>Apply once; raise general limit; add a per-user limit on token issue.</td></tr>
+<tr><td><span class="tag med">MEDIUM</span></td><td>Development error handler returns stack traces to the client.</td><td><span class="path">errorHandler.js:90-96</span></td><td>Information leak if NODE_ENV is ever left unset in a deployment. Default is development.</td><td>Default <code>NODE_ENV</code> to production semantics in the handler, or require it explicitly.</td></tr>
+<tr><td><span class="tag med">MEDIUM</span></td><td>No revocation on logout; password change is the only invalidation.</td><td><span class="path">useAuthStore.ts:73</span></td><td>Stolen token lives until expiry.</td><td>Shorter expiry; optional <code>tokenVersion</code>.</td></tr>
+<tr><td><span class="tag med">MEDIUM</span></td><td>forgot-password reveals whether an email exists.</td><td><span class="path">authController.js:420-423</span></td><td>Enumeration; the comment says this was deliberate.</td><td>Return the generic message and log the miss server-side.</td></tr>
+<tr><td><span class="tag med">MEDIUM</span></td><td>Verify-OTP bypasses model validation and hooks.</td><td><span class="path">authController.js:335-343</span></td><td>Schema drift; <code>authProvider</code> only defaulted on read.</td><td>Save through Mongoose.</td></tr>
+<tr><td><span class="tag med">MEDIUM</span></td><td>No LiveKit secret exists yet, but the pattern that led to client-side IDs will tempt client-side tokens.</td><td>—</td><td>—</td><td>Section 22 fixes the pattern before it happens. <code>VITE_</code> prefix only for the URL.</td></tr>
+<tr><td><span class="tag low">LOW</span></td><td>Live secrets in <code>.env</code> in the tree; no <code>.env.example</code> though the startup message references one.</td><td><span class="path">backend/.env</span>, <span class="path">frontend/.env</span></td><td>Accidental commit risk; gitignore covers it.</td><td>Add examples; rotate the SMTP app password if the folder was ever shared.</td></tr>
+<tr><td><span class="tag low">LOW</span></td><td>NoSQL sanitizer: body sanitisation works; query sanitisation is a no-op on Express 5 but harmless because Express 5's default query parser is flat.</td><td><span class="path">sanitize.js:51-56</span></td><td>None today. <span class="tag ok">verified</span></td><td>Note it; set <code>app.set('query parser','simple')</code> explicitly so it stays that way.</td></tr>
+<tr><td><span class="tag low">LOW</span></td><td>CORS allows any localhost port in development.</td><td><span class="path">environment.js:66-70</span></td><td>Fine for dev.</td><td>Ensure production sets <code>CORS_ORIGIN</code>.</td></tr>
+<tr><td><span class="tag ok">OK</span></td><td>XSS: no <code>dangerouslySetInnerHTML</code>, no <code>innerHTML</code>, no <code>eval</code>. Helmet on. Body limit 10 kB. Bcrypt. Hashed OTP and reset tokens.</td><td>—</td><td>—</td><td>Keep.</td></tr>
+</tbody></table></div>
+<h3>Invalid-action matrix after migration</h3>
+<div class="tablewrap"><table>
+<thead><tr><th>Attempt</th><th>Where it is stopped</th><th>Response</th></tr></thead>
+<tbody>
+<tr><td>Participant removes host or another participant</td><td><code>requireHost</code></td><td>403 NOT_HOST</td></tr>
+<tr><td>Participant ends meeting</td><td><code>requireHost</code></td><td>403 NOT_HOST</td></tr>
+<tr><td>Participant asks for a host token</td><td>Role is computed, never accepted from the body</td><td>200 with role PARTICIPANT</td></tr>
+<tr><td>Participant edits hostId</td><td>No endpoint accepts it; PATCH whitelists title and locked</td><td>422 or ignored</td></tr>
+<tr><td>Access nonexistent meeting</td><td><code>loadMeeting</code></td><td>404 MEETING_NOT_FOUND</td></tr>
+<tr><td>Join ended meeting</td><td>token endpoint status check</td><td>410 MEETING_ENDED</td></tr>
+<tr><td>Forge a LiveKit token</td><td>LiveKit verifies the HMAC with the API secret it alone shares with the backend</td><td>LiveKit connection refused</td></tr>
+<tr><td>Reuse an expired LiveKit token</td><td>LiveKit checks <code>exp</code></td><td>Connection refused; client re-requests</td></tr>
+<tr><td>Join with a token for room A into room B</td><td><code>roomJoin</code> grant names one room</td><td>Refused</td></tr>
+<tr><td>Spoof identity</td><td>Identity is set by the backend from the JWT</td><td>Not possible</td></tr>
+<tr><td>Banned user rejoins</td><td>token endpoint checks <code>bannedUserIds</code></td><td>403 PARTICIPANT_BANNED</td></tr>
+</tbody></table></div>
+</section>
+
+<!-- ============================================================ 20 -->
+<section id="s20">
+<h2><span class="num">20</span>Error handling</h2>
+<p>The envelope in <span class="path">utils/apiResponse.js</span> is already consistent: <code>{ success, message, errors?, timestamp }</code>. The frontend wrapper in <span class="path">api.ts:99-118</span> parses it. Keep the shape and add a machine-readable <code>code</code> so the frontend can branch on it instead of matching message strings.</p>
+<pre><code>// backend/utils/ApiError.js   constructor(statusCode, message, errors = [], code = null)
+// backend/utils/apiResponse.js sendError(res, statusCode, message, errors = [], code = null)
+//   → { success:false, code:'MEETING_NOT_FOUND', message:'Meeting not found.', errors:[], timestamp }
+
+// frontend/src/lib/api.ts   class ApiError { code: string | null }  and: try { json } catch { throw new ApiError('Server unavailable', status, [], 'NETWORK') }</code></pre>
+<div class="tablewrap"><table>
+<thead><tr><th>Code</th><th>HTTP</th><th>When</th><th>User-facing copy</th></tr></thead>
+<tbody>
+<tr><td>INVALID_MEETING_ID</td><td>400</td><td>Format fails the regex after normalisation</td><td>That doesn't look like a meeting code. Codes look like abc-defg-hij.</td></tr>
+<tr><td>MEETING_NOT_FOUND</td><td>404</td><td>No document</td><td>Meeting not found. Check the code and try again.</td></tr>
+<tr><td>MEETING_ENDED</td><td>410</td><td>status ENDED on token or end</td><td>This meeting has ended.</td></tr>
+<tr><td>MEETING_LOCKED</td><td>423</td><td>locked and not host</td><td>The host has locked this meeting.</td></tr>
+<tr><td>PARTICIPANT_BANNED</td><td>403</td><td>user in bannedUserIds</td><td>You were removed from this meeting and can't rejoin.</td></tr>
+<tr><td>NOT_HOST</td><td>403</td><td>requireHost fails</td><td>Only the host can do that.</td></tr>
+<tr><td>PARTICIPANT_NOT_FOUND</td><td>404</td><td>identity not in LiveKit room</td><td>That person is no longer in the meeting.</td></tr>
+<tr><td>TRACK_NOT_FOUND</td><td>404</td><td>mute target has no such publication</td><td>Their microphone is already off.</td></tr>
+<tr><td>UNAUTHORIZED</td><td>401</td><td>missing or bad JWT</td><td>Please sign in again.</td></tr>
+<tr><td>FORBIDDEN</td><td>403</td><td>generic</td><td>You don't have permission to do that.</td></tr>
+<tr><td>VALIDATION_FAILED</td><td>422</td><td>express-validator</td><td>field-level messages</td></tr>
+<tr><td>TOKEN_GENERATION_FAILED</td><td>500</td><td>SDK throws, usually missing env</td><td>We couldn't connect you. Try again in a moment.</td></tr>
+<tr><td>ROOM_CREATION_FAILED</td><td>502</td><td>createRoom fails</td><td>Same copy.</td></tr>
+<tr><td>LIVEKIT_ERROR</td><td>502</td><td>any RoomService call fails</td><td>Same copy.</td></tr>
+<tr><td>RATE_LIMITED</td><td>429</td><td>limiter</td><td>Too many attempts. Wait a few minutes.</td></tr>
+<tr><td>MEDIA_PERMISSION_DENIED</td><td>client only</td><td>getUserMedia NotAllowedError</td><td>IntelliMeet needs camera and microphone access. Allow it in your browser's site settings, then retry.</td></tr>
+<tr><td>MEDIA_DEVICE_BUSY</td><td>client only</td><td>NotReadableError</td><td>Your camera or microphone is being used by another app.</td></tr>
+<tr><td>MEDIA_DEVICE_NOT_FOUND</td><td>client only</td><td>NotFoundError</td><td>No camera or microphone was found. You can still join to listen.</td></tr>
+<tr><td>BROWSER_UNSUPPORTED</td><td>client only</td><td><code>!navigator.mediaDevices</code> or <code>!window.RTCPeerConnection</code></td><td>Your browser doesn't support video calls. Use Chrome, Edge, Firefox or Safari.</td></tr>
+<tr><td>LIVEKIT_CONNECTION_ERROR</td><td>client only</td><td><code>room.connect</code> rejects</td><td>Couldn't reach the meeting server. Check your connection and retry.</td></tr>
+</tbody></table></div>
+</section>
+
+<!-- ============================================================ 21 -->
+<section id="s21">
+<h2><span class="num">21</span>File-by-file modification plan</h2>
+<h3>Keep unchanged</h3>
+<div class="tablewrap"><table><thead><tr><th>File</th><th>Why</th></tr></thead><tbody>
+<tr><td><span class="path">backend/config/db.js</span></td><td>Connection, retry, shutdown are correct.</td></tr>
+<tr><td><span class="path">backend/middleware/authMiddleware.js</span></td><td>Reused as <code>protect</code> on all meeting routes.</td></tr>
+<tr><td><span class="path">backend/middleware/sanitize.js</span></td><td>Works for bodies.</td></tr>
+<tr><td><span class="path">backend/utils/jwt.js</span></td><td>Correct.</td></tr>
+<tr><td><span class="path">backend/models/PendingUser.js</span></td><td>Correct.</td></tr>
+<tr><td><span class="path">backend/validators/authValidators.js</span></td><td>Correct; its <code>validate</code> helper is reused by the new validators.</td></tr>
+<tr><td><span class="path">frontend/src/components/ui/*</span>, <span class="path">components/common/Logo.tsx</span>, <span class="path">components/layout/*</span></td><td>Presentation only.</td></tr>
+<tr><td><span class="path">frontend/src/layouts/*</span></td><td>Unchanged except the hard-coded "Dashboard" header title, which is cosmetic.</td></tr>
+<tr><td><span class="path">frontend/src/pages/public/*</span> except LandingPage</td><td>Auth pages already work.</td></tr>
+<tr><td><span class="path">frontend/src/components/auth/*</span>, <span class="path">store/useToastStore.ts</span></td><td>Fine.</td></tr>
+<tr><td><span class="path">frontend/src/pages/meeting/MeetingEndedPage.tsx</span></td><td>Reused; receives a reason query param.</td></tr>
+</tbody></table></div>
+<h3>Small modifications</h3>
+<div class="tablewrap"><table><thead><tr><th>File</th><th>Change</th></tr></thead><tbody>
+<tr><td><span class="path">backend/config/environment.js</span></td><td>Add <code>LIVEKIT_URL</code>, <code>LIVEKIT_API_KEY</code>, <code>LIVEKIT_API_SECRET</code>, <code>FRONTEND_URL</code>, <code>GOOGLE_CLIENT_ID</code> to <code>REQUIRED_VARS</code> and exports.</td></tr>
+<tr><td><span class="path">backend/server.js</span></td><td>Remove lines 112-350 (Socket.IO). Mount webhook route with raw body before <code>express.json</code>. Mount <code>/api/meetings</code>. Replace <code>server.listen</code> with <code>app.listen</code>.</td></tr>
+<tr><td><span class="path">backend/routes/authRoutes.js</span></td><td>Delete the per-route <code>authLimiter</code> arguments.</td></tr>
+<tr><td><span class="path">backend/middleware/rateLimiter.js</span></td><td>General limit to 600. Add <code>tokenLimiter</code> at 30 per 5 minutes keyed by user id.</td></tr>
+<tr><td><span class="path">backend/models/User.js</span></td><td>Preferences field type. Line 114.</td></tr>
+<tr><td><span class="path">backend/controllers/authController.js</span></td><td>Reset URL from config; <code>email_verified</code> check; save verified user through Mongoose; use configured salt rounds; generic forgot-password message.</td></tr>
+<tr><td><span class="path">backend/utils/ApiError.js</span>, <span class="path">utils/apiResponse.js</span>, <span class="path">middleware/errorHandler.js</span></td><td>Carry <code>code</code> through.</td></tr>
+<tr><td><span class="path">backend/package.json</span></td><td>Add <code>livekit-server-sdk</code>. Remove <code>socket.io</code>, <code>multer</code>.</td></tr>
+<tr><td><span class="path">frontend/src/lib/api.ts</span></td><td>Add <code>meetingApi</code> namespace; <code>code</code> on ApiError; guard <code>response.json()</code>; call store logout on 401.</td></tr>
+<tr><td><span class="path">frontend/src/store/useAuthStore.ts</span></td><td><code>partialize</code> to token and id/name/email.</td></tr>
+<tr><td><span class="path">frontend/src/App.tsx</span></td><td>Add <code>/meet/:meetingId</code> (lobby) and <code>/meet/:meetingId/room</code>; keep old paths as redirects for a release; remove <code>/status-preview</code>.</td></tr>
+<tr><td><span class="path">frontend/src/pages/meeting/CreateMeetingPage.tsx</span></td><td>Replace lines 38-70 with <code>meetingApi.create</code>. Share link from <code>window.location.origin</code>. Remove the inert require-login switch or wire it to <code>locked</code>.</td></tr>
+<tr><td><span class="path">frontend/src/pages/meeting/JoinMeetingPage.tsx</span></td><td>Replace lines 29-41 with normalise plus <code>meetingApi.get</code>; render error codes.</td></tr>
+<tr><td><span class="path">frontend/src/pages/dashboard/DashboardPage.tsx</span>, <span class="path">MyMeetingsPage.tsx</span></td><td>Remove mock arrays and literal stats; fetch <code>meetingApi.list</code>. Start-instant calls create.</td></tr>
+<tr><td><span class="path">frontend/src/pages/public/LandingPage.tsx</span></td><td>Type the variants (<code>ease: 'easeInOut' as const</code> or import <code>Variants</code>). Removes 7 tsc errors.</td></tr>
+<tr><td><span class="path">frontend/tsconfig.json</span></td><td><code>"strict": true</code>, <code>noUnusedLocals</code> true.</td></tr>
+<tr><td><span class="path">frontend/vite.config.ts</span></td><td>Optional <code>server.proxy</code> for <code>/api</code> so dev is same-origin.</td></tr>
+<tr><td><span class="path">frontend/package.json</span></td><td>Add <code>livekit-client</code> and <code>@livekit/components-react</code>. Remove <code>socket.io-client</code>, <code>recharts</code>, unused Radix packages. Rename from <code>temp-app</code>.</td></tr>
+</tbody></table></div>
+<h3>Major refactoring</h3>
+<div class="tablewrap"><table><thead><tr><th>File</th><th>Change</th></tr></thead><tbody>
+<tr><td><span class="path">frontend/src/pages/meeting/MeetingRoomPage.tsx</span></td><td>Becomes a 150-line container: guards on meeting state, calls <code>useLiveKitRoom</code>, composes <code>ControlBar</code>, <code>VideoGrid</code>, <code>ScreenShareStage</code>, <code>ChatPanel</code>, <code>ParticipantsPanel</code>, the two modals. All WebRTC code (lines 82-276, 321-447) deleted. Existing JSX moves into the new components largely unchanged.</td></tr>
+<tr><td><span class="path">frontend/src/pages/meeting/LobbyPage.tsx</span></td><td>Loads meeting via API, shows real title, device pickers, real level meter, permission error states, remembers devices, hands tracks to the room.</td></tr>
+<tr><td><span class="path">frontend/src/store/useMeetingStore.ts</span></td><td>Shrinks to meeting metadata, role, chat messages, unread count, events, timer, panel UI state. Delete participants array, media flags, signalingLog, logSignaling, reset, toggle* actions.</td></tr>
+</tbody></table></div>
+<h3>Remove</h3>
+<div class="tablewrap"><table><thead><tr><th>File or code</th><th>Why</th></tr></thead><tbody>
+<tr><td><span class="path">frontend/src/lib/socket.ts</span></td><td>No Socket.IO after migration.</td></tr>
+<tr><td><span class="path">frontend/src/hooks/useMeetingConnection.ts</span></td><td>Replaced by <code>useLiveKitRoom</code>.</td></tr>
+<tr><td><span class="path">frontend/src/pages/public/StatusPreviewPage.tsx</span></td><td>A design-system sheet shipped as a public route.</td></tr>
+<tr><td><span class="path">frontend/src/pages/meeting/MeetingSummaryPage.tsx</span></td><td>AI feature, out of scope, and fully hard-coded. Unlink from routing until the AI phase; keep the file if you want the markup.</td></tr>
+<tr><td><span class="path">server.js:112-350</span></td><td>Signaling server.</td></tr>
+<tr><td>Dead code: <code>signalingLog</code>, <code>logSignaling</code>, <code>reset()</code> in the store; <code>videoRef</code>, <code>activeSpeaker</code>, <code>endCallError</code>, <code>dismissEvent</code> destructure in the room page; unused <code>useCallback</code> import; unused icons in Login, Register, VerifyEmail, Landing, Profile; the unused <code>preferencesSchema</code> becomes used.</td><td>Confirmed unreferenced by grep.</td></tr>
+</tbody></table></div>
+<h3>New files</h3>
+<div class="tablewrap"><table><thead><tr><th>File</th><th>Purpose</th></tr></thead><tbody>
+<tr><td><span class="path">backend/models/Meeting.js</span></td><td>Schema from section 17.</td></tr>
+<tr><td><span class="path">backend/utils/meetingId.js</span></td><td>generate, validate, normalise.</td></tr>
+<tr><td><span class="path">backend/services/meetingService.js</span></td><td><code>createMeeting</code>, <code>findByMeetingId</code>, <code>assertJoinable(meeting, user)</code>, <code>markActive</code>, <code>endMeeting(meeting, reason)</code>, <code>banUser</code>, <code>recordJoin</code>, <code>recordLeave</code>, <code>listForUser</code>. Pure data logic; no HTTP objects.</td></tr>
+<tr><td><span class="path">backend/services/livekitService.js</span></td><td>Wraps <code>livekit-server-sdk</code>: <code>createParticipantToken({ roomName, identity, name, role })</code>, <code>ensureRoom(roomName)</code>, <code>removeParticipant</code>, <code>muteTrack(roomName, identity, source)</code>, <code>deleteRoom</code>, <code>getParticipant</code>. The only file that touches the API secret.</td></tr>
+<tr><td><span class="path">backend/controllers/meetingController.js</span></td><td>Thin handlers calling the services, returning <code>sendSuccess</code>.</td></tr>
+<tr><td><span class="path">backend/controllers/livekitWebhookController.js</span></td><td><code>WebhookReceiver.receive(body, authHeader)</code> then dispatch by <code>event.event</code>.</td></tr>
+<tr><td><span class="path">backend/middleware/meetingAuth.js</span></td><td><code>meetingIdParam</code> (normalise and validate), <code>loadMeeting</code> (404 or attach <code>req.meeting</code>), <code>requireHost</code> (403 NOT_HOST).</td></tr>
+<tr><td><span class="path">backend/routes/meetingRoutes.js</span>, <span class="path">routes/livekitRoutes.js</span></td><td>Section 18.</td></tr>
+<tr><td><span class="path">backend/validators/meetingValidators.js</span></td><td>title length, mute source enum, locked boolean.</td></tr>
+<tr><td><span class="path">backend/.env.example</span>, <span class="path">frontend/.env.example</span></td><td>Section 22.</td></tr>
+<tr><td><span class="path">frontend/src/hooks/useLiveKitRoom.ts</span></td><td>Owns the <code>Room</code> instance: connect with token, publish lobby tracks, subscribe to RoomEvents, expose connection state, role, participants, active speakers, data messages, disconnect reason. Cleans up on unmount.</td></tr>
+<tr><td><span class="path">frontend/src/hooks/useMediaDevices.ts</span></td><td>Enumerate devices, persist selection, map permission errors to codes.</td></tr>
+<tr><td><span class="path">frontend/src/hooks/useMeetingGuard.ts</span></td><td>Loads the meeting by route param, returns <code>{ meeting, error }</code>; used by lobby and room so a direct URL never mounts a room without a lookup.</td></tr>
+<tr><td><span class="path">frontend/src/components/meeting/</span> <code>VideoGrid.tsx</code>, <code>ParticipantTile.tsx</code>, <code>ScreenShareStage.tsx</code>, <code>ControlBar.tsx</code>, <code>ChatPanel.tsx</code>, <code>ParticipantsPanel.tsx</code>, <code>HostParticipantMenu.tsx</code>, <code>LeaveMeetingModal.tsx</code>, <code>RemoveParticipantModal.tsx</code>, <code>ConnectionBanner.tsx</code>, <code>MeetingErrorScreen.tsx</code></td><td>Extracted from the 1268-line page. Markup mostly survives; data sources change.</td></tr>
+<tr><td><span class="path">frontend/src/lib/meetingErrors.ts</span></td><td>Code → copy map from section 20.</td></tr>
+<tr><td><span class="path">backend/tests/</span> with supertest and mongodb-memory-server</td><td>Section 25.</td></tr>
+</tbody></table></div>
+</section>
+
+<!-- ============================================================ 22 -->
+<section id="s22">
+<h2><span class="num">22</span>LiveKit integration architecture</h2>
+<h3>Environment separation</h3>
+<pre><code># backend/.env.example
+LIVEKIT_URL=wss://your-project.livekit.cloud      # or ws://localhost:7880 for a local server
+LIVEKIT_API_KEY=APIxxxxxxxx
+LIVEKIT_API_SECRET=****                              # never leaves the backend
+FRONTEND_URL=http://localhost:5173
+
+# frontend/.env.example
+VITE_API_URL=http://localhost:3001/api
+VITE_GOOGLE_CLIENT_ID=...
+# No VITE_LIVEKIT_* at all. The token response carries the URL, so the frontend
+# needs no LiveKit configuration and cannot accidentally receive the secret.</code></pre>
+<p>Verified: the current codebase contains no LiveKit variables, no secret anywhere in <span class="path">frontend/</span>, and the only frontend env reads are <code>VITE_API_URL</code> and <code>VITE_GOOGLE_CLIENT_ID</code>. Vite exposes only <code>VITE_</code>-prefixed variables, which is the mechanical guarantee; the naming convention is the human one.</p>
+<h3>Token generation</h3>
+<pre><code>// backend/services/livekitService.js
+const { AccessToken, RoomServiceClient, TrackSource } = require('livekit-server-sdk');
+const config = require('../config/environment');
+
+const roomService = new RoomServiceClient(config.LIVEKIT_URL, config.LIVEKIT_API_KEY, config.LIVEKIT_API_SECRET);
+
+async function createParticipantToken({ roomName, identity, name, role, screenShareHostOnly }) {
+  const at = new AccessToken(config.LIVEKIT_API_KEY, config.LIVEKIT_API_SECRET, {
+    identity,                       // String(user._id)  — stable across refreshes
+    name,                           // user.fullName     — never client-supplied
+    ttl: '10m',                     // only needs to outlive the connect handshake
+    metadata: JSON.stringify({ role }),
+  });
+  const sources = [TrackSource.CAMERA, TrackSource.MICROPHONE];
+  if (role === 'HOST' || !screenShareHostOnly) sources.push(TrackSource.SCREEN_SHARE, TrackSource.SCREEN_SHARE_AUDIO);
+  at.addGrant({
+    room: roomName,
+    roomJoin: true,
+    canPublish: true,
+    canSubscribe: true,
+    canPublishData: true,
+    canPublishSources: sources,
+    roomAdmin: false,               // host actions go through the backend, not the client
+  });
+  return at.toJwt();
+}
+
+async function ensureRoom(roomName) {
+  return roomService.createRoom({ name: roomName, emptyTimeout: 300, maxParticipants: 50 });  // idempotent
+}
+async function removeParticipant(roomName, identity) { return roomService.removeParticipant(roomName, identity); }
+async function muteTrack(roomName, identity, source) {
+  const p = await roomService.getParticipant(roomName, identity);
+  const pub = p.tracks.find(t =&gt; t.source === (source === 'camera' ? TrackSource.CAMERA : TrackSource.MICROPHONE));
+  if (!pub) throw ApiError.notFound('Track not found', [], 'TRACK_NOT_FOUND');
+  return roomService.mutePublishedTrack(roomName, identity, pub.sid, true);
+}
+async function deleteRoom(roomName) { return roomService.deleteRoom(roomName); }</code></pre>
+<dl class="kv">
+<dt>Token lifetime</dt><dd>10 minutes. The token authenticates the WebSocket handshake; after that the session is server-side. Refresh re-requests a token, which is one cheap authenticated call.</dd>
+<dt>Identity</dt><dd>The user's MongoDB id as a string. Same identity on refresh means LiveKit replaces the old session rather than showing a ghost.</dd>
+<dt>Name</dt><dd>Account full name, set server-side.</dd>
+<dt>Room</dt><dd><code>meeting.roomName</code>, equal to the meeting code.</dd>
+<dt>Role</dt><dd>Metadata, readable by every participant, which is how tiles know who to badge as host. Authority is still the backend.</dd>
+<dt>Permissions</dt><dd><code>roomAdmin</code> stays false so a leaked token never grants kick or mute. Those go through REST.</dd>
+</dl>
+<h3>Responsibilities</h3>
+<div class="grid2">
+<div class="panel"><h4>Backend owns</h4><ul>
+<li>Authentication and role decisions.</li>
+<li>Meeting existence, status, lock, ban checks.</li>
+<li>Token minting with the secret.</li>
+<li>Host actions via RoomServiceClient.</li>
+<li>Webhook-driven status changes.</li>
+</ul></div>
+<div class="panel"><h4>Frontend owns</h4><ul>
+<li>Lobby device selection and preview.</li>
+<li><code>room.connect(url, token)</code> and local track publishing.</li>
+<li>Rendering from RoomEvents and hooks.</li>
+<li>Chat over <code>publishData</code>.</li>
+<li>Error and reconnect UX.</li>
+</ul></div>
+<div class="panel"><h4>LiveKit owns</h4><ul>
+<li>Presence, tracks, mute state, speakers, quality.</li>
+<li>Reconnection and duplicate identity handling.</li>
+<li>Simulcast, adaptive stream, TURN.</li>
+<li>Executing kick, mute, room delete.</li>
+</ul></div>
+<div class="panel"><h4>MongoDB owns</h4><ul>
+<li>Meeting metadata, host, status, times.</li>
+<li>Ban list and settings.</li>
+<li>Participant history for the dashboard.</li>
+<li>Users.</li>
+</ul></div>
+</div>
+<h3>Chat</h3>
+<p>Today chat is Socket.IO with server-side history that the client discards. After migration the Socket.IO server is gone, so keeping it for chat alone means running two real-time systems for one feature. <b>Recommendation: LiveKit data messages.</b> <code>localParticipant.publishData(bytes, { reliable: true })</code> reaches everyone in the room in order; <code>RoomEvent.DataReceived</code> delivers it with the sender participant, so the sender name comes from LiveKit, not from the payload. Late joiners will not see history; that matches Google Meet, whose chat is also session-scoped. If persistence is ever wanted, the sender additionally POSTs to a Message endpoint, and that is a P3 item. The existing <code>ChatMessage</code> type and the chat panel markup carry over unchanged.</p>
+<h3>Refresh, reconnect, multiple tabs</h3>
+<ul>
+<li><b>Refresh.</b> App boots, auth store rehydrates, route <code>/meet/:id/room</code> mounts, <code>useMeetingGuard</code> re-validates, <code>useLiveKitRoom</code> requests a fresh token and connects with the same identity. LiveKit drops the stale session. Role comes back in metadata. No duplicate users anywhere because identity is the user id.</li>
+<li><b>Network blip.</b> The SDK emits <code>Reconnecting</code>, retries with backoff, then <code>Reconnected</code>; tracks resume. Show a banner. After the SDK gives up it emits <code>Disconnected</code>; offer a Rejoin button that re-runs the token flow.</li>
+<li><b>Meeting ended during a blip.</b> The room no longer exists; reconnect fails; the rejoin token request returns 410 MEETING_ENDED; navigate to the ended screen.</li>
+<li><b>Multiple tabs.</b> Same identity, so the newest connection wins and the older tab receives <code>Disconnected</code> with <code>DUPLICATE_IDENTITY</code>. Show "You joined from another tab or device." Blocking is unnecessary; replacing is the Meet behaviour.</li>
+</ul>
+<h3>Browser notes</h3>
+<div class="tablewrap"><table><thead><tr><th>Browser</th><th>Status</th><th>Note</th></tr></thead><tbody>
+<tr><td>Chrome, Edge</td><td>Full</td><td>Screen share with tab audio; device labels available after permission.</td></tr>
+<tr><td>Firefox</td><td>Full</td><td>No system audio on screen share; <code>audiooutput</code> selection unsupported, so hide the speaker picker when <code>enumerateDevices</code> returns none.</td></tr>
+<tr><td>Safari</td><td>Good</td><td>Autoplay: remote audio needs a user gesture; call <code>room.startAudio()</code> from the Join click. Screen share needs Safari 13+. Older iOS Safari limits to one camera track.</td></tr>
+<tr><td>Anything without <code>navigator.mediaDevices</code></td><td>Blocked</td><td>Show BROWSER_UNSUPPORTED before the lobby.</td></tr>
+</tbody></table></div>
+<p>Also required: the site must be served over HTTPS or localhost, or <code>getUserMedia</code> is unavailable. The current LAN-IP fallback in <span class="path">socket.ts:15-18</span> would have failed for this reason on any phone; LiveKit Cloud is already TLS, so this goes away for media, but the frontend itself still needs HTTPS when demoed across devices.</p>
+</section>
+
+<!-- ============================================================ 23 -->
+<section id="s23">
+<h2><span class="num">23</span>Target architecture diagram</h2>
+<div class="diagram">                              INTELLIMEET  (after migration)
+
+   ┌──────────────────────────── React frontend (Vite) ────────────────────────────┐
+   │  Auth pages   Dashboard   /join   /meet/:id (lobby)   /meet/:id/room           │
+   │  useAuthStore     meetingApi      useMeetingGuard      useLiveKitRoom          │
+   │                                   useMediaDevices      VideoGrid · ControlBar  │
+   └───────────────┬──────────────────────────────────────────────┬─────────────────┘
+                   │ HTTPS  Bearer JWT                            │ WSS + LiveKit token
+                   │ /api/auth /api/users /api/meetings           │ (10 min, identity = userId)
+                   ▼                                              ▼
+   ┌──────────── Node.js + Express 5 ────────────┐      ┌──────────── LiveKit ─────────────┐
+   │ protect → loadMeeting → requireHost         │      │  SFU · TURN · simulcast          │
+   │ meetingController  authController           │      │  rooms · participants · tracks   │
+   │ meetingService     livekitService ──────────┼─────▶│  RoomServiceClient API           │
+   │ livekitWebhookController ◀──────────────────┼──────│  webhooks: participant_joined,   │
+   │ ApiError codes · rate limits · validators   │      │  participant_left, room_finished │
+   └───────────────┬─────────────────────────────┘      └──────┬───────────┬───────────┬──┘
+                   │ Mongoose                                  │           │           │
+                   ▼                                       ┌───┴───┐   ┌───┴───┐   ┌───┴───┐
+   ┌──────────── MongoDB ────────────┐                     │ P1    │   │ P2    │   │ P3    │
+   │ User · PendingUser · Meeting    │                     │ host  │   │       │   │ share │
+   │ (hostId, status, bans, history) │                     └───────┘   └───────┘   └───────┘
+   └─────────────────────────────────┘                   camera + mic up, N streams down each
+
+   Persistent state ─────── MongoDB        Security and rules ─── Node API        Live session ─── LiveKit</div>
+<p>Compare the current shape: React ⇄ Socket.IO (unauthenticated) ⇄ in-memory Map, and React ⇄ raw RTCPeerConnection ⇄ React via public STUN. MongoDB only knows about users.</p>
+</section>
+
+<!-- ============================================================ 24 -->
+<section id="s24">
+<h2><span class="num">24</span>Migration roadmap</h2>
+<p>Each phase leaves the app runnable. Phases 1 to 3 do not touch media and can be demoed with the old mesh still in place, which de-risks the LiveKit switch.</p>
+<div class="tablewrap"><table>
+<thead><tr><th>Phase</th><th>Priority</th><th>Work</th><th>Done when</th><th>Effort</th></tr></thead>
+<tbody>
+<tr><td>1 Stabilise</td><td>P0</td><td>Fix 8 tsc errors; <code>strict: true</code>; auth limiter dedupe; preferences schema; reset URL from config; <code>email_verified</code>; 401 logs out the store; <code>.env.example</code> files.</td><td><code>npm run build</code> passes in frontend; backend boots with the required vars.</td><td class="tabnum">1 day</td></tr>
+<tr><td>2 Meeting model and ID</td><td>P0</td><td><code>Meeting.js</code>, <code>meetingId.js</code>, <code>meetingService.js</code>, <code>meetingAuth.js</code>, <code>meetingRoutes.js</code> with create, list, get. Error codes. Frontend <code>meetingApi</code>; Create and Join pages call the API; dashboard reads real meetings; <code>/meet/:id</code> route with <code>useMeetingGuard</code>.</td><td>Typing a random code shows "Meeting not found". Creating returns <code>abc-defg-hij</code> stored in Mongo with the creator as host.</td><td class="tabnum">2 days</td></tr>
+<tr><td>3 Interim lock-down of the old socket layer (optional)</td><td>P0</td><td>If LiveKit is more than a week away: socket <code>auth</code> handshake verifying the JWT; <code>join-room</code> refuses unknown meetings; host from <code>hostId</code>; host check on remove and force-media; whitelist toggle-media keys.</td><td>Old demo is no longer trivially exploitable.</td><td class="tabnum">1 day, discarded later</td></tr>
+<tr><td>4 LiveKit backend</td><td>P1</td><td>LiveKit Cloud project or local <code>livekit-server --dev</code>; env vars; <code>livekitService.js</code>; token endpoint; end, remove, mute endpoints; webhook route and status transitions.</td><td>Postman: token issued only for existing meetings; 403 for non-host on end; webhook flips status.</td><td class="tabnum">2 days</td></tr>
+<tr><td>5 LiveKit frontend</td><td>P1</td><td><code>useLiveKitRoom</code>; new room page composed of extracted components; tiles, grid, screen stage from tracks; chat over data messages; leave, end, kick, mute wired to REST; ended and removed screens; delete WebRTC and Socket.IO code and deps.</td><td>Three laptops on different networks hold a call with screen share; host mute and kick work; refresh rejoins as the same person.</td><td class="tabnum">4 days</td></tr>
+<tr><td>6 Lobby and devices</td><td>P2</td><td>Device pickers, real level meter, permission error screens, remembered devices, tracks handed to the room, Safari <code>startAudio</code>.</td><td>Every row of the section 12 table passes.</td><td class="tabnum">2 days</td></tr>
+<tr><td>7 Polish</td><td>P2</td><td>Active speaker highlight, connection banner and quality icon, participant sort, unread badge only when chat is closed, timer from <code>startedAt</code>, responsive check on a phone.</td><td>Demo script runs cleanly.</td><td class="tabnum">2 days</td></tr>
+<tr><td>8 Tests and cleanup</td><td>P2</td><td>Supertest suite for meetings and auth; a Playwright smoke test for create → join → leave; remove dead code, unused deps, StatusPreview; README rewritten to match reality.</td><td>CI-style script passes locally.</td><td class="tabnum">2 days</td></tr>
+<tr><td>9 Optional</td><td>P3</td><td>Lock meeting; remove-and-ban UI; host-only screen share; chat persistence; co-host.</td><td>Only if time remains.</td><td class="tabnum">as available</td></tr>
+</tbody></table></div>
+<p>Total for P0 to P2 is about three working weeks for one developer who already knows the codebase. Phase 3 is insurance; skip it if you can start phase 4 immediately.</p>
+</section>
+
+<!-- ============================================================ 25 -->
+<section id="s25">
+<h2><span class="num">25</span>Test plan</h2>
+<p>Backend tests use Jest or Node's built-in test runner with supertest and mongodb-memory-server; LiveKit calls are mocked at the <code>livekitService</code> boundary so the suite runs offline. Frontend behaviour tests are a short Playwright script against a local LiveKit dev server.</p>
+<div class="tablewrap"><table>
+<thead><tr><th>Area</th><th>Test</th><th>Expected</th></tr></thead>
+<tbody>
+<tr><td rowspan="6">Authentication</td><td>Valid login</td><td>200, token, sanitised user, <code>lastLoginAt</code> updated.</td></tr>
+<tr><td>Invalid password or unknown email</td><td>401 with the identical message for both.</td></tr>
+<tr><td>Expired JWT on <code>/api/meetings</code></td><td>401 UNAUTHORIZED; frontend logs out.</td></tr>
+<tr><td>Create meeting while logged out</td><td>401; no Meeting document created.</td></tr>
+<tr><td>Register then verify with wrong OTP</td><td>401; PendingUser remains; no User.</td></tr>
+<tr><td>Google token with <code>email_verified:false</code></td><td>401; no account linked.</td></tr>
+<tr><td rowspan="5">Meeting creation</td><td>Authenticated create</td><td>201; <code>meetingId</code> matches <code>^[a-z]{3}-[a-z]{4}-[a-z]{3}$</code>; status CREATED; <code>hostId</code> equals caller.</td></tr>
+<tr><td>1000 creates</td><td>All ids unique.</td></tr>
+<tr><td>Forced duplicate-key on first attempt (mock generator)</td><td>Service retries and succeeds.</td></tr>
+<tr><td>Title longer than 100 chars</td><td>422 VALIDATION_FAILED.</td></tr>
+<tr><td>No LiveKit call on create</td><td><code>ensureRoom</code> mock not invoked.</td></tr>
+<tr><td rowspan="6">Invalid ID</td><td>GET random code <code>zzz-zzzz-zzz</code></td><td>404 MEETING_NOT_FOUND; Meeting count unchanged; <code>ensureRoom</code> never called.</td></tr>
+<tr><td>GET malformed <code>random123</code></td><td>400 INVALID_MEETING_ID.</td></tr>
+<tr><td>GET <code>ABC DEFG HIJ</code> for existing <code>abc-defg-hij</code></td><td>200 after normalisation.</td></tr>
+<tr><td>Token for nonexistent meeting</td><td>404; no token; no room.</td></tr>
+<tr><td>Direct browser navigation to <code>/meet/zzz-zzzz-zzz</code></td><td>"Meeting not found" screen; no LiveKit connection attempt in the network log.</td></tr>
+<tr><td>Direct navigation to <code>/meet/zzz-zzzz-zzz/room</code></td><td>Same; the room never mounts.</td></tr>
+<tr><td rowspan="6">Join</td><td>Valid participant token</td><td>200; JWT decodes with <code>video.room</code> = meetingId, <code>sub</code> = user id, metadata role PARTICIPANT, <code>exp - iat</code> = 600.</td></tr>
+<tr><td>Host token</td><td>metadata role HOST; meeting flips to ACTIVE; <code>startedAt</code> set.</td></tr>
+<tr><td>Token for ENDED meeting</td><td>410 MEETING_ENDED.</td></tr>
+<tr><td>Token for banned user</td><td>403 PARTICIPANT_BANNED.</td></tr>
+<tr><td>Token for locked meeting as participant, then as host</td><td>423 then 200.</td></tr>
+<tr><td>Body contains <code>role:'HOST'</code> or <code>identity:'someone-else'</code></td><td>Ignored; role and identity derived server-side.</td></tr>
+<tr><td rowspan="7">Host controls</td><td>Host removes participant</td><td>200; <code>removeParticipant</code> called with (roomName, identity).</td></tr>
+<tr><td>Host removes with <code>?ban=true</code></td><td>User id appended to <code>bannedUserIds</code>; subsequent token 403.</td></tr>
+<tr><td>Participant removes participant</td><td>403 NOT_HOST; service not called.</td></tr>
+<tr><td>Participant ends meeting</td><td>403 NOT_HOST; status unchanged.</td></tr>
+<tr><td>Host ends meeting</td><td>200; status ENDED; <code>endedAt</code>; <code>deleteRoom</code> called; second end returns 410.</td></tr>
+<tr><td>Host mutes participant microphone</td><td><code>mutePublishedTrack</code> called with the mic track sid and <code>true</code>.</td></tr>
+<tr><td>Host mutes participant with no mic track</td><td>404 TRACK_NOT_FOUND.</td></tr>
+<tr><td rowspan="4">Webhooks</td><td>Valid <code>room_finished</code></td><td>Meeting ENDED with reason EMPTY_TIMEOUT.</td></tr>
+<tr><td><code>participant_joined</code> for a new user</td><td>History entry with <code>firstJoinedAt</code>; ACTIVE.</td></tr>
+<tr><td>Bad signature</td><td>401; nothing changes.</td></tr>
+<tr><td>Event for unknown room</td><td>200, ignored, logged.</td></tr>
+<tr><td rowspan="8">Media (browser)</td><td>Mute</td><td>Local button flips instantly; remote tile shows mic-off within 1 s.</td></tr>
+<tr><td>Unmute after host mute</td><td>Allowed; remote indicator clears.</td></tr>
+<tr><td>Camera off and on</td><td>Avatar then video; camera LED off while disabled.</td></tr>
+<tr><td>Screen share start</td><td>Stage appears for others; sharer's camera tile remains.</td></tr>
+<tr><td>Stop via browser bar</td><td>Stage disappears; Share button re-enables.</td></tr>
+<tr><td>Second participant tries to share during a share</td><td>Button disabled with "Someone is already presenting".</td></tr>
+<tr><td>Deny camera permission in lobby</td><td>MEDIA_PERMISSION_DENIED copy; Join still enabled audio-only.</td></tr>
+<tr><td>Unplug the USB camera mid-call</td><td>Falls back to the next device or avatar; toast.</td></tr>
+<tr><td rowspan="5">Network</td><td>Disable Wi-Fi for 10 s</td><td>Reconnecting banner, then Reconnected; tracks resume; no duplicate tile.</td></tr>
+<tr><td>Disable for 60 s</td><td>Disconnected screen with Rejoin; rejoin works.</td></tr>
+<tr><td>Refresh mid-call</td><td>Back in the room within seconds, same name, same role; others see one tile, never two.</td></tr>
+<tr><td>Open the meeting in a second tab</td><td>First tab shows "joined from another tab"; second tab is live.</td></tr>
+<tr><td>Host ends while a participant is offline</td><td>Participant's rejoin shows "This meeting has ended".</td></tr>
+<tr><td rowspan="6">Security</td><td>Fake host role in localStorage or metadata</td><td>Controls may render, every REST call returns 403.</td></tr>
+<tr><td>Manipulated request: DELETE participants with another user's JWT</td><td>403.</td></tr>
+<tr><td>Fake userId in any body</td><td>Ignored everywhere; grep confirms no controller reads <code>req.body.userId</code>.</td></tr>
+<tr><td>Hand-crafted LiveKit token with wrong secret</td><td>LiveKit refuses the connection.</td></tr>
+<tr><td>Token older than 10 minutes</td><td>Refused; client fetches a new one.</td></tr>
+<tr><td>Token for room A used on room B</td><td>Refused.</td></tr>
+<tr><td rowspan="3">Regression</td><td><code>npm run build</code> both packages</td><td>Exit 0.</td></tr>
+<tr><td>Preferences PATCH then GET profile</td><td>Values persist.</td></tr>
+<tr><td>Eleven logins in 15 minutes in production mode</td><td>Ten succeed, the eleventh is 429.</td></tr>
+</tbody></table></div>
+</section>
+
+<!-- ============================================================ 26 -->
+<section id="s26">
+<h2><span class="num">26</span>Final checklist and decisions</h2>
+<h3>Checklist</h3>
+<ul class="check">
+<li>Authentication secure: JWT required on every meeting route</li>
+<li>Auth limiter applied once; general limit raised</li>
+<li>Reset link built from FRONTEND_URL</li>
+<li>Google email_verified enforced</li>
+<li>Preferences persist</li>
+<li>Frontend build passes with strict TypeScript</li>
+<li>Meeting ID generated server-side, crypto-random, abc-defg-hij</li>
+<li>Meeting saved in MongoDB with hostId and status</li>
+<li>Invalid or malformed ID rejected with a code</li>
+<li>Invalid ID cannot create a LiveKit room</li>
+<li>Direct URL to unknown meeting shows Not found</li>
+<li>Host role derived from Meeting.hostId only</li>
+<li>requireHost on end, remove, mute, patch</li>
+<li>LiveKit token endpoint authorises before minting</li>
+<li>Token TTL 10 min, identity = user id, roomAdmin false</li>
+<li>LIVEKIT_API_SECRET exists only in backend env</li>
+<li>Frontend has no VITE_LIVEKIT_* secret</li>
+<li>Audio publishes and mutes via SDK</li>
+<li>Video publishes and toggles via SDK</li>
+<li>Screen share is a separate source; camera stays</li>
+<li>One presenter at a time enforced in UI</li>
+<li>Participant list from LiveKit with host badge and presenting chip</li>
+<li>Remove participant via RoomService</li>
+<li>Remove and ban blocks rejoin</li>
+<li>Host mute via mutePublishedTrack</li>
+<li>Leave disconnects without ending</li>
+<li>End meeting sets ENDED and deletes room</li>
+<li>ENDED meetings refuse tokens</li>
+<li>Webhook signature verified; room_finished ends meeting</li>
+<li>Refresh rejoins with same identity and role</li>
+<li>Reconnecting banner and Rejoin flow</li>
+<li>Duplicate tab handled</li>
+<li>Device selection persisted</li>
+<li>Permission errors have copy and retry</li>
+<li>Safari startAudio on join</li>
+<li>API errors carry stable codes</li>
+<li>Dashboard and My Meetings read real data</li>
+<li>Mock arrays, fake stats, StatusPreview removed</li>
+<li>Socket.IO and WebRTC code and deps removed</li>
+<li>.env.example in both packages</li>
+<li>Backend test suite runs offline</li>
+<li>README matches the shipped behaviour</li>
+</ul>
+
+<h3>Decisions</h3>
+<div class="decisions"><ol>
+<li><b>Replace the custom WebRTC layer with LiveKit?</b> Yes. The mesh cannot pass four participants or a campus NAT, and every host control you need is a one-line RoomService call on LiveKit. The migration also deletes the insecure signaling server.</li>
+<li><b>Which existing WebRTC code remains?</b> None of the RTCPeerConnection, negotiation, ICE, or track-replacement code. What remains is the UI: tile markup, grid rules, control bar, chat and participant panels, modals, ended page, and the lobby's preview concept. Those are moved into components and re-fed from LiveKit hooks.</li>
+<li><b>Which parts are removed?</b> <span class="path">MeetingRoomPage.tsx:82-276</span> and <span class="path">:321-447</span>, <span class="path">useMeetingConnection.ts</span>, <span class="path">lib/socket.ts</span>, <span class="path">server.js:112-350</span>, the store's participants and media flags, and the <code>socket.io</code> packages.</li>
+<li><b>Should meeting creation happen in MongoDB before the LiveKit room exists?</b> Yes, always. Creation is a database write with no external dependency. The room is a runtime artefact of people connecting.</li>
+<li><b>Should a LiveKit room be created automatically when the first valid participant connects?</b> Yes. Rely on LiveKit's lazy creation, gated by the token endpoint. Call <code>createRoom</code> idempotently at first token issue only to set <code>emptyTimeout</code> and <code>maxParticipants</code>.</li>
+<li><b>How are random IDs prevented from creating rooms?</b> The backend is the only party that can produce a token, and it refuses unless <code>Meeting.findOne({ meetingId })</code> succeeds and status is not ENDED. LiveKit cannot be reached without that token. The frontend additionally validates before showing the lobby, but that is UX, not security.</li>
+<li><b>Should only authenticated users create meetings?</b> Yes. Ownership needs an owner.</li>
+<li><b>Should unauthenticated users be allowed to join?</b> Not in this phase. Every route is behind <code>protect</code>, identity is the user id, and bans need a stable id. Guest join is a P3 extension: a guest endpoint that mints a token with identity <code>guest-&lt;random&gt;</code> and a supplied name, only when the host has enabled guests on the meeting.</li>
+<li><b>Best meeting ID format?</b> Ten random lowercase letters displayed as <code>abc-defg-hij</code>, crypto-random, unique index, normalised on input, authenticated and rate-limited lookup.</li>
+<li><b>Where are host permissions stored?</b> <code>Meeting.hostId</code> in MongoDB is the single source. It is projected into LiveKit token metadata for display and re-checked by <code>requireHost</code> on every privileged call.</li>
+<li><b>How are LiveKit tokens generated securely?</b> Only in <span class="path">backend/services/livekitService.js</span> using <code>livekit-server-sdk</code> with the secret from backend env, after <code>protect</code>, <code>loadMeeting</code>, ban and status checks. Ten-minute TTL, <code>roomJoin</code> for exactly one room, <code>roomAdmin</code> false, identity and name set server-side.</li>
+<li><b>Which host controls are realistic?</b> Essential: remove, mute microphone, end for everyone. Recommended: turn off camera, remove and block. Optional: lock meeting, host-only screen share. Skip: waiting room, co-host, per-participant permission editing.</li>
+<li><b>Meeting state model?</b> CREATED → ACTIVE → ENDED with <code>endedReason</code>. Add SCHEDULED only when scheduling has real UI.</li>
+<li><b>Chat: Socket.IO or LiveKit data channels?</b> LiveKit data messages, reliable mode. It removes the last reason to run Socket.IO and gives you authenticated sender identity for free. Persistence is a later, separate endpoint if wanted.</li>
+<li><b>Minimum feature set before starting the AI translation module?</b> Phases 1 to 5 complete: passing build, Meeting model and validated IDs, secure token endpoint, LiveKit-based room with audio, video, screen share, participant list, host mute, remove, end, leave, refresh and reconnect. The AI pipeline needs a server-side participant that can subscribe to audio tracks and publish data or audio back, which only exists once media flows through LiveKit. Building it on the mesh would have to be thrown away.</li>
+</ol></div>
+</section>
+</main>
+</div>

@@ -34,7 +34,7 @@ const validate = (req, res, next) => {
       message: err.msg,
     }));
 
-    return sendError(res, 422, 'Validation failed', formattedErrors);
+    return sendError(res, 422, 'Validation failed', formattedErrors, 'VALIDATION_FAILED');
   }
 
   next();
@@ -43,8 +43,19 @@ const validate = (req, res, next) => {
 // ============================================================
 // Registration Validation Rules
 // ============================================================
+/**
+ * Reject non-strings BEFORE any sanitiser runs.
+ *
+ * express-validator coerces for validation but leaves req.body untouched, so a
+ * JSON array or object reached the controllers intact and crashed them:
+ * `POST /api/auth/login` with `{"email":["a@b.com"]}` returned a 500 from
+ * `email.toLowerCase is not a function`. isString() must come first in every
+ * chain, because trim() and friends would coerce the value out from under it.
+ */
+const mustBeText = (chain, label) => chain.isString().withMessage(`${label} must be text`);
+
 const registerValidation = [
-  body('fullName')
+  mustBeText(body('fullName'), 'Full name')
     .trim()
     .notEmpty()
     .withMessage('Full name is required')
@@ -54,7 +65,7 @@ const registerValidation = [
     .withMessage('Full name can only contain letters and spaces')
     .escape(), // Sanitise HTML entities
 
-  body('email')
+  mustBeText(body('email'), 'Email')
     .trim()
     .notEmpty()
     .withMessage('Email is required')
@@ -62,7 +73,7 @@ const registerValidation = [
     .withMessage('Please provide a valid email address')
     .normalizeEmail(), // Lowercase, remove dots in gmail, etc.
 
-  body('password')
+  mustBeText(body('password'), 'Password')
     .notEmpty()
     .withMessage('Password is required')
     .isLength({ min: 8 })
@@ -84,7 +95,7 @@ const registerValidation = [
 // Login Validation Rules
 // ============================================================
 const loginValidation = [
-  body('email')
+  mustBeText(body('email'), 'Email')
     .trim()
     .notEmpty()
     .withMessage('Email is required')
@@ -92,7 +103,7 @@ const loginValidation = [
     .withMessage('Please provide a valid email address')
     .normalizeEmail(),
 
-  body('password')
+  mustBeText(body('password'), 'Password')
     .notEmpty()
     .withMessage('Password is required')
     .trim(),
@@ -100,8 +111,78 @@ const loginValidation = [
   validate,
 ];
 
+// ============================================================
+// The remaining auth routes
+// ============================================================
+// These had NO validation at all, so a JSON array or object went straight
+// to the controller and crashed it (e.g. `email.toLowerCase is not a
+// function` from POST /auth/forgot-password with {"email":[]}).
+
+const emailOnlyValidation = [
+  mustBeText(body('email'), 'Email')
+    .trim()
+    .notEmpty()
+    .withMessage('Email is required')
+    .isEmail()
+    .withMessage('Please provide a valid email address')
+    .normalizeEmail(),
+
+  validate,
+];
+
+const verifyOtpValidation = [
+  mustBeText(body('email'), 'Email')
+    .trim()
+    .notEmpty()
+    .withMessage('Email is required')
+    .isEmail()
+    .withMessage('Please provide a valid email address')
+    .normalizeEmail(),
+
+  mustBeText(body('otp'), 'Code')
+    .trim()
+    .notEmpty()
+    .withMessage('Verification code is required')
+    .isLength({ min: 6, max: 6 })
+    .withMessage('The verification code is 6 digits')
+    .isNumeric()
+    .withMessage('The verification code is 6 digits'),
+
+  validate,
+];
+
+const resetPasswordValidation = [
+  mustBeText(body('token'), 'Reset token').trim().notEmpty().withMessage('Reset token is required'),
+
+  mustBeText(body('password'), 'Password')
+    .notEmpty()
+    .withMessage('Password is required')
+    .isLength({ min: 8 })
+    .withMessage('Password must be at least 8 characters long')
+    .matches(/[A-Z]/)
+    .withMessage('Password must contain at least one uppercase letter')
+    .matches(/[a-z]/)
+    .withMessage('Password must contain at least one lowercase letter')
+    .matches(/\d/)
+    .withMessage('Password must contain at least one number')
+    .matches(/[!@#$%^&*(),.?":{}|<>]/)
+    .withMessage('Password must contain at least one special character'),
+
+  validate,
+];
+
+const googleAuthValidation = [
+  mustBeText(body('token'), 'Google token').notEmpty().withMessage('Google token is required'),
+  validate,
+];
+
 module.exports = {
   registerValidation,
   loginValidation,
+  emailOnlyValidation,
+  verifyOtpValidation,
+  resetPasswordValidation,
+  googleAuthValidation,
   validate,
+  mustBeText,
 };

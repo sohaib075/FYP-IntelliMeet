@@ -33,7 +33,9 @@ const authLimiter = rateLimit({
     return sendError(
       res,
       429,
-      'Too many authentication attempts — please try again after 15 minutes'
+      'Too many authentication attempts — please try again after 15 minutes',
+      [],
+      'RATE_LIMITED'
     );
   },
 });
@@ -44,17 +46,38 @@ const authLimiter = rateLimit({
  */
 const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100,                  // 100 requests per window
+  max: 600,                  // 600 requests per window (a dashboard behind campus NAT shares one IP)
   standardHeaders: true,
   legacyHeaders: false,
+
+  handler: (_req, res) => {
+    return sendError(res, 429, 'Too many requests — please try again later', [], 'RATE_LIMITED');
+  },
+});
+
+/**
+ * Rate limiter for LiveKit token issuance.
+ * Keyed by authenticated user (this always runs after `protect`), so one
+ * user reloading repeatedly cannot exhaust the quota for everyone sharing
+ * a campus NAT. Generous enough for refreshes and reconnects.
+ */
+const tokenLimiter = rateLimit({
+  windowMs: 5 * 60 * 1000, // 5 minutes
+  max: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+
+  keyGenerator: (req) => String(req.user?._id || 'anonymous'),
 
   handler: (_req, res) => {
     return sendError(
       res,
       429,
-      'Too many requests — please try again later'
+      'Too many join attempts — please wait a moment and try again',
+      [],
+      'RATE_LIMITED'
     );
   },
 });
 
-module.exports = { authLimiter, generalLimiter };
+module.exports = { authLimiter, generalLimiter, tokenLimiter };

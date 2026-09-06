@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card"
 import { Video, ArrowRight } from "lucide-react"
+import { meetingApi, describeApiError } from "@/lib/api"
+import { normalizeMeetingId } from "@/lib/meetingId"
 
 export function JoinMeetingPage() {
   const [meetingId, setMeetingId] = useState("")
@@ -11,33 +13,37 @@ export function JoinMeetingPage() {
   const [error, setError] = useState("")
   const navigate = useNavigate()
 
-  const handleJoin = (e: React.FormEvent) => {
+  const handleJoin = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
 
     if (!meetingId.trim()) {
-      setError("Meeting ID is required.")
+      setError("Meeting code is required.")
       return
     }
 
-    // Basic smart parsing: extract ID if full URL is pasted
-    let parsedId = meetingId.trim()
-    if (parsedId.includes("intellimeet.app/join/")) {
-      parsedId = parsedId.split("intellimeet.app/join/")[1]
-    }
-
-    // Basic validation check (just length for testing flexibility)
-    if (parsedId.length < 4) {
-      setError("Meeting ID must be at least 4 characters long.")
+    // Accept a bare code, a spaced/uppercased code, or a pasted invite link
+    const normalized = normalizeMeetingId(meetingId)
+    if (!normalized) {
+      setError("That doesn't look like a meeting code. Codes look like abc-defg-hij.")
       return
     }
 
     setIsLoading(true)
-    setTimeout(() => {
+    try {
+      // The server is the only authority on whether a meeting exists.
+      // A wrong code is an error here — it never creates a meeting.
+      const { meeting } = await meetingApi.get(normalized)
+      if (meeting.status === "ENDED") {
+        setError("This meeting has ended.")
+        return
+      }
+      navigate(`/meet/${meeting.meetingId}`)
+    } catch (err) {
+      setError(describeApiError(err))
+    } finally {
       setIsLoading(false)
-      // Navigate to lobby
-      navigate(`/meeting/lobby/${parsedId}`)
-    }, 1500)
+    }
   }
 
   return (
@@ -48,25 +54,28 @@ export function JoinMeetingPage() {
             <Video className="h-8 w-8" />
           </div>
           <CardTitle className="text-2xl font-display">Join Meeting</CardTitle>
-          <CardDescription>Enter a meeting ID or link to join.</CardDescription>
+          <CardDescription>Enter a meeting code or paste an invite link.</CardDescription>
         </CardHeader>
         <CardContent>
           {error && (
-            <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-3 text-[14px] text-red-600 text-center">
+            <div role="alert" className="mb-6 rounded-lg border border-red-200 bg-red-50 p-3 text-[14px] text-red-600 text-center">
               {error}
             </div>
           )}
 
           <form onSubmit={handleJoin} className="space-y-6">
             <Input
-              placeholder="e.g. im-1234-abcd or https://..."
+              placeholder="e.g. abc-defg-hij"
+              aria-label="Meeting code"
               value={meetingId}
               onChange={(e) => setMeetingId(e.target.value)}
               disabled={isLoading}
-              className="text-center text-lg py-6"
+              autoComplete="off"
+              spellCheck={false}
+              className="text-center text-lg py-6 font-mono tracking-wider"
             />
             <Button type="submit" className="w-full bg-[#3B82F6] text-white hover:bg-[#2563EB] h-12 text-[15px]" size="lg" isLoading={isLoading}>
-              {isLoading ? "Verifying meeting..." : "Join Meeting"} <ArrowRight className="ml-2 h-4 w-4" />
+              {isLoading ? "Checking meeting..." : "Join Meeting"} <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </form>
         </CardContent>

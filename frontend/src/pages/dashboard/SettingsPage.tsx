@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react"
+import { Link } from "react-router-dom"
 import { Switch } from "@/components/ui/Switch"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/Select"
@@ -6,6 +7,7 @@ import { Badge } from "@/components/ui/Badge"
 import { useAuthStore } from "@/store/useAuthStore"
 import { useToastStore } from "@/store/useToastStore"
 import { Button } from "@/components/ui/Button"
+import { userApi, describeApiError } from "@/lib/api"
 
 export function SettingsPage() {
   const { user, updatePreferences, updateProfile } = useAuthStore()
@@ -64,25 +66,33 @@ export function SettingsPage() {
     }
   }, [user])
 
-  const handleSave = () => {
+  /**
+   * Persist the settings.
+   *
+   * The display name goes to the SERVER, not just the local store. This used
+   * to call the store's updateProfile() only, wrapped in a fake 800ms delay,
+   * so the page reported "saved successfully" and the name reverted on the
+   * next login. The remaining toggles are genuinely device-local preferences,
+   * so localStorage is the right home for those.
+   */
+  const handleSave = async () => {
     setIsSaving(true)
-    setTimeout(() => {
-      try {
-        localStorage.setItem("intellimeet-app-settings", JSON.stringify(settings))
-        
-        // Sync with Auth Store
-        if (settings.general.displayName.trim()) {
-          updateProfile({ name: settings.general.displayName.trim() })
-        }
-        
-        addToast({ message: "Settings saved successfully!", variant: "success" })
-      } catch (err) {
-        console.error(err)
-        addToast({ message: "Failed to save settings.", variant: "error" })
-      } finally {
-        setIsSaving(false)
+    const name = settings.general.displayName.trim()
+
+    try {
+      if (name && name !== user?.name) {
+        const { user: updated } = await userApi.updateProfile({ fullName: name })
+        updateProfile({ name: updated.fullName })
       }
-    }, 800)
+
+      localStorage.setItem("intellimeet-app-settings", JSON.stringify(settings))
+      addToast({ message: "Settings saved.", variant: "success" })
+    } catch (err) {
+      // Say what actually failed instead of claiming success.
+      addToast({ message: describeApiError(err), variant: "error" })
+    } finally {
+      setIsSaving(false)
+    }
   }
 
   const [activeTab, setActiveTab] = useState("general")
@@ -335,33 +345,35 @@ export function SettingsPage() {
             <CardHeader>
               <CardTitle>Privacy & Security</CardTitle>
             </CardHeader>
+            {/* This tab previously showed an "Active Sessions" card with a
+                hard-coded device and location ("Windows • Chrome", "Karachi,
+                PK") that was the same for every user regardless of where they
+                actually were, plus two buttons that only fired a success toast:
+                "Download my data" and "Request data deletion" did nothing at
+                all. Both are removed rather than left as convincing fakes.
+                Account deletion is genuinely implemented on the Profile page,
+                so people are pointed there. */}
             <CardContent className="space-y-6">
               <div>
-                <h4 className="font-medium text-[#0F172A] mb-2">Active Sessions</h4>
-                <div className="rounded-lg border border-[#E2E8F0] p-4 flex justify-between items-center bg-[#F8FAFC]">
-                  <div>
-                    <p className="font-medium text-[#0F172A] text-sm">Windows • Chrome</p>
-                    <p className="text-xs text-[#64748B]">Karachi, PK (Current Session)</p>
-                  </div>
-                  <Badge variant="active">Active</Badge>
-                </div>
+                <h4 className="font-medium text-[#0F172A] mb-2">Your password</h4>
+                <p className="text-sm text-[#64748B]">
+                  Change your password from the{" "}
+                  <Link to="/profile" className="text-[#3B82F6] hover:underline font-medium">
+                    Profile page
+                  </Link>
+                  . Changing it signs out any other device still using the old session.
+                </p>
               </div>
               <div className="pt-4 border-t border-[#E2E8F0]">
-                <h4 className="font-medium text-[#0F172A] mb-2">Data Preferences</h4>
-                <div className="flex gap-4">
-                  <button 
-                    onClick={() => addToast({ message: "Preparing your data archive. You will receive an email shortly.", variant: "success" })}
-                    className="text-sm text-[#3B82F6] hover:underline bg-transparent border-0 cursor-pointer p-0 font-medium"
-                  >
-                    Download my data
-                  </button>
-                  <button 
-                    onClick={() => addToast({ message: "Data deletion request submitted successfully.", variant: "success" })}
-                    className="text-sm text-red-600 hover:underline bg-transparent border-0 cursor-pointer p-0 font-medium"
-                  >
-                    Request data deletion
-                  </button>
-                </div>
+                <h4 className="font-medium text-[#0F172A] mb-2">Delete your account</h4>
+                <p className="text-sm text-[#64748B]">
+                  Deleting your account permanently removes your profile and sign-in details. You can do
+                  this from the{" "}
+                  <Link to="/profile" className="text-[#3B82F6] hover:underline font-medium">
+                    Profile page
+                  </Link>
+                  .
+                </p>
               </div>
             </CardContent>
           </Card>

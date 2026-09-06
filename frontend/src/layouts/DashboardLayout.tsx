@@ -14,11 +14,13 @@ export function DashboardLayout() {
   
   const [showBellDropdown, setShowBellDropdown] = useState(false)
   const [showProfileDropdown, setShowProfileDropdown] = useState(false)
-  const [notifications, setNotifications] = useState([
-    { id: 1, text: "CPEC Quarterly Review starts in 15 mins", time: "15m ago", read: false },
-    { id: 2, text: "Welcome to IntelliMeet! Complete your profile settings", time: "1h ago", read: false },
-    { id: 3, text: "Meeting summary from yesterday is ready to view", time: "1d ago", read: true },
-  ])
+  // There is no notifications backend yet, so this starts empty rather than
+  // shipping invented items. It previously carried three hard-coded entries,
+  // including a meeting called "CPEC Quarterly Review" that never existed,
+  // shown to every user as if it were their own.
+  const [notifications, setNotifications] = useState<
+    Array<{ id: number; text: string; time: string; read: boolean }>
+  >([])
 
   const bellRef = useRef<HTMLDivElement>(null)
   const profileRef = useRef<HTMLDivElement>(null)
@@ -163,12 +165,18 @@ export function DashboardLayout() {
                         )}
                       </div>
                       <div className="max-h-64 overflow-y-auto divide-y divide-[#F1F5F9]">
-                        {notifications.map(n => (
-                          <div key={n.id} className={`px-4 py-2.5 hover:bg-[#F8FAFC] transition-colors ${!n.read ? 'bg-[#EFF6FF]/30' : ''}`}>
-                            <p className="text-[13px] text-[#334155] leading-normal">{n.text}</p>
-                            <span className="text-[11px] text-[#94A3B8] mt-1 block">{n.time}</span>
-                          </div>
-                        ))}
+                        {notifications.length === 0 ? (
+                          <p className="px-4 py-6 text-center text-[13px] text-[#94A3B8]">
+                            You have no notifications.
+                          </p>
+                        ) : (
+                          notifications.map(n => (
+                            <div key={n.id} className={`px-4 py-2.5 hover:bg-[#F8FAFC] transition-colors ${!n.read ? 'bg-[#EFF6FF]/30' : ''}`}>
+                              <p className="text-[13px] text-[#334155] leading-normal">{n.text}</p>
+                              <span className="text-[11px] text-[#94A3B8] mt-1 block">{n.time}</span>
+                            </div>
+                          ))
+                        )}
                       </div>
                     </motion.div>
                   )}

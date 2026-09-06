@@ -139,11 +139,12 @@ export function LoginPage() {
               />
             </div>
 
-            <div className="flex items-center justify-between pt-1">
-              <label className="flex items-center gap-2.5 cursor-pointer group select-none">
-                <input type="checkbox" className="w-4.5 h-4.5 rounded border-[#CBD5E1] text-[#3B82F6] focus:ring-[#3B82F6]/20 transition-all cursor-pointer" />
-                <span className="text-[13px] text-[#64748B] group-hover:text-[#0F172A] transition-colors">Remember me</span>
-              </label>
+            {/* "Remember me" was removed rather than left as decoration: it was
+                an uncontrolled checkbox with no handler, and the session
+                persists across restarts either way, so ticking or clearing it
+                changed nothing. Re-add it alongside a real session-only
+                storage mode. */}
+            <div className="flex items-center justify-end pt-1">
               <Link to="/forgot-password" className="text-[13px] text-[#3B82F6] hover:text-[#2563EB] font-semibold transition-colors">
                 Forgot password?
               </Link>

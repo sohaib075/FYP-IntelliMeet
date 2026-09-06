@@ -110,10 +110,14 @@ const userSchema = new mongoose.Schema(
       select: false,
     },
 
-    /** Embedded user preferences */
+    /**
+     * Embedded user preferences.
+     * Must be the sub-schema (not a Map): controllers assign
+     * `user.preferences.spokenLanguage = ...`, which is a silent
+     * no-op on a Mongoose Map.
+     */
     preferences: {
-      type: Map,
-      of: String,
+      type: preferencesSchema,
       default: () => ({}), // Generates defaults from sub-schema
     },
 
@@ -191,6 +195,10 @@ const userSchema = new mongoose.Schema(
 userSchema.pre('save', async function (next) {
   // Only hash if the password field was actually modified
   if (!this.isModified('password')) return next();
+
+  // verify-otp promotes a PendingUser whose password is ALREADY hashed.
+  // It sets this flag so we don't hash the hash.
+  if (this.$locals && this.$locals.passwordAlreadyHashed) return next();
 
   try {
     const salt = await bcrypt.genSalt(config.BCRYPT_SALT_ROUNDS);

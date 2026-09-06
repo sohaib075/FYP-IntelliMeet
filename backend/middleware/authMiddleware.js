@@ -41,9 +41,7 @@ const protect = async (req, _res, next) => {
     }
 
     if (!token) {
-      throw ApiError.unauthorized(
-        'You are not logged in — please provide a valid token'
-      );
+      throw ApiError.of(401, 'TOKEN_INVALID', 'You are not logged in — please provide a valid token');
     }
 
     // ---- 2. Verify token ----
@@ -54,16 +52,12 @@ const protect = async (req, _res, next) => {
 
     // ---- 4. Check user still exists ----
     if (!currentUser) {
-      throw ApiError.unauthorized(
-        'The user belonging to this token no longer exists'
-      );
+      throw ApiError.of(401, 'TOKEN_INVALID', 'The user belonging to this token no longer exists');
     }
 
     // ---- 5. Check if password changed after token was issued ----
     if (currentUser.passwordChangedAfter(decoded.iat)) {
-      throw ApiError.unauthorized(
-        'Password was recently changed — please log in again'
-      );
+      throw ApiError.of(401, 'TOKEN_INVALID', 'Password was recently changed — please log in again');
     }
 
     // ---- 6. Grant access ----

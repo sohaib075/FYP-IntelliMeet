@@ -16,7 +16,10 @@ export function PrivacyPage() {
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
         <h1 className="text-3xl md:text-5xl font-display font-bold text-[#0F172A] dark:text-white mb-8">Privacy Policy</h1>
         <div className="prose prose-slate dark:prose-invert max-w-none">
-          <p className="text-lg text-[#64748B] dark:text-[#94A3B8] mb-6">Last updated: {new Date().toLocaleDateString()}</p>
+          {/* A fixed date. Rendering new Date() here made the policy claim it had
+              been revised today, every single day it was viewed. Update this string
+              whenever the policy actually changes. */}
+          <p className="text-lg text-[#64748B] dark:text-[#94A3B8] mb-6">Last updated: 1 September 2026</p>
           
           <h2 className="text-2xl font-bold text-[#0F172A] dark:text-white mt-8 mb-4">1. Information We Collect</h2>
           <p className="text-[#64748B] dark:text-[#94A3B8] mb-4">We collect information that you provide directly to us when you register for an account, create or join a meeting, or communicate with us. This includes your name, email address, and any profile information you choose to provide.</p>

@@ -41,13 +41,15 @@ const verifyToken = (token) => {
   try {
     return jwt.verify(token, config.JWT_SECRET);
   } catch (err) {
+    // TOKEN_INVALID tells the frontend this is a *session* problem (log out),
+    // as opposed to a 401 for a wrong password, which must not log out.
     if (err.name === 'TokenExpiredError') {
-      throw ApiError.unauthorized('Token has expired — please log in again');
+      throw ApiError.of(401, 'TOKEN_INVALID', 'Token has expired — please log in again');
     }
     if (err.name === 'JsonWebTokenError') {
-      throw ApiError.unauthorized('Invalid token — please log in again');
+      throw ApiError.of(401, 'TOKEN_INVALID', 'Invalid token — please log in again');
     }
-    throw ApiError.unauthorized('Authentication failed');
+    throw ApiError.of(401, 'TOKEN_INVALID', 'Authentication failed');
   }
 };
 

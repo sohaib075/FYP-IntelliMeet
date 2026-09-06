@@ -30,7 +30,7 @@ const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const { OAuth2Client } = require('google-auth-library');
 
-const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+const googleClient = new OAuth2Client(config.GOOGLE_CLIENT_ID);
 
 // ============================================================
 // POST /api/auth/register
@@ -60,7 +60,7 @@ const register = async (req, res, next) => {
     const otp = crypto.randomInt(100000, 999999).toString();
     
     // Hash the password and OTP securely
-    const salt = await bcrypt.genSalt(10);
+    const salt = await bcrypt.genSalt(config.BCRYPT_SALT_ROUNDS);
     const hashedPassword = await bcrypt.hash(password, salt);
     const otpHash = await bcrypt.hash(otp, salt);
 
@@ -164,10 +164,39 @@ const getProfile = async (req, res, next) => {
  */
 const updateProfile = async (req, res, next) => {
   try {
-    const { fullName, email, phoneNumber, sourceLanguage, targetLanguage } = req.body;
+    const { fullName, email, phoneNumber, sourceLanguage, targetLanguage, currentPassword } = req.body;
 
-    // Check if email is being updated and if it's already in use
+    // ---- Changing the email address is privileged ----
+    // The email is the account's recovery channel: whoever controls it can
+    // reset the password. Allowing a change on the bearer token alone turns a
+    // stolen or leaked JWT into permanent account takeover, so re-authenticate
+    // with the current password first.
     if (email && email.toLowerCase() !== req.user.email) {
+      const withPassword = await User.findById(req.user._id).select('+password');
+
+      if (!withPassword.password) {
+        // Google-only accounts have no local password to check against, and
+        // their address is owned by Google.
+        throw ApiError.of(
+          400,
+          'EMAIL_CHANGE_NOT_ALLOWED',
+          'This account signs in with Google, so its email address cannot be changed here.'
+        );
+      }
+
+      if (!currentPassword) {
+        throw ApiError.of(
+          400,
+          'CURRENT_PASSWORD_REQUIRED',
+          'Enter your current password to change your email address.'
+        );
+      }
+
+      const passwordMatches = await withPassword.comparePassword(currentPassword);
+      if (!passwordMatches) {
+        throw ApiError.of(401, 'INVALID_CREDENTIALS', 'That password is not correct.');
+      }
+
       const emailExists = await User.findOne({ email: email.toLowerCase() });
       if (emailExists) {
         throw ApiError.conflict('Email address is already in use');
@@ -314,36 +343,18 @@ const verifyOtp = async (req, res, next) => {
       throw ApiError.unauthorized('Invalid OTP code');
     }
 
-    // Mark as verified by migrating from PendingUser to User
-    // The password in PendingUser is already hashed, but User pre-save hook hashes plain-text passwords.
-    // However, if we just set the field, pre-save hook might re-hash it if it thinks it's modified.
-    // Wait, Mongoose pre-save hook ALWAYS runs if a field is modified. 
-    // If we pass the ALREADY hashed password to User.create(), the pre-save hook will hash it AGAIN.
-    // Let's use `User.collection.insertOne` or explicitly bypass the hook, but standard way is better:
-    // Actually, our `register` step hashed it. We should pass the pre-hashed password.
-    // To bypass the pre-save hook, we can set `isModified` trick or just use `updateOne` with `upsert`.
-    // Wait, the simplest fix is to store PLAINTEXT password in PendingUser. But that's insecure.
-    // Instead of using User.create(), we can create a User instance and bypass the hook:
-    
-    const newUser = new User({
+    // Promote PendingUser → User through Mongoose so validation, defaults
+    // and timestamps all apply. The password is ALREADY hashed, so we tell
+    // the pre-save hook to skip hashing via $locals (see models/User.js).
+    const user = new User({
       fullName: pendingUser.fullName,
       email: pendingUser.email,
-    });
-    // Set the password directly without triggering the pre-save hook hash, by overriding the schema method temporarily? No.
-    // Let's just use MongoDB's native driver for this specific insert to avoid the hook:
-    
-    await User.collection.insertOne({
-      fullName: pendingUser.fullName,
-      email: pendingUser.email,
-      password: pendingUser.password, // Already hashed
-      preferences: { spokenLanguage: 'en', listeningLanguage: 'en' },
+      password: pendingUser.password, // already bcrypt-hashed at register time
+      authProvider: 'local',
       lastLoginAt: new Date(),
-      createdAt: new Date(),
-      updatedAt: new Date()
     });
-
-    // Fetch the fully created Mongoose document so we have the methods like toSanitizedJSON()
-    const user = await User.findOne({ email: pendingUser.email });
+    user.$locals.passwordAlreadyHashed = true;
+    await user.save();
 
     // Delete the pending record
     await PendingUser.deleteOne({ _id: pendingUser._id });
@@ -433,21 +444,10 @@ const forgotPassword = async (req, res, next) => {
 
     await user.save({ validateBeforeSave: false });
 
-    // 4. Create reset URL
-    // Use Origin header if available, otherwise fallback to configured CORS origins
-    const reqOrigin = req.headers.origin || req.headers.referer;
-    let frontendUrl = 'http://localhost:5173';
-    
-    if (reqOrigin) {
-      frontendUrl = reqOrigin.replace(/\/$/, '');
-    } else {
-      const stringOrigin = Array.isArray(config.CORS_ORIGIN) 
-        ? config.CORS_ORIGIN.find(o => typeof o === 'string') 
-        : config.CORS_ORIGIN;
-      if (stringOrigin) frontendUrl = stringOrigin;
-    }
-    
-    const resetUrl = `${frontendUrl}/reset-password?token=${resetToken}`;
+    // 4. Create reset URL from trusted configuration.
+    // NEVER build this from Origin/Referer: any HTTP client can set those
+    // headers and would receive the victim's reset token on its own domain.
+    const resetUrl = `${config.FRONTEND_URL}/reset-password?token=${resetToken}`;
 
     // 5. Send email
     try {
@@ -530,14 +530,21 @@ const googleAuth = async (req, res, next) => {
     try {
       ticket = await googleClient.verifyIdToken({
         idToken: token,
-        audience: process.env.GOOGLE_CLIENT_ID,
+        audience: config.GOOGLE_CLIENT_ID,
       });
     } catch (error) {
       throw ApiError.unauthorized('Invalid Google ID token');
     }
 
     const payload = ticket.getPayload();
-    const { email, name, sub: googleId, picture } = payload;
+    const { email, name, sub: googleId, picture, email_verified: emailVerified } = payload;
+
+    // Never link or create an account on an email Google has not verified —
+    // otherwise anyone controlling an unverified Google identity with a
+    // victim's address could take over the victim's local account.
+    if (!email || emailVerified !== true) {
+      throw ApiError.unauthorized('Google account email is not verified');
+    }
 
     // 2. Check if user exists by email
     let user = await User.findOne({ email: email.toLowerCase() });

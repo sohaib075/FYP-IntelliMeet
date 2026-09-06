@@ -17,22 +17,27 @@ const { register, login, verifyOtp, resendOtp, forgotPassword, resetPassword, go
 const {
   registerValidation,
   loginValidation,
+  emailOnlyValidation,
+  verifyOtpValidation,
+  resetPasswordValidation,
+  googleAuthValidation,
 } = require('../validators/authValidators');
 const { authLimiter } = require('../middleware/rateLimiter');
 
-// Apply auth rate limiter to all routes in this router
+// Apply auth rate limiter ONCE to all routes in this router.
+// (Applying it again per-route double-counts every request.)
 router.use(authLimiter);
 
 // ---- Routes ----
 
-router.post('/register', authLimiter, registerValidation, register);
-router.post('/login', authLimiter, loginValidation, login);
-router.post('/google', authLimiter, googleAuth);
-router.post('/verify-otp', authLimiter, verifyOtp);
-router.post('/resend-otp', authLimiter, resendOtp);
+router.post('/register', registerValidation, register);
+router.post('/login', loginValidation, login);
+router.post('/google', googleAuthValidation, googleAuth);
+router.post('/verify-otp', verifyOtpValidation, verifyOtp);
+router.post('/resend-otp', emailOnlyValidation, resendOtp);
 
 // Forgot & Reset Password
-router.post('/forgot-password', authLimiter, forgotPassword);
-router.post('/reset-password', authLimiter, resetPassword);
+router.post('/forgot-password', emailOnlyValidation, forgotPassword);
+router.post('/reset-password', resetPasswordValidation, resetPassword);
 
 module.exports = router;

@@ -1,136 +1,49 @@
 import { useState, useEffect } from "react"
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import { Card, CardContent } from "@/components/ui/Card"
 import { Button } from "@/components/ui/Button"
-import { Video, Calendar, Clock, Users, ExternalLink, Search } from "lucide-react"
+import { Video, Calendar, Clock, Users, Search, Loader2 } from "lucide-react"
 import { Input } from "@/components/ui/Input"
+import { meetingApi, describeApiError, type MeetingDto, type MeetingStatusDto } from "@/lib/api"
 
-type MeetingStatus = "scheduled" | "in-progress" | "completed" | "cancelled"
-
-interface Meeting {
-  id: string
-  title: string
-  date: string
-  time: string
-  duration: string
-  participants: number
-  status: MeetingStatus
-  host: string
-  languages: string[]
+const statusStyles: Record<MeetingStatusDto, { bg: string; text: string; label: string }> = {
+  CREATED: { bg: "bg-[#EFF6FF]", text: "text-[#3B82F6]", label: "Not started" },
+  ACTIVE: { bg: "bg-[#FEF3C7]", text: "text-[#D97706]", label: "In progress" },
+  ENDED: { bg: "bg-[#F0FDF4]", text: "text-[#16A34A]", label: "Ended" },
 }
 
-const mockUpcoming: Meeting[] = [
-  {
-    id: "meet-001",
-    title: "CPEC Quarterly Review",
-    date: "2026-06-12",
-    time: "10:00 AM",
-    duration: "1h 30m",
-    participants: 8,
-    status: "scheduled",
-    host: "You",
-    languages: ["English", "Chinese"],
-  },
-  {
-    id: "meet-002",
-    title: "Cross-Border Engineering Sync",
-    date: "2026-06-14",
-    time: "2:00 PM",
-    duration: "45m",
-    participants: 5,
-    status: "scheduled",
-    host: "You",
-    languages: ["English", "Urdu", "Chinese"],
-  },
-  {
-    id: "meet-003",
-    title: "Academic Research Collaboration",
-    date: "2026-06-15",
-    time: "11:00 AM",
-    duration: "1h",
-    participants: 12,
-    status: "scheduled",
-    host: "Dr. Li Wei",
-    languages: ["English", "Chinese"],
-  },
-]
-
-const mockPast: Meeting[] = [
-  {
-    id: "meet-101",
-    title: "Infrastructure Planning Session",
-    date: "2026-06-05",
-    time: "9:00 AM",
-    duration: "2h 15m",
-    participants: 10,
-    status: "completed",
-    host: "You",
-    languages: ["English", "Urdu"],
-  },
-  {
-    id: "meet-102",
-    title: "Budget Alignment Meeting",
-    date: "2026-06-03",
-    time: "3:00 PM",
-    duration: "1h",
-    participants: 6,
-    status: "completed",
-    host: "Ahmed Khan",
-    languages: ["English", "Urdu", "Chinese"],
-  },
-  {
-    id: "meet-103",
-    title: "Team Standup (Cancelled)",
-    date: "2026-06-01",
-    time: "10:00 AM",
-    duration: "—",
-    participants: 4,
-    status: "cancelled",
-    host: "You",
-    languages: ["English"],
-  },
-  {
-    id: "meet-104",
-    title: "Product Demo – Phase 2",
-    date: "2026-05-28",
-    time: "1:00 PM",
-    duration: "50m",
-    participants: 15,
-    status: "completed",
-    host: "You",
-    languages: ["English", "Chinese"],
-  },
-]
-
-const statusStyles: Record<MeetingStatus, { bg: string; text: string; label: string }> = {
-  scheduled: { bg: "bg-[#EFF6FF]", text: "text-[#3B82F6]", label: "Scheduled" },
-  "in-progress": { bg: "bg-[#FEF3C7]", text: "text-[#D97706]", label: "In Progress" },
-  completed: { bg: "bg-[#F0FDF4]", text: "text-[#16A34A]", label: "Completed" },
-  cancelled: { bg: "bg-[#FEF2F2]", text: "text-[#DC2626]", label: "Cancelled" },
+function formatDuration(m: MeetingDto): string {
+  if (!m.startedAt || !m.endedAt) return "—"
+  const secs = Math.max(0, (new Date(m.endedAt).getTime() - new Date(m.startedAt).getTime()) / 1000)
+  const h = Math.floor(secs / 3600)
+  const min = Math.round((secs % 3600) / 60)
+  return h ? `${h}h ${min}m` : `${min}m`
 }
 
 export function MyMeetingsPage() {
+  const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState<"upcoming" | "past">("upcoming")
   const [search, setSearch] = useState("")
-  const [scheduledMeetings, setScheduledMeetings] = useState<Meeting[]>([])
+  const [meetings, setMeetings] = useState<MeetingDto[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState("")
 
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem("intellimeet_scheduled_meetings")
-      if (stored) {
-        setScheduledMeetings(JSON.parse(stored))
-      }
-    } catch (e) {
-      console.error(e)
-    }
+    let cancelled = false
+    meetingApi
+      .list()
+      .then(({ meetings }) => { if (!cancelled) setMeetings(meetings) })
+      .catch((err) => { if (!cancelled) setError(describeApiError(err)) })
+      .finally(() => { if (!cancelled) setIsLoading(false) })
+    return () => { cancelled = true }
   }, [])
 
-  const upcomingMeetings = [...scheduledMeetings.filter(m => m.status === "scheduled" || m.status === "in-progress"), ...mockUpcoming]
-  const pastMeetings = [...scheduledMeetings.filter(m => m.status === "completed" || m.status === "cancelled"), ...mockPast]
+  const upcomingMeetings = meetings.filter((m) => m.status !== "ENDED")
+  const pastMeetings = meetings.filter((m) => m.status === "ENDED")
 
-  const meetings = activeTab === "upcoming" ? upcomingMeetings : pastMeetings
-  const filtered = meetings.filter((m) =>
-    m.title.toLowerCase().includes(search.toLowerCase())
+  const list = activeTab === "upcoming" ? upcomingMeetings : pastMeetings
+  const filtered = list.filter((m) =>
+    m.title.toLowerCase().includes(search.toLowerCase()) || m.meetingId.includes(search.toLowerCase())
   )
 
   return (
@@ -138,7 +51,7 @@ export function MyMeetingsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold font-display tracking-tight text-[#0F172A]">My Meetings</h1>
-          <p className="text-[#64748B] text-sm mt-1">View and manage your scheduled and past meetings.</p>
+          <p className="text-[#64748B] text-sm mt-1">Meetings you host or have joined.</p>
         </div>
         <Button asChild className="bg-[#3B82F6] text-white hover:bg-[#2563EB] border-0">
           <Link to="/meeting/create">
@@ -153,9 +66,7 @@ export function MyMeetingsPage() {
         <button
           onClick={() => setActiveTab("upcoming")}
           className={`pb-3 text-sm font-medium border-b-2 transition-colors ${
-            activeTab === "upcoming"
-              ? "border-[#3B82F6] text-[#3B82F6]"
-              : "border-transparent text-[#64748B] hover:text-[#0F172A]"
+            activeTab === "upcoming" ? "border-[#3B82F6] text-[#3B82F6]" : "border-transparent text-[#64748B] hover:text-[#0F172A]"
           }`}
         >
           Upcoming ({upcomingMeetings.length})
@@ -163,9 +74,7 @@ export function MyMeetingsPage() {
         <button
           onClick={() => setActiveTab("past")}
           className={`pb-3 text-sm font-medium border-b-2 transition-colors ${
-            activeTab === "past"
-              ? "border-[#3B82F6] text-[#3B82F6]"
-              : "border-transparent text-[#64748B] hover:text-[#0F172A]"
+            activeTab === "past" ? "border-[#3B82F6] text-[#3B82F6]" : "border-transparent text-[#64748B] hover:text-[#0F172A]"
           }`}
         >
           Past ({pastMeetings.length})
@@ -175,43 +84,47 @@ export function MyMeetingsPage() {
       {/* Search */}
       <div className="max-w-sm">
         <Input
-          placeholder="Search meetings..."
+          placeholder="Search by title or code..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           icon={<Search className="h-4 w-4" />}
         />
       </div>
 
+      {error && (
+        <div role="alert" className="rounded-lg border border-red-200 bg-red-50 p-3 text-[14px] text-red-600">{error}</div>
+      )}
+
       {/* Meeting List */}
       <div className="space-y-3">
-        {filtered.length === 0 ? (
+        {isLoading ? (
+          <Card>
+            <CardContent className="p-12 text-center">
+              <Loader2 className="h-6 w-6 animate-spin text-[#3B82F6] mx-auto" />
+            </CardContent>
+          </Card>
+        ) : filtered.length === 0 ? (
           <Card>
             <CardContent className="p-12 text-center">
               <Video className="h-10 w-10 text-[#94A3B8] mx-auto mb-3" />
               <p className="text-[#64748B] text-sm">
-                {search ? "No meetings match your search." : "No meetings found."}
+                {search ? "No meetings match your search." : activeTab === "upcoming" ? "No upcoming meetings. Create one to get started." : "No past meetings yet."}
               </p>
             </CardContent>
           </Card>
         ) : (
           filtered.map((meeting) => {
             const status = statusStyles[meeting.status]
+            const when = meeting.scheduledFor || meeting.startedAt || meeting.createdAt
             return (
-              <Card
-                key={meeting.id}
-                className="hover:shadow-md transition-shadow border-[#E2E8F0] bg-white"
-              >
+              <Card key={meeting.meetingId} className="hover:shadow-md transition-shadow border-[#E2E8F0] bg-white">
                 <CardContent className="p-5">
                   <div className="flex flex-col sm:flex-row sm:items-center gap-4">
                     {/* Left: Info */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-3 mb-2">
-                        <h3 className="text-[15px] font-semibold text-[#0F172A] truncate">
-                          {meeting.title}
-                        </h3>
-                        <span
-                          className={`shrink-0 text-[11px] font-medium px-2.5 py-0.5 rounded-full ${status.bg} ${status.text}`}
-                        >
+                        <h3 className="text-[15px] font-semibold text-[#0F172A] truncate">{meeting.title}</h3>
+                        <span className={`shrink-0 text-[11px] font-medium px-2.5 py-0.5 rounded-full ${status.bg} ${status.text}`}>
                           {status.label}
                         </span>
                       </div>
@@ -219,64 +132,43 @@ export function MyMeetingsPage() {
                       <div className="flex flex-wrap items-center gap-x-5 gap-y-1 text-[13px] text-[#64748B]">
                         <span className="flex items-center gap-1.5">
                           <Calendar className="h-3.5 w-3.5" />
-                          {new Date(meeting.date).toLocaleDateString("en-US", {
-                            weekday: "short",
-                            month: "short",
-                            day: "numeric",
-                          })}
+                          {new Date(when).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
                         </span>
                         <span className="flex items-center gap-1.5">
                           <Clock className="h-3.5 w-3.5" />
-                          {meeting.time} · {meeting.duration}
+                          {new Date(when).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}
+                          {meeting.status === "ENDED" && ` · ${formatDuration(meeting)}`}
                         </span>
                         <span className="flex items-center gap-1.5">
                           <Users className="h-3.5 w-3.5" />
-                          {meeting.participants} participants
+                          {meeting.participantCount} {meeting.participantCount === 1 ? "participant" : "participants"}
                         </span>
                       </div>
 
                       <div className="flex flex-wrap items-center gap-2 mt-2">
-                        <span className="text-[12px] text-[#94A3B8]">Host: {meeting.host}</span>
+                        <span className="text-[12px] text-[#94A3B8]">Host: {meeting.isHost ? "You" : meeting.host.name || "—"}</span>
                         <span className="text-[#E2E8F0]">·</span>
-                        <span className="text-[11px] font-mono bg-[#F8FAFC] text-[#3B82F6] font-semibold border border-[#E2E8F0] px-2 py-0.5 rounded cursor-pointer hover:bg-[#EFF6FF] transition-colors" title="Click to copy ID" onClick={() => {
-                          navigator.clipboard.writeText(meeting.id);
-                        }}>
-                          ID: {meeting.id}
-                        </span>
-                        <span className="text-[#E2E8F0]">·</span>
-                        {meeting.languages.map((lang) => (
-                          <span
-                            key={lang}
-                            className="text-[11px] bg-[#F1F5F9] text-[#475569] px-2 py-0.5 rounded-full"
-                          >
-                            {lang}
-                          </span>
-                        ))}
+                        <button
+                          type="button"
+                          className="text-[11px] font-mono bg-[#F8FAFC] text-[#3B82F6] font-semibold border border-[#E2E8F0] px-2 py-0.5 rounded cursor-pointer hover:bg-[#EFF6FF] transition-colors"
+                          title="Click to copy code"
+                          onClick={() => navigator.clipboard.writeText(meeting.meetingId).catch(() => {})}
+                        >
+                          {meeting.meetingId}
+                        </button>
                       </div>
                     </div>
 
                     {/* Right: Actions */}
                     <div className="flex items-center gap-2 shrink-0">
-                      {meeting.status === "scheduled" && (
-                        <Button asChild className="bg-[#3B82F6] text-white hover:bg-[#2563EB] border-0" size="sm">
-                          <Link to={`/meeting/lobby/${meeting.id}`}>Join</Link>
+                      {meeting.status === "CREATED" && (
+                        <Button onClick={() => navigate(`/meet/${meeting.meetingId}`)} className="bg-[#3B82F6] text-white hover:bg-[#2563EB] border-0" size="sm">
+                          {meeting.isHost ? "Start" : "Join"}
                         </Button>
                       )}
-                      {meeting.status === "completed" && (
-                        <Button
-                          asChild
-                          className="bg-[#F1F5F9] text-[#0F172A] hover:bg-[#E2E8F0] border-0"
-                          size="sm"
-                        >
-                          <Link to={`/meeting/summary/${meeting.id}`}>
-                            <ExternalLink className="h-3.5 w-3.5 mr-1.5" />
-                            Summary
-                          </Link>
-                        </Button>
-                      )}
-                      {meeting.status === "in-progress" && (
-                        <Button asChild className="bg-[#D97706] text-white hover:bg-[#B45309] border-0" size="sm">
-                          <Link to={`/meeting/room/${meeting.id}`}>Rejoin</Link>
+                      {meeting.status === "ACTIVE" && (
+                        <Button onClick={() => navigate(`/meet/${meeting.meetingId}`)} className="bg-[#D97706] text-white hover:bg-[#B45309] border-0" size="sm">
+                          Rejoin
                         </Button>
                       )}
                     </div>

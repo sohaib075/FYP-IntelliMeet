@@ -131,9 +131,9 @@ export function ProfilePage() {
               </span>
             </div>
           </div>
-          <div className="ml-auto mt-4 sm:mt-0">
-            <Button className="bg-[#3B82F6] text-white hover:bg-[#2563EB]">Change Avatar</Button>
-          </div>
+          {/* "Change Avatar" was removed rather than left as a dead primary
+              button: there is no avatar upload or storage, so clicking it did
+              nothing at all. Restore it when profile pictures are implemented. */}
         </CardContent>
       </Card>
 

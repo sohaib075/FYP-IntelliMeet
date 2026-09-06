@@ -48,12 +48,16 @@ const sendSuccess = (res, statusCode, message, data = null) => {
  * @param {string}                     message    - Error message
  * @param {Array}                      [errors]   - Detailed validation errors
  */
-const sendError = (res, statusCode, message, errors = []) => {
+const sendError = (res, statusCode, message, errors = [], code = null) => {
   const response = {
     success: false,
     message,
     timestamp: new Date().toISOString(),
   };
+
+  if (code) {
+    response.code = code;
+  }
 
   if (errors.length > 0) {
     response.errors = errors;

@@ -14,7 +14,6 @@ import { RegisterPage } from "./pages/public/RegisterPage"
 import { ForgotPasswordPage } from "./pages/public/ForgotPasswordPage"
 import { ResetPasswordPage } from "./pages/public/ResetPasswordPage"
 import { VerifyEmailPage } from "./pages/public/VerifyEmailPage"
-import { StatusPreviewPage } from "./pages/public/StatusPreviewPage"
 import { NotFoundPage } from "./pages/public/NotFoundPage"
 import { PrivacyPage } from "./pages/public/PrivacyPage"
 import { TermsPage } from "./pages/public/TermsPage"
@@ -30,7 +29,6 @@ import { CreateMeetingPage } from "./pages/meeting/CreateMeetingPage"
 import { JoinMeetingPage } from "./pages/meeting/JoinMeetingPage"
 import { LobbyPage } from "./pages/meeting/LobbyPage"
 import { MeetingRoomPage } from "./pages/meeting/MeetingRoomPage"
-import { MeetingSummaryPage } from "./pages/meeting/MeetingSummaryPage"
 import { MeetingEndedPage } from "./pages/meeting/MeetingEndedPage"
 
 export function App() {
@@ -48,7 +46,6 @@ export function App() {
       {/* Public Routes */}
       <Route element={<PublicLayout />}>
         <Route path="/" element={<LandingPage />} />
-        <Route path="/status-preview" element={<StatusPreviewPage />} />
         <Route path="/privacy" element={<PrivacyPage />} />
         <Route path="/terms" element={<TermsPage />} />
         <Route path="/contact" element={<ContactPage />} />
@@ -63,17 +60,28 @@ export function App() {
           
           <Route path="/meeting/create" element={<CreateMeetingPage />} />
           <Route path="/join" element={<JoinMeetingPage />} />
-          <Route path="/meeting/summary/:meetingId" element={<MeetingSummaryPage />} />
-          
-          {/* Placeholders for links from dashboard */}
+
+          {/* /meeting/summary/:meetingId is intentionally NOT routed.
+              MeetingSummaryPage.tsx still contains hard-coded placeholder content
+              from the design phase (an invented transcript and action items). Until
+              the AI summary feature is actually built, routing it would show
+              fabricated data as if it were a real record of the user's meeting.
+              Re-add the route when the page is wired to real data. */}
+
           <Route path="/dashboard/meetings" element={<MyMeetingsPage />} />
-          <Route path="/dashboard/schedule" element={<Navigate to="/dashboard" />} />
-          <Route path="/dashboard/analytics" element={<Navigate to="/dashboard" />} />
+          {/* Areas that do not exist yet. `replace` keeps them out of history,
+              otherwise the Back button bounces between here and /dashboard. */}
+          <Route path="/dashboard/schedule" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/dashboard/analytics" element={<Navigate to="/dashboard" replace />} />
         </Route>
       </Route>
 
       {/* Dedicated Meeting Routes */}
+      {/* Canonical: /meet/:meetingId (lobby, validates first) → /meet/:meetingId/room */}
       <Route element={<ProtectedRoute />}>
+        <Route path="/meet/:meetingId" element={<LobbyPage />} />
+        <Route path="/meet/:meetingId/room" element={<MeetingRoomPage />} />
+        {/* Legacy paths kept so old links still resolve */}
         <Route path="/meeting/lobby/:meetingId" element={<LobbyPage />} />
         <Route path="/meeting/room/:meetingId" element={<MeetingRoomPage />} />
       </Route>

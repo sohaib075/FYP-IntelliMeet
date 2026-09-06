@@ -73,6 +73,8 @@ interface MeetingState {
   joinMeeting: (config: {
     meetingId: string
     title: string
+    /** Authenticated user id — becomes the participant id (matches the server) */
+    userId: string
     userName: string
     sourceLang: string
     targetLang: string
@@ -80,6 +82,10 @@ interface MeetingState {
     videoOn: boolean
   }) => void
   setStatus: (status: MeetingStatus) => void
+  /** Apply authoritative room info sent by the server on join */
+  setRoomInfo: (info: { title?: string; startedAt?: number }) => void
+  /** Replace chat history with what the server holds (no unread bump) */
+  loadHistory: (messages: Array<Omit<ChatMessage, 'id' | 'isOwn'>>) => void
   leaveMeeting: () => void
   tick: () => void
 
@@ -148,7 +154,9 @@ export const useMeetingStore = create<MeetingState>((set, get) => ({
   // ── Room lifecycle ────────────────────────────────────────────────
 
   joinMeeting: (config) => {
-    const newUserId = uid()
+    // The participant id is the authenticated user id, so it matches the
+    // identity the server derives from the JWT (and survives a refresh).
+    const newUserId = config.userId
     const hostParticipant: Participant = {
       id: newUserId,
       name: config.userName,
@@ -187,6 +195,25 @@ export const useMeetingStore = create<MeetingState>((set, get) => ({
       status,
       startedAt: status === 'active' && !state.startedAt ? Date.now() : state.startedAt,
     }))
+  },
+
+  setRoomInfo: (info) => {
+    set((state) => ({
+      title: info.title ?? state.title,
+      startedAt: info.startedAt ?? state.startedAt,
+    }))
+  },
+
+  loadHistory: (messages) => {
+    const localUserId = get().localUserId
+    set({
+      messages: messages.map((m) => ({
+        ...m,
+        id: uid(),
+        isOwn: m.senderId === localUserId,
+        senderName: m.senderId === localUserId ? 'You' : m.senderName,
+      })),
+    })
   },
 
   leaveMeeting: () => {
