@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react"
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom"
-import { LayoutDashboard, Video, ClipboardList, Settings, User as UserIcon, LogOut, Bell } from "lucide-react"
+import { LayoutDashboard, Video, ClipboardList, Settings, User as UserIcon, LogOut, Bell, Menu } from "lucide-react"
 import { useAuthStore } from "@/store/useAuthStore"
 import { PageTransition } from "@/components/layout/PageTransition"
 import { AnimatePresence, motion } from "framer-motion"
@@ -14,6 +14,9 @@ export function DashboardLayout() {
   
   const [showBellDropdown, setShowBellDropdown] = useState(false)
   const [showProfileDropdown, setShowProfileDropdown] = useState(false)
+  // Drawer state for phones. On lg: and up the sidebar is always visible and
+  // this is ignored.
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   // There is no notifications backend yet, so this starts empty rather than
   // shipping invented items. It previously carried three hard-coded entries,
   // including a meeting called "CPEC Quarterly Review" that never existed,
@@ -56,12 +59,45 @@ export function DashboardLayout() {
     { name: "Settings", path: "/settings", icon: Settings },
     { name: "Profile", path: "/profile", icon: UserIcon },
   ]
-  
+
+  // The header used to be hard-coded to "Dashboard" on every page, so Profile
+  // and Settings both announced themselves as the dashboard. Derive it from the
+  // route instead. Longest match wins so /dashboard/meetings beats /dashboard.
+  const pageTitle =
+    [...navItems]
+      .sort((a, b) => b.path.length - a.path.length)
+      .find((item) => location.pathname === item.path || location.pathname.startsWith(item.path + '/'))
+      ?.name ?? 'Dashboard'
+
+  // Close the drawer whenever the route changes, so tapping a nav link on a
+  // phone does not leave the menu covering the page it just opened.
+  useEffect(() => {
+    setIsSidebarOpen(false)
+  }, [location.pathname])
+
   return (
     <div className="flex h-screen w-full overflow-hidden bg-[#F8FAFC] font-body text-[#0F172A]">
       
-      {/* Sidebar */}
-      <aside className="w-[260px] flex-shrink-0 flex flex-col border-r bg-white border-[#E2E8F0]">
+      {/* Backdrop for the mobile drawer. Tapping it closes the menu. */}
+      {isSidebarOpen && (
+        <div
+          onClick={() => setIsSidebarOpen(false)}
+          aria-hidden="true"
+          className="fixed inset-0 z-30 bg-black/40 lg:hidden"
+        />
+      )}
+
+      {/* Sidebar.
+          On a phone this is a slide-in drawer: a fixed 260px panel that starts
+          off-screen and is opened by the header's menu button. From lg: up it
+          returns to being a normal column in the flex row, exactly as before.
+          Previously it was always a 260px column, which on a 375px screen left
+          barely a hundred pixels for the actual page. */}
+      <aside
+        className={`fixed inset-y-0 left-0 z-40 w-[260px] flex-shrink-0 flex flex-col border-r bg-white border-[#E2E8F0] transition-transform duration-200 lg:static lg:z-auto lg:translate-x-0 ${
+          isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
         
         {/* Logo Area */}
         <div className="p-6 pb-4">
@@ -121,11 +157,21 @@ export function DashboardLayout() {
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         
         {/* Page Header */}
-        <header className="h-[64px] bg-white border-b border-[#E2E8F0] flex items-center justify-between px-8 shrink-0">
-          <h1 className="text-[20px] font-semibold text-[#0F172A] font-display">
-            Dashboard
-          </h1>
-          
+        <header className="h-[64px] bg-white border-b border-[#E2E8F0] flex items-center justify-between px-4 sm:px-8 shrink-0">
+          <div className="flex items-center gap-3 min-w-0">
+            {/* Opens the drawer. Hidden once the sidebar is permanently visible. */}
+            <button
+              onClick={() => setIsSidebarOpen(true)}
+              aria-label="Open menu"
+              className="lg:hidden -ml-1 flex h-10 w-10 items-center justify-center rounded-lg text-[#64748B] hover:bg-[#F8FAFC] hover:text-[#0F172A]"
+            >
+              <Menu className="h-5 w-5" />
+            </button>
+            <h1 className="truncate text-[18px] sm:text-[20px] font-semibold text-[#0F172A] font-display">
+              {pageTitle}
+            </h1>
+          </div>
+
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-4 relative">
               

@@ -37,10 +37,10 @@ export function ForgotPasswordPage() {
       <Link to="/" className="mb-6 flex justify-center">
         <Logo size={42} className="text-[#0F172A] dark:text-white" />
       </Link>
-      <div className="w-full max-w-md rounded-[16px] border border-[#E2E8F0] dark:border-[#1E3A5F] bg-white dark:bg-[#161D35] p-8 shadow-xl">
-        <div className="mb-8 text-center">
-          <h2 className="text-[28px] font-bold text-[#0F172A] dark:text-white font-display tracking-tight">Reset Password</h2>
-          <p className="mt-2 text-[15px] text-[#64748B] dark:text-[#94A3B8]">
+      <div className="w-full max-w-md rounded-[16px] border border-[#E2E8F0] dark:border-[#1E3A5F] bg-white dark:bg-[#161D35] p-6 sm:p-8 shadow-xl">
+        <div className="mb-6 sm:mb-8 text-center">
+          <h2 className="text-[24px] sm:text-[28px] font-bold text-[#0F172A] dark:text-white font-display tracking-tight">Reset Password</h2>
+          <p className="mt-2 text-[14px] sm:text-[15px] text-[#64748B] dark:text-[#94A3B8]">
             {isSuccess ? "Check your inbox" : "Enter the email associated with your account and we'll send a reset link"}
           </p>
         </div>
@@ -48,8 +48,8 @@ export function ForgotPasswordPage() {
         {isSuccess ? (
           <div className="flex flex-col items-center">
             <CheckCircle2 className="h-16 w-16 text-[#10B981] mb-6" />
-            <p className="text-center text-[#0F172A] dark:text-white mb-8">
-              We have sent a password reset link to <br/> <span className="font-medium">{email}</span>
+            <p className="text-center text-[#0F172A] dark:text-white mb-8 break-words">
+              We have sent a password reset link to <br/> <span className="font-medium break-all">{email}</span>
             </p>
             <Button className="w-full" asChild>
               <Link to="/login">Return to Sign In</Link>
@@ -58,7 +58,7 @@ export function ForgotPasswordPage() {
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
-              <div className="mb-4 rounded-lg border border-[#EF4444]/30 bg-[#EF4444]/10 p-3 text-sm text-[#EF4444]">
+              <div className="mb-4 rounded-lg border border-[#EF4444]/30 bg-[#EF4444]/10 p-3 text-sm text-[#EF4444] break-words">
                 {error}
               </div>
             )}
@@ -81,7 +81,7 @@ export function ForgotPasswordPage() {
 
         {!isSuccess && (
           <div className="mt-6 flex justify-center text-[14px]">
-            <Link to="/login" className="flex items-center text-[#64748B] dark:text-[#94A3B8] hover:text-[#0F172A] dark:hover:text-white transition-colors">
+            <Link to="/login" className="flex items-center min-h-[40px] sm:min-h-0 text-[#64748B] dark:text-[#94A3B8] hover:text-[#0F172A] dark:hover:text-white transition-colors">
               <ArrowLeft className="mr-2 h-4 w-4" /> Back to Login
             </Link>
           </div>

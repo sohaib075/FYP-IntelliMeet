@@ -59,7 +59,11 @@ export function MeshMeetingRoom() {
 
   // Local UI state
   const [activeTab, setActiveTab] = useState<"chat" | "participants">("chat")
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true)
+  // Below `md:` the sidebar is an overlay across the whole video area, so
+  // starting it open would hide the call itself on a phone.
+  const [isSidebarOpen, setIsSidebarOpen] = useState(
+    () => typeof window === "undefined" || window.matchMedia("(min-width: 768px)").matches
+  )
   const [showRemoveModal, setShowRemoveModal] = useState(false)
   const [removeTarget, setRemoveTarget] = useState<string | null>(null)
   const [banOnRemove, setBanOnRemove] = useState(false)
@@ -546,38 +550,38 @@ export function MeshMeetingRoom() {
       <div className="flex flex-col flex-1 relative min-w-0">
         
         {/* Top Bar */}
-        <div className="h-[52px] bg-[var(--color-bg-secondary)] border-b border-[var(--color-border-default)] grid grid-cols-3 items-center px-4 z-10 shrink-0 shadow-md">
+        <div className="h-[52px] bg-[var(--color-bg-secondary)] border-b border-[var(--color-border-default)] flex sm:grid sm:grid-cols-3 items-center gap-2 sm:gap-0 px-3 sm:px-4 z-10 shrink-0 shadow-md">
           {/* Left Column: Logo, Title, ID */}
-          <div className="flex items-center gap-3 min-w-0">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
             <Logo size={24} className="text-white shrink-0" />
             <div className="h-4 w-[1px] bg-[var(--color-border-default)] shrink-0 hidden sm:block" />
             <span className="text-[var(--color-text-primary)] text-[14px] font-semibold truncate max-w-[80px] sm:max-w-none">{title || 'Meeting'}</span>
-            <div className="flex items-center gap-1.5 ml-2 shrink-0">
-              <span className="text-[var(--color-text-secondary)] font-mono text-[11px] sm:text-[12px] truncate max-w-[80px] sm:max-w-none">{meetingId || ''}</span>
-              <button 
-                className="text-[var(--color-text-secondary)] hover:text-[var(--color-border-hover)] transition-colors"
+            <div className="flex items-center gap-1.5 ml-1 sm:ml-2 min-w-0 shrink">
+              <span className="text-[var(--color-text-secondary)] font-mono text-[11px] sm:text-[12px] truncate max-w-[68px] sm:max-w-none">{meetingId || ''}</span>
+              <button
+                className="text-[var(--color-text-secondary)] hover:text-[var(--color-border-hover)] transition-colors shrink-0 p-1.5 -m-1.5 sm:p-0 sm:m-0"
                 onClick={() => navigator.clipboard.writeText(meetingId || '')}
               >
                 <Copy className="h-3 w-3" />
               </button>
             </div>
           </div>
-          
+
           {/* Center Column: Timer */}
-          <div className="flex justify-center items-center">
-            <span className="text-[var(--color-text-primary)] font-mono text-[14px] sm:text-[16px] font-semibold tracking-wider bg-[var(--color-bg-primary)]/40 px-2 py-0.5 rounded">
+          <div className="flex justify-center items-center shrink-0">
+            <span className="text-[var(--color-text-primary)] font-mono text-[12px] sm:text-[16px] font-semibold tracking-wider bg-[var(--color-bg-primary)]/40 px-1.5 sm:px-2 py-0.5 rounded">
               {formatElapsed(elapsedSeconds)}
             </span>
           </div>
 
           {/* Right Column: Actions */}
           <div className="flex items-center justify-end gap-2 sm:gap-4 shrink-0">
-            <div className="flex items-center text-[#10B981]" title="Good Network Quality">
+            <div className="hidden sm:flex items-center text-[#10B981]" title="Good Network Quality">
               <Signal className="h-4 w-4" />
             </div>
-            <button 
+            <button
               onClick={() => setShowLangMenu(!showLangMenu)}
-              className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors p-1"
+              className="hidden sm:block text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors p-1"
             >
               <Globe2 className="h-5 w-5" />
             </button>
@@ -613,12 +617,12 @@ export function MeshMeetingRoom() {
           </AnimatePresence>
         </div>
         {/* Video Grid Area */}
-        <div className="flex-1 relative p-6 flex flex-col items-center justify-center overflow-hidden bg-[var(--color-bg-primary)] pb-24">
+        <div className="flex-1 relative px-3 sm:px-6 pt-3 sm:pt-6 flex flex-col items-center justify-center overflow-hidden bg-[var(--color-bg-primary)] pb-24">
           
           {participants.filter(p => p.isScreenSharing).length > 0 ? (
             <div className="w-full h-full max-w-6xl relative bg-[var(--color-surface-card)] rounded-2xl overflow-hidden border border-[var(--color-border-default)] shadow-lg flex flex-col">
               {/* Header */}
-              <div className="bg-black/50 px-4 py-2.5 flex items-center justify-between border-b border-[var(--color-border-default)]">
+              <div className="bg-black/50 px-3 sm:px-4 py-2.5 flex items-center justify-between gap-2 border-b border-[var(--color-border-default)]">
                 <div className="flex items-center gap-2 min-w-0">
                   <span className="h-2 w-2 rounded-full bg-red-500 animate-pulse shrink-0" />
                   <span className="text-[12px] font-medium text-white truncate">
@@ -634,7 +638,7 @@ export function MeshMeetingRoom() {
                 {localIsScreenSharing && (
                   <button 
                     onClick={handleScreenShareToggle}
-                    className="bg-[#EF4444] hover:bg-[#D92626] text-white text-[11px] font-semibold px-2.5 py-1 rounded transition-colors"
+                    className="bg-[#EF4444] hover:bg-[#D92626] text-white text-[11px] font-semibold px-2.5 py-2 sm:py-1 rounded transition-colors shrink-0"
                   >
                     Stop Presenting
                   </button>
@@ -642,9 +646,9 @@ export function MeshMeetingRoom() {
               </div>
               {/* Actual Screen Content */}
               <div className={`flex-1 grid gap-2 p-2 bg-slate-950 relative overflow-hidden ${
-                participants.filter(p => p.isScreenSharing).length === 1 ? 'grid-cols-1' : 
-                participants.filter(p => p.isScreenSharing).length === 2 ? 'grid-cols-2' : 
-                'grid-cols-2 lg:grid-cols-3'
+                participants.filter(p => p.isScreenSharing).length === 1 ? 'grid-cols-1' :
+                participants.filter(p => p.isScreenSharing).length === 2 ? 'grid-cols-1 sm:grid-cols-2' :
+                'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
               }`}>
                 {participants.filter(p => p.isScreenSharing).map(p => {
                   const isLocal = p.id === localUserId;
@@ -680,39 +684,31 @@ export function MeshMeetingRoom() {
               </div>
             </div>
           ) : (
-            <div className="w-full h-full max-w-5xl max-h-[calc(100vh-180px)] relative flex items-center justify-center p-2">
-              
+            <div className="w-full h-full max-w-5xl max-h-[calc(100vh-180px)] relative flex items-center justify-center p-0 sm:p-2">
+
               {/* Pagination Left Button */}
               {totalPages > 1 && (
                 <button
                   onClick={() => setCurrentPage((prev) => Math.max(0, prev - 1))}
                   disabled={currentPage === 0}
-                  className="absolute left-0 z-30 p-3 rounded-full bg-[var(--color-bg-secondary)]/85 border border-[var(--color-border-default)] text-white hover:bg-[var(--color-brand-blue)] hover:border-[var(--color-brand-blue)] transition-all disabled:opacity-35 disabled:hover:bg-[var(--color-bg-secondary)]/85 disabled:hover:border-[var(--color-border-default)] shadow-lg"
+                  className="absolute left-0 z-30 p-2.5 sm:p-3 rounded-full bg-[var(--color-bg-secondary)]/85 border border-[var(--color-border-default)] text-white hover:bg-[var(--color-brand-blue)] hover:border-[var(--color-brand-blue)] transition-all disabled:opacity-35 disabled:hover:bg-[var(--color-bg-secondary)]/85 disabled:hover:border-[var(--color-border-default)] shadow-lg"
                 >
                   <ChevronLeft className="h-5 w-5" />
                 </button>
               )}
 
               {/* Grid Container */}
-              <div 
-                className={`grid gap-4 w-full h-full px-12 transition-all duration-300 ${
+              <div
+                className={`grid gap-2 sm:gap-4 w-full h-full ${totalPages > 1 ? 'px-10' : 'px-0'} sm:px-12 grid-rows-[repeat(auto-fit,minmax(0,1fr))] transition-all duration-300 ${
                   (() => {
                     const count = displayParticipants.slice(currentPage * pageSize, (currentPage + 1) * pageSize).length;
-                    if (count === 1) return 'grid-cols-1 max-w-3xl';
-                    if (count === 2) return 'grid-cols-1 md:grid-cols-2';
-                    if (count === 3) return 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3';
-                    if (count === 4) return 'grid-cols-2';
-                    return 'grid-cols-2 lg:grid-cols-3';
+                    if (count === 1) return 'grid-cols-1 max-w-3xl sm:grid-rows-[1fr]';
+                    if (count === 2) return 'grid-cols-1 md:grid-cols-2 sm:grid-rows-[repeat(auto-fit,minmax(0,1fr))]';
+                    if (count === 3) return 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 sm:grid-rows-[repeat(auto-fit,minmax(0,1fr))]';
+                    if (count === 4) return 'grid-cols-1 sm:grid-cols-2 sm:grid-rows-[repeat(2,minmax(0,1fr))]';
+                    return 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 sm:grid-rows-[repeat(2,minmax(0,1fr))]';
                   })()
                 }`}
-                style={{
-                  gridTemplateRows: (() => {
-                    const count = displayParticipants.slice(currentPage * pageSize, (currentPage + 1) * pageSize).length;
-                    if (count === 1) return '1fr';
-                    if (count <= 3) return 'repeat(auto-fit, minmax(0, 1fr))';
-                    return 'repeat(2, minmax(0, 1fr))';
-                  })()
-                }}
               >
                 <AnimatePresence mode="popLayout">
                   {displayParticipants.slice(currentPage * pageSize, (currentPage + 1) * pageSize).map((p) => {
@@ -809,7 +805,7 @@ export function MeshMeetingRoom() {
                 <button
                   onClick={() => setCurrentPage((prev) => Math.min(totalPages - 1, prev + 1))}
                   disabled={currentPage === totalPages - 1}
-                  className="absolute right-0 z-30 p-3 rounded-full bg-[var(--color-bg-secondary)]/85 border border-[var(--color-border-default)] text-white hover:bg-[var(--color-brand-blue)] hover:border-[var(--color-brand-blue)] transition-all disabled:opacity-35 disabled:hover:bg-[var(--color-bg-secondary)]/85 disabled:hover:border-[var(--color-border-default)] shadow-lg"
+                  className="absolute right-0 z-30 p-2.5 sm:p-3 rounded-full bg-[var(--color-bg-secondary)]/85 border border-[var(--color-border-default)] text-white hover:bg-[var(--color-brand-blue)] hover:border-[var(--color-brand-blue)] transition-all disabled:opacity-35 disabled:hover:bg-[var(--color-bg-secondary)]/85 disabled:hover:border-[var(--color-border-default)] shadow-lg"
                 >
                   <ChevronRight className="h-5 w-5" />
                 </button>
@@ -840,7 +836,7 @@ export function MeshMeetingRoom() {
 
         {/* Floating Language Menu */}
         {showLangMenu && (
-          <div className="absolute bottom-[88px] left-1/2 -translate-x-1/2 bg-[var(--color-surface-card)] border border-[var(--color-border-default)] rounded-xl p-4 shadow-2xl z-30 min-w-[280px]">
+          <div className="absolute bottom-[88px] left-1/2 -translate-x-1/2 bg-[var(--color-surface-card)] border border-[var(--color-border-default)] rounded-xl p-4 shadow-2xl z-30 min-w-[280px] max-w-[calc(100vw-24px)]">
             <div className="flex justify-between items-center mb-3 pb-2 border-b border-[var(--color-border-default)]">
               <h4 className="text-[13px] font-bold text-white flex items-center gap-1.5">
                 <Globe2 className="h-4 w-4 text-[var(--color-brand-blue)]" />
@@ -889,12 +885,12 @@ export function MeshMeetingRoom() {
         )}
 
         {/* Floating Bottom Control Bar */}
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-[var(--color-bg-secondary)]/90 backdrop-blur-md border border-[var(--color-border-default)] rounded-2xl flex items-center justify-center px-6 py-2.5 shrink-0 z-30 shadow-2xl">
-          <div className="flex items-center gap-1 sm:gap-2 max-w-full">
+        <div className="absolute bottom-3 sm:bottom-6 left-1/2 -translate-x-1/2 max-w-[calc(100vw-16px)] bg-[var(--color-bg-secondary)]/90 backdrop-blur-md border border-[var(--color-border-default)] rounded-2xl flex items-center justify-center px-2 sm:px-6 py-2 sm:py-2.5 shrink-0 z-30 shadow-2xl">
+          <div className="flex items-center gap-0.5 sm:gap-2 max-w-full">
             
             <button 
               onClick={toggleMic}
-              className={`w-[48px] sm:w-[52px] flex flex-col items-center justify-center gap-1 rounded-xl hover:bg-[var(--color-surface-light)] transition-colors py-1 shrink-0 focus:outline-none ${localIsMuted ? 'text-[#EF4444]' : 'text-[var(--color-text-secondary)] hover:text-white'}`}
+              className={`w-[40px] sm:w-[52px] flex flex-col items-center justify-center gap-1 rounded-xl hover:bg-[var(--color-surface-light)] transition-colors py-1.5 sm:py-1 shrink-0 focus:outline-none ${localIsMuted ? 'text-[#EF4444]' : 'text-[var(--color-text-secondary)] hover:text-white'}`}
             >
               {localIsMuted ? <MicOff className="h-4 sm:h-5 w-4 sm:w-5" /> : <Mic className="h-4 sm:h-5 w-4 sm:w-5" />}
               <span className="text-[9px] font-medium">{localIsMuted ? 'Unmute' : 'Mute'}</span>
@@ -902,7 +898,7 @@ export function MeshMeetingRoom() {
 
             <button 
               onClick={toggleVideo}
-              className={`w-[48px] sm:w-[52px] flex flex-col items-center justify-center gap-1 rounded-xl hover:bg-[var(--color-surface-light)] transition-colors py-1 shrink-0 focus:outline-none ${localIsVideoOff ? 'text-[#EF4444]' : 'text-[var(--color-text-secondary)] hover:text-white'}`}
+              className={`w-[40px] sm:w-[52px] flex flex-col items-center justify-center gap-1 rounded-xl hover:bg-[var(--color-surface-light)] transition-colors py-1.5 sm:py-1 shrink-0 focus:outline-none ${localIsVideoOff ? 'text-[#EF4444]' : 'text-[var(--color-text-secondary)] hover:text-white'}`}
             >
               {localIsVideoOff ? <VideoOff className="h-4 sm:h-5 w-4 sm:w-5" /> : <Video className="h-4 sm:h-5 w-4 sm:w-5" />}
               <span className="text-[9px] font-medium">{localIsVideoOff ? 'Start Cam' : 'Stop Cam'}</span>
@@ -910,7 +906,7 @@ export function MeshMeetingRoom() {
 
             <button 
               onClick={handleScreenShareToggle}
-              className={`w-[48px] sm:w-[52px] flex flex-col items-center justify-center gap-1 rounded-xl transition-colors py-1 shrink-0 focus:outline-none ${localIsScreenSharing ? 'bg-[var(--color-brand-blue)]/20 text-[var(--color-brand-blue)]' : 'hover:bg-[var(--color-surface-light)] text-[var(--color-text-secondary)] hover:text-white'}`}
+              className={`w-[40px] sm:w-[52px] flex flex-col items-center justify-center gap-1 rounded-xl transition-colors py-1.5 sm:py-1 shrink-0 focus:outline-none ${localIsScreenSharing ? 'bg-[var(--color-brand-blue)]/20 text-[var(--color-brand-blue)]' : 'hover:bg-[var(--color-surface-light)] text-[var(--color-text-secondary)] hover:text-white'}`}
             >
               <MonitorUp className="h-4 sm:h-5 w-4 sm:w-5" />
               <span className="text-[9px] font-medium">Share</span>
@@ -918,7 +914,7 @@ export function MeshMeetingRoom() {
 
             <button 
               onClick={() => toggleSidebar("chat")}
-              className={`w-[48px] sm:w-[52px] flex flex-col items-center justify-center gap-1 rounded-xl transition-colors py-1 relative shrink-0 focus:outline-none ${isSidebarOpen && activeTab === "chat" ? 'bg-[var(--color-brand-blue)]/20 text-[var(--color-brand-blue)]' : 'hover:bg-[var(--color-surface-light)] text-[var(--color-text-secondary)] hover:text-white'}`}
+              className={`w-[40px] sm:w-[52px] flex flex-col items-center justify-center gap-1 rounded-xl transition-colors py-1.5 sm:py-1 relative shrink-0 focus:outline-none ${isSidebarOpen && activeTab === "chat" ? 'bg-[var(--color-brand-blue)]/20 text-[var(--color-brand-blue)]' : 'hover:bg-[var(--color-surface-light)] text-[var(--color-text-secondary)] hover:text-white'}`}
             >
               <MessageSquare className="h-4 sm:h-5 w-4 sm:w-5" />
               <span className="text-[9px] font-medium">Chat</span>
@@ -931,7 +927,7 @@ export function MeshMeetingRoom() {
 
             <button 
               onClick={() => toggleSidebar("participants")}
-              className={`w-[48px] sm:w-[52px] flex flex-col items-center justify-center gap-1 rounded-xl transition-colors py-1 relative shrink-0 focus:outline-none ${isSidebarOpen && activeTab === "participants" ? 'bg-[var(--color-brand-blue)]/20 text-[var(--color-brand-blue)]' : 'hover:bg-[var(--color-surface-light)] text-[var(--color-text-secondary)] hover:text-white'}`}
+              className={`w-[40px] sm:w-[52px] flex flex-col items-center justify-center gap-1 rounded-xl transition-colors py-1.5 sm:py-1 relative shrink-0 focus:outline-none ${isSidebarOpen && activeTab === "participants" ? 'bg-[var(--color-brand-blue)]/20 text-[var(--color-brand-blue)]' : 'hover:bg-[var(--color-surface-light)] text-[var(--color-text-secondary)] hover:text-white'}`}
             >
               <Users className="h-4 sm:h-5 w-4 sm:w-5" />
               <span className="text-[9px] font-medium">People</span>
@@ -942,20 +938,20 @@ export function MeshMeetingRoom() {
 
             <button 
               onClick={() => setShowLangMenu(!showLangMenu)}
-              className={`w-[48px] sm:w-[52px] flex flex-col items-center justify-center gap-1 rounded-xl transition-colors py-1 shrink-0 focus:outline-none ${showLangMenu ? 'bg-[var(--color-brand-blue)]/20 text-[var(--color-brand-blue)]' : 'hover:bg-[var(--color-surface-light)] text-[var(--color-text-secondary)] hover:text-white'}`}
+              className={`w-[40px] sm:w-[52px] flex flex-col items-center justify-center gap-1 rounded-xl transition-colors py-1.5 sm:py-1 shrink-0 focus:outline-none ${showLangMenu ? 'bg-[var(--color-brand-blue)]/20 text-[var(--color-brand-blue)]' : 'hover:bg-[var(--color-surface-light)] text-[var(--color-text-secondary)] hover:text-white'}`}
             >
               <Globe2 className="h-4 sm:h-5 w-4 sm:w-5" />
               <span className="text-[9px] font-medium">Lang</span>
             </button>
 
-            <div className="w-[1px] h-8 bg-[var(--color-border-default)] mx-1 sm:mx-2 shrink-0" />
+            <div className="w-[1px] h-8 bg-[var(--color-border-default)] mx-0.5 sm:mx-2 shrink-0" />
 
             {/* Single leave/end button — same for Host and Participant.
                 Host gets a modal; Participant leaves immediately. */}
             <button
               id="leave-meeting-btn"
               onClick={handleLeaveButtonClick}
-              className="w-[48px] sm:w-[52px] flex flex-col items-center justify-center gap-1 rounded-xl bg-[#EF4444] hover:bg-[#D92626] active:bg-[#B91C1C] transition-colors py-1 text-white ml-1 shadow-md shadow-red-500/15 shrink-0 focus:outline-none"
+              className="w-[40px] sm:w-[52px] flex flex-col items-center justify-center gap-1 rounded-xl bg-[#EF4444] hover:bg-[#D92626] active:bg-[#B91C1C] transition-colors py-1.5 sm:py-1 text-white ml-1 shadow-md shadow-red-500/15 shrink-0 focus:outline-none"
               title={localUser?.isHost ? 'Leave or end meeting' : 'Leave meeting'}
             >
               <PhoneOff className="h-4 sm:h-5 w-4 sm:w-5" />
@@ -968,7 +964,7 @@ export function MeshMeetingRoom() {
 
       {/* Right Panel */}
       {isSidebarOpen && (
-        <div className="w-full md:w-[320px] absolute md:relative right-0 top-[52px] md:top-auto bottom-0 md:bottom-auto md:h-full bg-[var(--color-bg-secondary)] border-l border-[var(--color-border-default)] flex flex-col shrink-0 z-40 shadow-2xl md:shadow-none">
+        <div className="w-full md:w-[320px] absolute md:relative right-0 top-[52px] md:top-auto bottom-[86px] md:bottom-auto md:h-full bg-[var(--color-bg-secondary)] border-l border-[var(--color-border-default)] flex flex-col shrink-0 z-40 shadow-2xl md:shadow-none">
           
           {/* Tabs */}
           <div className="flex h-[52px] border-b border-[var(--color-border-default)]">
@@ -1003,12 +999,12 @@ export function MeshMeetingRoom() {
                     msg.isOwn ? (
                       <div key={msg.id} className="flex gap-3 flex-row-reverse">
                         <div className="h-8 w-8 rounded-full bg-[var(--color-surface-light)] text-[var(--color-brand-blue)] border border-white/5 flex items-center justify-center text-xs font-bold shrink-0 mt-1">{msg.senderInitials}</div>
-                        <div className="flex flex-col items-end">
+                        <div className="flex flex-col items-end min-w-0">
                           <div className="flex items-baseline gap-2 mb-1">
                             <span className="text-[10px] text-[var(--color-text-secondary)]">{msg.timestamp}</span>
                             <span className="text-[12px] font-semibold text-[var(--color-text-secondary)]">You</span>
                           </div>
-                          <div className="bg-[var(--color-brand-blue)] text-white text-[14px] px-3.5 py-2.5 rounded-xl rounded-tr-sm inline-block shadow-sm max-w-[220px]">
+                          <div className="bg-[var(--color-brand-blue)] text-white text-[14px] px-3.5 py-2.5 rounded-xl rounded-tr-sm inline-block shadow-sm max-w-[220px] break-words">
                             {msg.message}
                           </div>
                         </div>
@@ -1016,12 +1012,12 @@ export function MeshMeetingRoom() {
                     ) : (
                       <div key={msg.id} className="flex gap-3">
                         <div className="h-8 w-8 rounded-full bg-[var(--color-surface-light)] text-[var(--color-text-secondary)] border border-white/5 flex items-center justify-center text-xs font-bold shrink-0 mt-1">{msg.senderInitials}</div>
-                        <div>
-                          <div className="flex items-baseline gap-2 mb-1">
-                            <span className="text-[12px] font-semibold text-white">{msg.senderName}</span>
-                            <span className="text-[10px] text-[var(--color-text-secondary)]">{msg.timestamp}</span>
+                        <div className="min-w-0">
+                          <div className="flex items-baseline gap-2 mb-1 min-w-0">
+                            <span className="text-[12px] font-semibold text-white truncate">{msg.senderName}</span>
+                            <span className="text-[10px] text-[var(--color-text-secondary)] shrink-0">{msg.timestamp}</span>
                           </div>
-                          <div className="bg-[var(--color-surface-card)] text-white text-[14px] px-3.5 py-2.5 rounded-xl rounded-tl-sm inline-block max-w-[220px] shadow-sm border border-white/5">
+                          <div className="bg-[var(--color-surface-card)] text-white text-[14px] px-3.5 py-2.5 rounded-xl rounded-tl-sm inline-block max-w-[220px] shadow-sm border border-white/5 break-words">
                             {msg.message}
                           </div>
                         </div>
@@ -1055,7 +1051,7 @@ export function MeshMeetingRoom() {
                       </div>
                       {/* Host Actions (only for remote participants) */}
                       {p.id !== localUserId && localUser?.isHost && (
-                        <div className="hidden group-hover:flex items-center gap-1 ml-1 pl-2 border-l border-[var(--color-border-default)]">
+                        <div className="hidden max-md:flex group-hover:flex items-center gap-1 ml-1 pl-2 border-l border-[var(--color-border-default)]">
                           <button 
                             onClick={() => handleForceMedia(p.id, 'mute')}
                             title="Mute Participant"
@@ -1128,7 +1124,7 @@ export function MeshMeetingRoom() {
       {/* Remove Participant Modal */}
       {showRemoveModal && (
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="bg-[var(--color-surface-card)] border border-[var(--color-border-default)] rounded-[16px] w-full max-w-[480px] p-[32px] relative shadow-2xl mx-4">
+          <div className="bg-[var(--color-surface-card)] border border-[var(--color-border-default)] rounded-[16px] w-full max-w-[480px] p-5 sm:p-[32px] relative shadow-2xl mx-4">
             <button 
               onClick={() => { setShowRemoveModal(false); setRemoveTarget(null) }}
               className="absolute top-4 right-4 text-[var(--color-text-secondary)] hover:text-white focus:outline-none"
@@ -1141,33 +1137,33 @@ export function MeshMeetingRoom() {
                 <AlertTriangle className="h-5 w-5 text-[#D97706]" />
               </div>
               
-              <h2 className="text-[20px] font-semibold text-white mb-2 font-display">
+              <h2 className="text-[18px] sm:text-[20px] font-semibold text-white mb-2 font-display break-words max-w-full">
                 Remove {participants.find(p => p.id === removeTarget)?.name || 'Participant'}?
               </h2>
-              
-              <p className="text-[14px] text-[var(--color-text-secondary)] leading-[1.6] max-w-[360px] mb-6">
+
+              <p className="text-[13px] sm:text-[14px] text-[var(--color-text-secondary)] leading-[1.6] max-w-[360px] mb-5 sm:mb-6 break-words">
                 {participants.find(p => p.id === removeTarget)?.name || 'This participant'} will be immediately disconnected from this meeting.
               </p>
-              
-              <div className="w-full flex items-center gap-2 mb-6 justify-center">
+
+              <div className="w-full flex items-start sm:items-center gap-2 mb-5 sm:mb-6 justify-start sm:justify-center text-left">
                 <input
                   type="checkbox"
                   id="prevent-rejoin"
                   checked={banOnRemove}
                   onChange={(e) => setBanOnRemove(e.target.checked)}
-                  className="rounded border-[var(--color-border-default)] bg-[var(--color-bg-primary)] text-[var(--color-brand-blue)] focus:ring-[var(--color-brand-blue)]/20"
+                  className="shrink-0 mt-1 sm:mt-0 rounded border-[var(--color-border-default)] bg-[var(--color-bg-primary)] text-[var(--color-brand-blue)] focus:ring-[var(--color-brand-blue)]/20"
                 />
-                <label htmlFor="prevent-rejoin" className="text-[14px] text-[var(--color-text-secondary)] cursor-pointer select-none">Also prevent this participant from rejoining</label>
+                <label htmlFor="prevent-rejoin" className="text-[13px] sm:text-[14px] text-[var(--color-text-secondary)] cursor-pointer select-none">Also prevent this participant from rejoining</label>
               </div>
-              
-              <div className="w-full flex items-center justify-end gap-3">
-                <button 
+
+              <div className="w-full flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2 sm:gap-3">
+                <button
                   onClick={() => { setShowRemoveModal(false); setRemoveTarget(null) }}
                   className="h-10 px-4 rounded-[8px] border border-[var(--color-border-default)] bg-[var(--color-bg-secondary)] text-[var(--color-text-primary)] text-[14px] font-medium hover:bg-[var(--color-surface-light)] transition-colors focus:outline-none"
                 >
                   Cancel
                 </button>
-                <button 
+                <button
                   onClick={handleRemoveParticipant}
                   className="h-10 px-4 rounded-[8px] bg-[#EF4444] text-white text-[14px] font-medium hover:bg-[#D92626] transition-colors focus:outline-none shadow-md shadow-red-500/10"
                 >

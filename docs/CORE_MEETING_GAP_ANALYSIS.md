@@ -1207,6 +1207,45 @@ Also fixed from the lower-severity findings: a microphone failure no longer skip
 
 **Verified running.** Both servers were started, an account was driven through login, dashboard, meeting creation, lobby and join, and LiveKit Cloud confirmed the live session with the correct identity and server-signed `{"role":"HOST"}` metadata. The control bar renders all seven controls including the new settings button, and the settings panel degrades gracefully where no devices are available.
 
+---
+
+## Whole-project error sweep (8 September 2026)
+
+Five agents swept the project along different lenses (routes driven in a browser, dead code and facades, backend failure modes, configuration and docs, security), each verifying findings by running code rather than reading it. Every finding then went to an independent skeptic instructed to refute it. **49 raised, 20 survived.** All 20 are fixed.
+
+### The critical one
+
+**Any logged-in user could kill the entire backend with a single malformed socket event.** `socket.on('signal', ({ to, signal }) => …)` destructured its payload in the parameter list, so emitting `signal` with `null` or no argument threw before any guard in the body could run. Socket.IO has no try/catch around listener dispatch, so the `TypeError` reached `process.on('uncaughtException')`, which calls `process.exit(1)`. With no supervisor, the API and every live meeting stayed down until someone restarted it. Registration is public, so the only precondition was an account.
+
+Fixed by validating instead of destructuring, and by routing every socket handler through a wrapper that catches throws and rejected promises, so no future payload can do the same. Verified by firing 30 malformed events across all nine events and confirming the server stayed up.
+
+### Backend
+
+| Fixed | Was |
+|---|---|
+| Body-parser errors return 413 / 400 with codes | Every one became a **500**. `http-errors` keeps `status` and `statusCode` non-enumerable, so the handler's `{...err}` copy lost them |
+| Non-string values rejected with 422 across all auth and user routes | `{"email":["a@b.com"]}` on **login** returned a 500 from `email.toLowerCase is not a function`; arrays crashed `bcrypt` and `title.trim()`; an object title was stored as the literal `"[object Object]"` |
+| `verify-otp`, `resend-otp`, `forgot-password`, `reset-password`, `google` now validated | They had **no validators at all** and took raw input straight to the controller |
+| Email normalisation consistent across register and verify | `register` normalised but `verify-otp` did not, so OTP verification could never succeed for a Gmail address containing a dot or `+tag` |
+| Changing the account email requires the current password | A stolen JWT alone could change the recovery address, then password-reset to it: silent, permanent account takeover |
+| CORS now runs before the rate limiter | A 429 had no `Access-Control-Allow-Origin`, so the browser blocked it and the user saw "Unable to connect to server" instead of being told they were rate limited |
+| `participantIdentityParam` guard | A bogus participant id gave 400 when banning but a misleading 200 when merely removing |
+| `npm run dev` watches source only | `node --watch` was watching `node_modules`, causing restart storms and an eventual exit |
+
+### Frontend
+
+Removed rather than left as convincing fakes: the "Active Sessions" panel that showed the same invented device and location to every user; "Download my data" and "Request data deletion", which only fired a success toast; three hard-coded notifications including a meeting called "CPEC Quarterly Review" that never existed; the decorative "Remember me" checkbox; and the dead "Change Avatar" button. The `/meeting/summary/:id` route is now unrouted, since it still served an invented transcript and action items.
+
+Made real: Settings now saves the display name **to the server** (it previously reported success, wrote only to local state, and reverted on next login); the contact form composes a real email instead of silently discarding the message; `ScrollToTop` scrolls `#root`, the element that actually scrolls, so long pages no longer open halfway down; and the legal pages carry a fixed date instead of `new Date()`, which made them claim to have been revised today, every day.
+
+### Documentation
+
+The README described the peer-to-peer mesh as the architecture when LiveKit is the default path, listed `recharts` and `Multer` in the stack after both were removed, and called lobby device pickers and the Rejoin flow "not yet built" when both ship.
+
+### Verification
+
+108 tests passing (8 new, covering every crash above), frontend type-checks clean under `strict`, production build splits LiveKit out of the main bundle, 9 of 9 backend error-path probes return the right status and code, and every frontend change was confirmed in the running app.
+
 **Still open:** camera and microphone capture has no end-to-end verification, because the automated browser blocks device access. That path needs one manual call on a machine with a webcam. The legacy mesh (`MeshMeetingRoom.tsx`, `useMeetingConnection.ts`, `lib/socket.ts`, and the Socket.IO block in `server.js`) is still present as a fallback; now that LiveKit is verified in this environment it can be deleted, which would also drop the `socket.io` and `socket.io-client` dependencies.
 
 ### Decisions
@@ -1226,3 +1265,64 @@ Also fixed from the lower-severity findings: a microphone failure no longer skip
 13. **State model?** CREATED → ACTIVE → ENDED with `endedReason`. SCHEDULED only when scheduling has real UI.
 14. **Chat transport?** LiveKit data messages, reliable mode. Persistence later via a separate endpoint if wanted.
 15. **Minimum before the AI module?** Phases 1-5: passing build, Meeting model and validated IDs, secure token endpoint, LiveKit room with audio, video, screen share, participant list, host mute, remove, end, leave, refresh and reconnect. The translation pipeline needs a server-side participant subscribing to audio, which only exists once media flows through LiveKit.
+
+---
+
+## Mobile responsiveness pass (8 September 2026)
+
+The app was built desktop-first and had never been opened at phone width. At
+375×812 no page scrolled sideways, so nothing looked broken from the outside,
+but two screens were unusable: the dashboard rendered its 260px sidebar as a
+permanent fixed column, leaving content in a sliver that wrapped one word per
+line, and the meeting room printed its call timer on top of the meeting code
+while a 320px chat panel left roughly 55px of width for video.
+
+Scope was every route the marker can reach. Desktop had to stay pixel-identical,
+so every change is mobile-first base classes with `sm:` / `md:` / `lg:` variants
+restoring the previous values — no existing desktop class was edited in place.
+
+### What changed
+
+| Area | Problem at 375px | Fix |
+|---|---|---|
+| `layouts/DashboardLayout.tsx` | Fixed 260px sidebar crushed all content | Slide-in drawer with backdrop + hamburger, `lg:static` restores the desktop column; closes on route change |
+| `layouts/DashboardLayout.tsx` | Header read "Dashboard" on every page | Title derived from the route via longest-prefix match on `navItems` |
+| `pages/meeting/LiveKitMeetingRoom.tsx` | Three header groups overlapped; timer sat on the meeting code | Each group `flex-1 min-w-0` with truncation; logo, divider and code hidden below `sm:` |
+| `pages/meeting/LiveKitMeetingRoom.tsx` | 320px sidebar left ~55px for video | Sidebar is a full-width overlay below `sm:`, `sm:static sm:w-80` above |
+| `pages/meeting/LiveKitMeetingRoom.tsx` | Control bar clipped the Leave button | `h-16 gap-1.5 px-2` with 44px controls; Leave label hidden below `sm:` |
+| `pages/meeting/LiveKitMeetingRoom.tsx` | Overlay sidebar opened by default, so joining a call showed an empty chat instead of the video | `sidebar` initial state reads `matchMedia("(min-width: 640px)")` |
+| `pages/meeting/MeshMeetingRoom.tsx` | `grid-cols-3` header collision; control bar overflowed ~421px into 375px; sidebar buried the control bar; host controls were hover-only and unreachable on touch | Flex header, narrower controls (~321px), `bottom-[86px] md:bottom-auto`, `hidden max-md:flex group-hover:flex`, drawer defaults closed below `md:` |
+| `pages/public/VerifyEmailPage.tsx` | Six fixed-width OTP boxes needed 328px inside 311px of usable width | `flex-1 min-w-0 max-w-[48px]` |
+| `pages/meeting/LobbyPage.tsx` | "Camera unavailable" ran underneath the mic/camera toggles | Placeholder avatar `h-16 sm:h-24`, `pb-14 sm:pb-0` lifts the label clear |
+
+The remaining pages — landing, the five auth screens, contact/privacy/terms/404,
+dashboard and my-meetings, profile and settings, create/join/ended — needed
+padding, type-scale and grid-collapse work rather than structural change. That
+was done by seven agents with disjoint file ownership so no two could touch the
+same file.
+
+### Verification
+
+- `npx tsc --noEmit` — 0 errors. `npm run build` — succeeds; bundle sizes
+  unchanged (`index` 666kB, `LiveKitMeetingRoom` 595kB), so no import crept
+  across a chunk boundary.
+- `npm test` (backend) — 108/108 pass; no backend file was touched.
+- All 16 reachable routes measured at 375×812 by comparing
+  `documentElement.scrollWidth` against `clientWidth`: every one reports 375 vs
+  375, i.e. no horizontal scroll anywhere. The Settings tab strip does extend
+  past the viewport, but inside its own `overflow-x-auto` container, which is
+  deliberate.
+- Meeting room joined at 375px: lands on video, all seven controls 44px and
+  within bounds, chat and people overlays open and close, no overflow.
+- Re-measured at 1440×900 and 768×1024. Desktop is unchanged — dashboard
+  sidebar `static` at 260px with the hamburger hidden, meeting sidebar `static`
+  at x=1121 w=319 with chat open on join, login showcase panel still rendered,
+  profile still a two-column grid.
+
+### Known limitation
+
+Device capture is blocked in the automated browser, so tiles were verified with
+the camera-off placeholder rather than live video. The video element itself is
+`object-cover` inside the same aspect-ratio box at every width, so the grid
+geometry is exercised either way, but a real handset check is still worth doing
+before the demo.

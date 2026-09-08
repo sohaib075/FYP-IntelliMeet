@@ -122,7 +122,7 @@ export function VerifyEmailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-[#F8FAFC] flex flex-col justify-center py-8 px-4 sm:py-12 sm:px-6 lg:px-8">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -134,13 +134,13 @@ export function VerifyEmailPage() {
             <ShieldCheck className="h-8 w-8 text-[#3B82F6]" />
           </div>
         </div>
-        <h2 className="text-center text-3xl font-bold font-display text-[#0F172A] tracking-tight">
+        <h2 className="text-center text-2xl sm:text-3xl font-bold font-display text-[#0F172A] tracking-tight">
           Verify your email
         </h2>
-        <p className="mt-3 text-center text-[15px] text-[#64748B]">
+        <p className="mt-3 text-center text-[14px] sm:text-[15px] text-[#64748B]">
           We sent a 6-digit verification code to
           <br />
-          <span className="font-medium text-[#0F172A]">{email}</span>
+          <span className="font-medium text-[#0F172A] break-all">{email}</span>
         </p>
       </motion.div>
 
@@ -148,12 +148,12 @@ export function VerifyEmailPage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.1 }}
-        className="mt-8 sm:mx-auto sm:w-full sm:max-w-md"
+        className="mt-6 sm:mt-8 sm:mx-auto sm:w-full sm:max-w-md"
       >
-        <div className="bg-white py-8 px-4 shadow-sm border border-[#E2E8F0] sm:rounded-2xl sm:px-10">
+        <div className="bg-white py-6 px-4 shadow-sm border border-[#E2E8F0] rounded-2xl sm:py-8 sm:px-10">
           <form onSubmit={handleVerify} className="space-y-6">
             <div>
-              <div className="flex justify-between gap-2" onPaste={handlePaste}>
+              <div className="flex justify-between gap-1.5 sm:gap-2" onPaste={handlePaste}>
                 {otp.map((digit, index) => (
                   <input
                     key={index}
@@ -164,7 +164,7 @@ export function VerifyEmailPage() {
                     value={digit}
                     onChange={(e) => handleChange(index, e.target.value)}
                     onKeyDown={(e) => handleKeyDown(index, e)}
-                    className="w-12 h-14 text-center text-2xl font-bold font-display text-[#0F172A] border border-[#CBD5E1] rounded-lg bg-white shadow-sm focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6] transition-all outline-none"
+                    className="flex-1 min-w-0 max-w-[48px] h-12 text-center text-xl font-bold font-display text-[#0F172A] border border-[#CBD5E1] rounded-lg bg-white shadow-sm focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6] transition-all outline-none sm:flex-none sm:w-12 sm:h-14 sm:text-2xl"
                   />
                 ))}
               </div>
@@ -181,7 +181,7 @@ export function VerifyEmailPage() {
             </Button>
           </form>
 
-          <div className="mt-8 text-center border-t border-[#E2E8F0] pt-6">
+          <div className="mt-6 sm:mt-8 text-center border-t border-[#E2E8F0] pt-6">
             <p className="text-[14px] text-[#64748B] mb-4">Didn't receive the code?</p>
             <Button
               type="button"

@@ -85,28 +85,28 @@ export function DashboardPage() {
   ]
 
   return (
-    <div className="p-6 max-w-[1200px] mx-auto space-y-6">
+    <div className="p-4 sm:p-6 max-w-[1200px] mx-auto space-y-6">
 
       {/* Quick Actions Row */}
       <div className="flex flex-col md:flex-row gap-4">
         {/* Card 1: New Meeting */}
-        <div className="w-full md:w-1/3 bg-white border border-[#E2E8F0] rounded-xl p-5 flex flex-col justify-between items-start gap-4 shadow-sm hover:border-[#3B82F6] transition-colors">
+        <div className="w-full md:w-1/3 bg-white border border-[#E2E8F0] rounded-xl p-4 sm:p-5 flex flex-col justify-between items-start gap-4 shadow-sm hover:border-[#3B82F6] transition-colors">
           <div>
             <h3 className="text-[16px] font-semibold text-[#0F172A] font-display">New Meeting</h3>
             <p className="text-[13px] text-[#64748B] mt-1">Start an instant room. You'll be the host.</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button
               onClick={handleStartInstant}
               isLoading={isStarting}
-              className="bg-[#3B82F6] text-white hover:bg-[#2563EB] h-[36px] px-4 text-[14px] rounded-lg border-0"
+              className="bg-[#3B82F6] text-white hover:bg-[#2563EB] h-[40px] sm:h-[36px] px-4 text-[14px] rounded-lg border-0"
             >
               Start Now
             </Button>
             <Button
               variant="ghost"
               onClick={() => navigate("/meeting/create")}
-              className="h-[36px] px-3 text-[14px] text-[#3B82F6]"
+              className="h-[40px] sm:h-[36px] px-3 text-[14px] text-[#3B82F6]"
             >
               Schedule
             </Button>
@@ -114,12 +114,12 @@ export function DashboardPage() {
         </div>
 
         {/* Card 2: Join Meeting */}
-        <div className="w-full md:w-2/3 bg-white border border-[#E2E8F0] rounded-xl p-5 flex flex-col justify-between shadow-sm hover:border-[#3B82F6] transition-colors">
+        <div className="w-full md:w-2/3 bg-white border border-[#E2E8F0] rounded-xl p-4 sm:p-5 flex flex-col justify-between shadow-sm hover:border-[#3B82F6] transition-colors">
           <div className="mb-4">
             <h3 className="text-[16px] font-semibold text-[#0F172A] font-display">Join a Meeting</h3>
             <p className="text-[13px] text-[#64748B] mt-1">Enter a meeting code or paste an invite link</p>
           </div>
-          <div className="flex gap-2 w-full max-w-md">
+          <div className="flex flex-col sm:flex-row gap-2 w-full max-w-md">
             <input
               type="text"
               value={joinId}
@@ -129,13 +129,13 @@ export function DashboardPage() {
               aria-label="Meeting code"
               autoComplete="off"
               spellCheck={false}
-              className="flex-1 h-[40px] px-3 bg-white border border-[#E2E8F0] rounded-lg text-[14px] font-mono text-[#0F172A] focus:outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 transition-all placeholder:text-[#94A3B8] placeholder:font-sans"
+              className="w-full min-w-0 sm:flex-1 h-[40px] px-3 bg-white border border-[#E2E8F0] rounded-lg text-[14px] font-mono text-[#0F172A] focus:outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/10 transition-all placeholder:text-[#94A3B8] placeholder:font-sans"
             />
             <Button
               onClick={handleJoin}
               disabled={!joinId.trim()}
               isLoading={isJoining}
-              className="bg-[#3B82F6] text-white hover:bg-[#2563EB] disabled:opacity-50 h-[40px] px-6 text-[14px] rounded-lg border-0"
+              className="bg-[#3B82F6] text-white hover:bg-[#2563EB] disabled:opacity-50 h-[40px] px-6 text-[14px] rounded-lg border-0 w-full sm:w-auto"
             >
               Join
             </Button>
@@ -151,7 +151,7 @@ export function DashboardPage() {
       {/* Stats Row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((stat) => (
-          <div key={stat.title} className="bg-white border border-[#E2E8F0] rounded-xl p-5 shadow-sm">
+          <div key={stat.title} className="bg-white border border-[#E2E8F0] rounded-xl p-4 sm:p-5 shadow-sm">
             <h4 className="text-[13px] font-medium text-[#64748B] mb-2">{stat.title}</h4>
             <div className="flex items-baseline gap-2">
               <span className="text-[28px] font-bold text-[#0F172A] font-display tabular-nums">{stat.value}</span>
@@ -168,7 +168,7 @@ export function DashboardPage() {
             <h2 className="text-[16px] font-semibold text-[#0F172A] font-display">Your Meetings</h2>
             <button
               onClick={() => navigate('/dashboard/meetings')}
-              className="text-[13px] font-medium text-[#3B82F6] hover:text-[#2563EB] bg-transparent border-0 cursor-pointer"
+              className="min-h-[40px] sm:min-h-0 text-[13px] font-medium text-[#3B82F6] hover:text-[#2563EB] bg-transparent border-0 cursor-pointer"
             >
               View all &rarr;
             </button>
@@ -176,13 +176,13 @@ export function DashboardPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {upcoming.slice(0, 4).map((meeting) => (
-              <div key={meeting.meetingId} className="bg-white border border-[#E2E8F0] rounded-xl p-5 shadow-sm hover:border-[#3B82F6] transition-all flex justify-between items-start gap-4">
+              <div key={meeting.meetingId} className="bg-white border border-[#E2E8F0] rounded-xl p-4 sm:p-5 shadow-sm hover:border-[#3B82F6] transition-all flex justify-between items-start gap-3 sm:gap-4">
                 <div className="space-y-2 min-w-0">
-                  <h3 className="text-[15px] font-semibold text-[#0F172A] truncate">{meeting.title}</h3>
-                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-[#64748B]">
+                  <h3 className="text-[15px] font-semibold text-[#0F172A] truncate max-w-full">{meeting.title}</h3>
+                  <div className="flex flex-wrap items-center gap-x-3 sm:gap-x-4 gap-y-1 text-xs text-[#64748B]">
                     <button
                       type="button"
-                      className="font-mono text-[#3b82f6] font-semibold bg-blue-50 px-1.5 py-0.5 rounded cursor-pointer hover:bg-blue-100 transition-colors border-0"
+                      className="max-w-full truncate font-mono text-[#3b82f6] font-semibold bg-blue-50 px-1.5 py-0.5 rounded cursor-pointer hover:bg-blue-100 transition-colors border-0"
                       title="Click to copy code"
                       onClick={() => navigator.clipboard.writeText(meeting.meetingId).catch(() => {})}
                     >
@@ -199,7 +199,7 @@ export function DashboardPage() {
                 </div>
                 <Button
                   onClick={() => navigate(`/meet/${meeting.meetingId}`)}
-                  className="bg-[#3B82F6] text-white hover:bg-[#2563EB] h-9 px-4 text-xs font-semibold rounded-lg border-0 shrink-0"
+                  className="bg-[#3B82F6] text-white hover:bg-[#2563EB] h-10 sm:h-9 px-4 text-xs font-semibold rounded-lg border-0 shrink-0"
                 >
                   {meeting.status === "ACTIVE" ? "Rejoin" : meeting.isHost ? "Start" : "Join"}
                 </Button>
@@ -215,7 +215,7 @@ export function DashboardPage() {
           <h2 className="text-[16px] font-semibold text-[#0F172A] font-display">Recent Meetings</h2>
           <button
             onClick={() => navigate('/dashboard/meetings')}
-            className="text-[13px] font-medium text-[#3B82F6] hover:text-[#2563EB] bg-transparent border-0 cursor-pointer"
+            className="min-h-[40px] sm:min-h-0 text-[13px] font-medium text-[#3B82F6] hover:text-[#2563EB] bg-transparent border-0 cursor-pointer"
           >
             View all &rarr;
           </button>
@@ -223,29 +223,29 @@ export function DashboardPage() {
 
         <div className="bg-white border border-[#E2E8F0] rounded-xl overflow-hidden shadow-sm">
           {recent.length === 0 ? (
-            <p className="p-8 text-center text-[14px] text-[#64748B]">No finished meetings yet. Start one above.</p>
+            <p className="p-6 sm:p-8 text-center text-[14px] text-[#64748B]">No finished meetings yet. Start one above.</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-[#F8FAFC] border-b border-[#E2E8F0]">
-                    <th className="px-5 py-3 text-[12px] font-medium text-[#64748B] uppercase tracking-wider">Meeting</th>
-                    <th className="px-5 py-3 text-[12px] font-medium text-[#64748B] uppercase tracking-wider hidden sm:table-cell">Code</th>
-                    <th className="px-5 py-3 text-[12px] font-medium text-[#64748B] uppercase tracking-wider hidden md:table-cell">Date</th>
-                    <th className="px-5 py-3 text-[12px] font-medium text-[#64748B] uppercase tracking-wider hidden lg:table-cell">Duration</th>
-                    <th className="px-5 py-3 text-[12px] font-medium text-[#64748B] uppercase tracking-wider hidden sm:table-cell">Participants</th>
-                    <th className="px-5 py-3 text-[12px] font-medium text-[#64748B] uppercase tracking-wider">Role</th>
+                    <th className="whitespace-nowrap px-4 sm:px-5 py-3 text-[12px] font-medium text-[#64748B] uppercase tracking-wider">Meeting</th>
+                    <th className="whitespace-nowrap px-4 sm:px-5 py-3 text-[12px] font-medium text-[#64748B] uppercase tracking-wider hidden sm:table-cell">Code</th>
+                    <th className="whitespace-nowrap px-4 sm:px-5 py-3 text-[12px] font-medium text-[#64748B] uppercase tracking-wider hidden md:table-cell">Date</th>
+                    <th className="whitespace-nowrap px-4 sm:px-5 py-3 text-[12px] font-medium text-[#64748B] uppercase tracking-wider hidden lg:table-cell">Duration</th>
+                    <th className="whitespace-nowrap px-4 sm:px-5 py-3 text-[12px] font-medium text-[#64748B] uppercase tracking-wider hidden sm:table-cell">Participants</th>
+                    <th className="whitespace-nowrap px-4 sm:px-5 py-3 text-[12px] font-medium text-[#64748B] uppercase tracking-wider">Role</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#E2E8F0]">
                   {recent.map((meeting) => (
                     <tr key={meeting.meetingId} className="hover:bg-[#F8FAFC] transition-colors">
-                      <td className="px-5 py-4 text-[14px] font-medium text-[#0F172A]">{meeting.title}</td>
-                      <td className="px-5 py-4 text-[13px] font-mono text-[#64748B] hidden sm:table-cell">{meeting.meetingId}</td>
-                      <td className="px-5 py-4 text-[14px] text-[#64748B] hidden md:table-cell">{formatDate(meeting.startedAt || meeting.createdAt)}</td>
-                      <td className="px-5 py-4 text-[14px] text-[#64748B] hidden lg:table-cell tabular-nums">{formatDuration(meeting)}</td>
-                      <td className="px-5 py-4 text-[14px] text-[#64748B] hidden sm:table-cell tabular-nums">{meeting.participantCount}</td>
-                      <td className="px-5 py-4">
+                      <td className="px-4 sm:px-5 py-4 text-[14px] font-medium text-[#0F172A] break-words">{meeting.title}</td>
+                      <td className="px-4 sm:px-5 py-4 text-[13px] font-mono text-[#64748B] hidden sm:table-cell">{meeting.meetingId}</td>
+                      <td className="px-4 sm:px-5 py-4 text-[14px] text-[#64748B] hidden md:table-cell">{formatDate(meeting.startedAt || meeting.createdAt)}</td>
+                      <td className="px-4 sm:px-5 py-4 text-[14px] text-[#64748B] hidden lg:table-cell tabular-nums">{formatDuration(meeting)}</td>
+                      <td className="px-4 sm:px-5 py-4 text-[14px] text-[#64748B] hidden sm:table-cell tabular-nums">{meeting.participantCount}</td>
+                      <td className="px-4 sm:px-5 py-4">
                         <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[12px] font-medium bg-[#F1F5F9] text-[#475569]">
                           {meeting.isHost ? "Host" : "Participant"}
                         </span>

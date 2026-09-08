@@ -113,18 +113,18 @@ export function ProfilePage() {
   }
 
   return (
-    <div className="w-full max-w-4xl mx-auto space-y-6 p-8">
-      <h1 className="text-3xl font-bold font-display tracking-tight">Profile</h1>
+    <div className="w-full max-w-4xl mx-auto space-y-4 sm:space-y-6 p-4 sm:p-8">
+      <h1 className="text-2xl sm:text-3xl font-bold font-display tracking-tight">Profile</h1>
 
       {/* Profile Header */}
       <Card className="bg-gradient-to-br from-[#F8FAFC] to-[#FFFFFF] border-[#E2E8F0]">
-        <CardContent className="flex flex-col sm:flex-row items-center gap-6 p-8">
-          <div className="h-24 w-24 rounded-full bg-[#EFF6FF] text-[#3B82F6] flex items-center justify-center text-3xl font-bold uppercase">
+        <CardContent className="flex flex-col sm:flex-row items-center gap-4 p-5 sm:gap-6 sm:p-8">
+          <div className="h-20 w-20 sm:h-24 sm:w-24 shrink-0 rounded-full bg-[#EFF6FF] text-[#3B82F6] flex items-center justify-center text-2xl sm:text-3xl font-bold uppercase">
             {profile.name.substring(0, 2)}
           </div>
-          <div className="text-center sm:text-left">
-            <h2 className="text-2xl font-bold font-display text-[#0F172A]">{profile.name}</h2>
-            <p className="text-[#64748B] mt-1">{profile.email}</p>
+          <div className="min-w-0 max-w-full text-center sm:text-left">
+            <h2 className="text-xl sm:text-2xl font-bold font-display text-[#0F172A] break-words">{profile.name}</h2>
+            <p className="text-[#64748B] mt-1 break-words">{profile.email}</p>
             <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mt-4">
               <span className="text-[12px] text-[#3B82F6] bg-[#EFF6FF] px-2 py-0.5 rounded-full font-medium">
                 Member
@@ -137,14 +137,14 @@ export function ProfilePage() {
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
         {/* Personal Info */}
-        <Card>
-          <CardHeader>
+        <Card className="min-w-0">
+          <CardHeader className="p-4 sm:p-6">
             <CardTitle>Personal Information</CardTitle>
             <CardDescription>Update your personal details.</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-4 pt-0 sm:p-6 sm:pt-0">
             <form onSubmit={handleSaveProfile} className="space-y-4">
               <Input
                 label="Full Name"
@@ -194,21 +194,21 @@ export function ProfilePage() {
                   </div>
                 </div>
               </div>
-              <Button type="submit" isLoading={isLoading} className="mt-6 bg-[#3B82F6] text-white hover:bg-[#2563EB] border-0">
+              <Button type="submit" isLoading={isLoading} className="mt-6 w-full sm:w-auto bg-[#3B82F6] text-white hover:bg-[#2563EB] border-0">
                 Save Changes
               </Button>
             </form>
           </CardContent>
         </Card>
 
-        <div className="space-y-6">
+        <div className="min-w-0 space-y-4 sm:space-y-6">
           {/* Security */}
-          <Card>
-            <CardHeader>
+          <Card className="min-w-0">
+            <CardHeader className="p-4 sm:p-6">
               <CardTitle>Security</CardTitle>
               <CardDescription>Update your password.</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-4 pt-0 sm:p-6 sm:pt-0">
               <form onSubmit={handleSavePassword} className="space-y-4">
                 <Input
                   label="Current Password"
@@ -219,7 +219,7 @@ export function ProfilePage() {
                     <button 
                       type="button" 
                       onClick={() => setShowPassword({ ...showPassword, current: !showPassword.current })}
-                      className="hover:text-[#0F172A] focus:outline-none flex items-center justify-center h-full"
+                      className="hover:text-[#0F172A] focus:outline-none flex items-center justify-center h-10 w-10 sm:h-full sm:w-auto"
                       aria-label={showPassword.current ? "Hide password" : "Show password"}
                     >
                       {showPassword.current ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -235,7 +235,7 @@ export function ProfilePage() {
                     <button 
                       type="button" 
                       onClick={() => setShowPassword({ ...showPassword, new: !showPassword.new })}
-                      className="hover:text-[#0F172A] focus:outline-none flex items-center justify-center h-full"
+                      className="hover:text-[#0F172A] focus:outline-none flex items-center justify-center h-10 w-10 sm:h-full sm:w-auto"
                       aria-label={showPassword.new ? "Hide password" : "Show password"}
                     >
                       {showPassword.new ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -251,14 +251,14 @@ export function ProfilePage() {
                     <button 
                       type="button" 
                       onClick={() => setShowPassword({ ...showPassword, confirm: !showPassword.confirm })}
-                      className="hover:text-[#0F172A] focus:outline-none flex items-center justify-center h-full"
+                      className="hover:text-[#0F172A] focus:outline-none flex items-center justify-center h-10 w-10 sm:h-full sm:w-auto"
                       aria-label={showPassword.confirm ? "Hide password" : "Show password"}
                     >
                       {showPassword.confirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                   }
                 />
-                <Button type="submit" isLoading={isLoading} className="mt-4 bg-[#F1F5F9] text-[#0F172A] hover:bg-[#E2E8F0] border-0">
+                <Button type="submit" isLoading={isLoading} className="mt-4 w-full sm:w-auto bg-[#F1F5F9] text-[#0F172A] hover:bg-[#E2E8F0] border-0">
                   Update Password
                 </Button>
               </form>
@@ -266,18 +266,18 @@ export function ProfilePage() {
           </Card>
 
           {/* Danger Zone */}
-          <Card className="border-red-200 bg-red-50/50">
-            <CardHeader>
+          <Card className="min-w-0 border-red-200 bg-red-50/50">
+            <CardHeader className="p-4 sm:p-6">
               <CardTitle className="text-red-600">Danger Zone</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-4 pt-0 sm:p-6 sm:pt-0">
               <p className="text-[14px] text-red-600/80 mb-4">
                 Once you delete your account, there is no going back. Please be certain.
               </p>
-              <Button 
+              <Button
                 onClick={handleDeleteAccount}
                 disabled={isDeleting}
-                className="bg-red-600 text-white hover:bg-red-700 border-0"
+                className="w-full sm:w-auto bg-red-600 text-white hover:bg-red-700 border-0"
               >
                 {isDeleting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <AlertTriangle className="mr-2 h-4 w-4" />}
                 Delete Account

@@ -51,11 +51,15 @@ const MAX_MESSAGE_LENGTH = 2000
 /** Most recent messages kept in memory for one call. */
 const MAX_MESSAGES = 300
 
-/** Grid columns that keep tiles close to 16:9 for a given participant count. */
+/**
+ * Grid columns that keep tiles close to 16:9 for a given participant count.
+ * Mobile-first: a phone gets a single column until there are enough people
+ * that two narrow tiles still beat one, which is around five.
+ */
 function gridClassFor(count: number): string {
   if (count <= 1) return "grid-cols-1"
   if (count <= 4) return "grid-cols-1 sm:grid-cols-2"
-  if (count <= 9) return "grid-cols-2 lg:grid-cols-3"
+  if (count <= 9) return "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
   return "grid-cols-2 lg:grid-cols-4"
 }
 
@@ -219,7 +223,12 @@ function MeetingStage({
   const activeShare = screenTracks.find(isTrackReference)
 
   // ── UI state ──
-  const [sidebar, setSidebar] = useState<"chat" | "participants" | null>("chat")
+  // The sidebar is a full-screen overlay below `sm:`, so opening it by default
+  // on a phone would bury the video the moment you join. Desktop, where it sits
+  // beside the video rather than over it, still opens on chat.
+  const [sidebar, setSidebar] = useState<"chat" | "participants" | null>(() =>
+    typeof window !== "undefined" && window.matchMedia("(min-width: 640px)").matches ? "chat" : null
+  )
   const [chatInput, setChatInput] = useState("")
   const [messages, setMessages] = useState<ChatMsg[]>([])
   const [unread, setUnread] = useState(0)
@@ -431,14 +440,18 @@ function MeetingStage({
   return (
     <div className="flex h-screen flex-col bg-[var(--color-bg-primary)] font-body">
       {/* ── Top bar ── */}
-      <header className="flex h-14 shrink-0 items-center justify-between border-b border-[var(--color-border-default)] px-4">
-        <div className="flex min-w-0 items-center gap-3">
-          <Logo size={24} className="shrink-0 text-white" />
+      {/* Three groups on one row. At 375px they used to collide, with the
+          timer printed straight over the meeting code, so the least important
+          pieces (logo, divider, the word "people") drop away on small screens
+          and the title truncates rather than pushing its neighbours. */}
+      <header className="flex h-14 shrink-0 items-center justify-between gap-2 border-b border-[var(--color-border-default)] px-3 sm:px-4">
+        <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
+          <Logo size={24} className="hidden shrink-0 text-white sm:block" />
           <div className="hidden h-4 w-px bg-[var(--color-border-default)] sm:block" />
-          <span className="truncate text-[14px] font-semibold text-[var(--color-text-primary)]">
+          <span className="truncate text-[13px] font-semibold text-[var(--color-text-primary)] sm:text-[14px]">
             {meeting?.title || "Meeting"}
           </span>
-          <div className="flex shrink-0 items-center gap-1.5">
+          <div className="hidden shrink-0 items-center gap-1.5 sm:flex">
             <span className="font-mono text-[12px] text-[var(--color-text-secondary)]">{meetingId}</span>
             <button
               onClick={copyInvite}
@@ -450,18 +463,21 @@ function MeetingStage({
           </div>
         </div>
 
-        <span className="rounded bg-[var(--color-bg-primary)]/40 px-2 py-0.5 font-mono text-[14px] font-semibold tabular-nums tracking-wider text-[var(--color-text-primary)]">
+        <span className="shrink-0 rounded bg-[var(--color-bg-primary)]/40 px-1.5 py-0.5 font-mono text-[12px] font-semibold tabular-nums tracking-wider text-[var(--color-text-primary)] sm:px-2 sm:text-[14px]">
           {formatElapsed(elapsed)}
         </span>
 
-        <div className="flex items-center gap-3">
+        <div className="flex shrink-0 items-center gap-2 sm:gap-3">
           {isHost && (
-            <span className="flex items-center gap-1 rounded-full bg-[#F59E0B]/10 px-2 py-0.5 text-[11px] font-semibold text-[#F59E0B]">
-              <Crown className="h-3 w-3" /> Host
+            <span className="flex items-center gap-1 rounded-full bg-[#F59E0B]/10 px-1.5 py-0.5 text-[11px] font-semibold text-[#F59E0B] sm:px-2">
+              <Crown className="h-3 w-3" />
+              <span className="hidden sm:inline">Host</span>
             </span>
           )}
-          <span className="text-[13px] text-[var(--color-text-secondary)]">
-            {participants.length} {participants.length === 1 ? "person" : "people"}
+          <span className="flex items-center gap-1 text-[13px] text-[var(--color-text-secondary)]">
+            <Users className="h-3.5 w-3.5 sm:hidden" />
+            {participants.length}
+            <span className="hidden sm:inline">{participants.length === 1 ? " person" : " people"}</span>
           </span>
         </div>
       </header>
@@ -487,10 +503,11 @@ function MeetingStage({
       )}
 
       {/* ── Main ── */}
-      <div className="flex min-h-0 flex-1">
-        <main className="min-w-0 flex-1 p-4">
+      {/* `relative` so the sidebar can cover this area as an overlay on phones. */}
+      <div className="relative flex min-h-0 flex-1">
+        <main className="min-w-0 flex-1 p-2 sm:p-4">
           {activeShare ? (
-            <div className="flex h-full gap-3">
+            <div className="flex h-full gap-2 sm:gap-3">
               <div className="min-w-0 flex-1 overflow-hidden rounded-xl border border-[var(--color-border-default)] bg-black">
                 <VideoTrack trackRef={activeShare} className="h-full w-full object-contain" />
               </div>
@@ -501,7 +518,7 @@ function MeetingStage({
               </div>
             </div>
           ) : (
-            <div className={`grid h-full auto-rows-fr gap-3 ${gridClassFor(orderedTiles.length)}`}>
+            <div className={`grid h-full auto-rows-fr gap-2 sm:gap-3 ${gridClassFor(orderedTiles.length)}`}>
               {orderedTiles.map((t) => (
                 <ParticipantTile key={`${t.participant.identity}-cam`} trackRef={t} />
               ))}
@@ -509,9 +526,12 @@ function MeetingStage({
           )}
         </main>
 
-        {/* ── Sidebar ── */}
+        {/* ── Sidebar ──
+            A fixed 320px column would leave about 55px for video on a 375px
+            screen, so on phones it covers the video area instead and the user
+            toggles between the two. From sm: up it is the side column again. */}
         {sidebar && (
-          <aside className="flex w-80 shrink-0 flex-col border-l border-[var(--color-border-default)]">
+          <aside className="absolute inset-0 z-30 flex w-full flex-col border-l border-[var(--color-border-default)] bg-[var(--color-bg-primary)] sm:static sm:z-auto sm:w-80 sm:shrink-0">
             <div className="flex border-b border-[var(--color-border-default)]">
               {(["chat", "participants"] as const).map((tab) => (
                 <button
@@ -658,7 +678,9 @@ function MeetingStage({
       </div>
 
       {/* ── Control bar ── */}
-      <footer className="flex h-20 shrink-0 items-center justify-center gap-3 border-t border-[var(--color-border-default)]">
+      {/* Tighter buttons and gaps on a phone so the whole bar, including Leave,
+          fits 375px without clipping. */}
+      <footer className="flex h-16 shrink-0 items-center justify-center gap-1.5 border-t border-[var(--color-border-default)] px-2 sm:h-20 sm:gap-3 sm:px-0">
         <ControlButton active={isMicrophoneEnabled} onClick={toggleMic} label={isMicrophoneEnabled ? "Mute microphone" : "Unmute microphone"}>
           {isMicrophoneEnabled ? <Mic className="h-5 w-5" /> : <MicOff className="h-5 w-5" />}
         </ControlButton>
@@ -675,7 +697,7 @@ function MeetingStage({
           <MonitorUp className="h-5 w-5" />
         </ControlButton>
 
-        <div className="mx-2 h-8 w-px bg-[var(--color-border-default)]" />
+        <div className="mx-0.5 hidden h-8 w-px bg-[var(--color-border-default)] sm:mx-2 sm:block" />
 
         <ControlButton
           active
@@ -700,9 +722,11 @@ function MeetingStage({
 
         <button
           onClick={() => (isHost ? setShowLeaveModal(true) : leave())}
-          className="ml-2 flex h-12 items-center gap-2 rounded-full bg-[#EF4444] px-6 font-semibold text-white transition-colors hover:bg-[#DC2626]"
+          aria-label="Leave the meeting"
+          className="ml-1 flex h-11 shrink-0 items-center gap-2 rounded-full bg-[#EF4444] px-4 font-semibold text-white transition-colors hover:bg-[#DC2626] sm:ml-2 sm:h-12 sm:px-6"
         >
-          <PhoneOff className="h-5 w-5" /> Leave
+          <PhoneOff className="h-5 w-5" />
+          <span className="hidden sm:inline">Leave</span>
         </button>
       </footer>
 
@@ -848,7 +872,7 @@ function ControlButton({
       aria-label={label}
       title={label}
       aria-pressed={highlighted}
-      className={`relative flex h-12 w-12 items-center justify-center rounded-full transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
+      className={`relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-colors disabled:cursor-not-allowed disabled:opacity-40 sm:h-12 sm:w-12 ${
         !active
           ? "bg-[#EF4444] text-white hover:bg-[#DC2626]"
           : highlighted

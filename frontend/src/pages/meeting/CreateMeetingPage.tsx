@@ -75,17 +75,17 @@ export function CreateMeetingPage() {
   }
 
   return (
-    <div className="w-full max-w-2xl mx-auto space-y-6 p-8">
-      <h1 className="text-3xl font-bold font-display tracking-tight text-[#0F172A]">Create Meeting</h1>
+    <div className="w-full max-w-2xl mx-auto space-y-6 p-4 sm:p-8">
+      <h1 className="text-2xl sm:text-3xl font-bold font-display tracking-tight text-[#0F172A]">Create Meeting</h1>
       {!created ? (
         <Card>
-          <CardHeader>
-            <CardTitle className="text-2xl text-[#0F172A] font-display">Create New Meeting</CardTitle>
+          <CardHeader className="p-4 sm:p-6">
+            <CardTitle className="text-xl sm:text-2xl text-[#0F172A] font-display">Create New Meeting</CardTitle>
             <CardDescription>Configure your meeting room settings.</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-4 pt-0 sm:p-6 sm:pt-0">
             {error && (
-              <div role="alert" className="mb-6 rounded-lg border border-red-200 bg-red-50 p-3 text-[14px] text-red-600">
+              <div role="alert" className="mb-6 rounded-lg border border-red-200 bg-red-50 p-3 text-[14px] text-red-600 break-words">
                 {error}
               </div>
             )}
@@ -97,12 +97,13 @@ export function CreateMeetingPage() {
                 onChange={(e) => setMeetingDetails({ ...meetingDetails, title: e.target.value })}
                 minLength={1}
                 maxLength={100}
+                className="h-11 sm:h-10 text-[16px] sm:text-sm"
               />
 
               <div>
                 <label className="block text-[13px] font-medium text-[#0F172A] mb-1.5">Meeting Type</label>
-                <div className="flex gap-4">
-                  <label className="flex items-center gap-2 cursor-pointer">
+                <div className="flex flex-wrap gap-4">
+                  <label className="flex min-h-10 sm:min-h-0 items-center gap-2 cursor-pointer">
                     <input
                       type="radio"
                       className="text-[#3B82F6] bg-white border-[#E2E8F0] focus:ring-[#3B82F6]"
@@ -111,7 +112,7 @@ export function CreateMeetingPage() {
                     />
                     <span className="text-[14px] text-[#0F172A]">Instant Meeting</span>
                   </label>
-                  <label className="flex items-center gap-2 cursor-pointer">
+                  <label className="flex min-h-10 sm:min-h-0 items-center gap-2 cursor-pointer">
                     <input
                       type="radio"
                       className="text-[#3B82F6] bg-white border-[#E2E8F0] focus:ring-[#3B82F6]"
@@ -124,7 +125,7 @@ export function CreateMeetingPage() {
               </div>
 
               {meetingDetails.type === "scheduled" && (
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Input
                     label="Date"
                     type="date"
@@ -132,6 +133,7 @@ export function CreateMeetingPage() {
                     required
                     value={meetingDetails.date}
                     onChange={(e) => setMeetingDetails({ ...meetingDetails, date: e.target.value })}
+                    className="h-11 sm:h-10 text-[16px] sm:text-sm"
                   />
                   <Input
                     label="Time"
@@ -140,17 +142,18 @@ export function CreateMeetingPage() {
                     required
                     value={meetingDetails.time}
                     onChange={(e) => setMeetingDetails({ ...meetingDetails, time: e.target.value })}
+                    className="h-11 sm:h-10 text-[16px] sm:text-sm"
                   />
                 </div>
               )}
 
-              <div className="p-5 rounded-lg bg-white border border-[#E2E8F0] space-y-4">
+              <div className="p-4 sm:p-5 rounded-lg bg-white border border-[#E2E8F0] space-y-4">
                 <h4 className="font-medium text-[#0F172A] text-sm">Meeting Language Configuration</h4>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-[13px] font-medium text-[#64748B] mb-1.5">Primary Language</label>
                     <Select value={meetingDetails.primaryLang} onValueChange={(v) => setMeetingDetails({ ...meetingDetails, primaryLang: v })}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectTrigger className="h-11 sm:h-10"><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="en">🇬🇧 English</SelectItem>
                         <SelectItem value="ur">🇵🇰 Urdu</SelectItem>
@@ -161,7 +164,7 @@ export function CreateMeetingPage() {
                   <div>
                     <label className="block text-[13px] font-medium text-[#64748B] mb-1.5">Secondary Language</label>
                     <Select value={meetingDetails.secondaryLang} onValueChange={(v) => setMeetingDetails({ ...meetingDetails, secondaryLang: v })}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectTrigger className="h-11 sm:h-10"><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="en">🇬🇧 English</SelectItem>
                         <SelectItem value="ur">🇵🇰 Urdu</SelectItem>
@@ -173,30 +176,30 @@ export function CreateMeetingPage() {
                 <p className="text-[13px] text-[#64748B]">Each participant can override these with their personal settings.</p>
               </div>
 
-              <div className="flex justify-end gap-3 pt-4">
-                <Button variant="ghost" type="button" onClick={() => navigate("/dashboard")} className="text-[#64748B] hover:text-[#0F172A]">Cancel</Button>
-                <Button type="submit" isLoading={isLoading} className="bg-[#3B82F6] text-white hover:bg-[#2563EB]">Create Meeting</Button>
+              <div className="flex flex-col sm:flex-row sm:justify-end gap-3 pt-4">
+                <Button variant="ghost" type="button" onClick={() => navigate("/dashboard")} className="h-11 sm:h-10 w-full sm:w-auto text-[#64748B] hover:text-[#0F172A]">Cancel</Button>
+                <Button type="submit" isLoading={isLoading} className="h-11 sm:h-10 w-full sm:w-auto bg-[#3B82F6] text-white hover:bg-[#2563EB]">Create Meeting</Button>
               </div>
             </form>
           </CardContent>
         </Card>
       ) : (
         <Card className="text-center overflow-hidden border-[#22C55E]/30 shadow-lg bg-white">
-          <div className="bg-[#DCFCE7] p-8 flex flex-col items-center">
-            <CheckCircle2 className="h-16 w-16 text-[#22C55E] mb-4" />
-            <h2 className="text-2xl font-bold text-[#0F172A] mb-2 font-display">Meeting Created</h2>
-            <p className="text-[#64748B] max-w-md">
+          <div className="bg-[#DCFCE7] p-6 sm:p-8 flex flex-col items-center">
+            <CheckCircle2 className="h-12 w-12 sm:h-16 sm:w-16 text-[#22C55E] mb-4" />
+            <h2 className="text-xl sm:text-2xl font-bold text-[#0F172A] mb-2 font-display">Meeting Created</h2>
+            <p className="text-[#64748B] max-w-md break-words">
               <span className="font-semibold text-[#0F172A]">{created.title}</span> is ready. Share the code or link below to invite participants. You are the host.
             </p>
           </div>
 
-          <CardContent className="p-8 space-y-6">
-            <div className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl p-6 max-w-md mx-auto relative group hover:border-[#3B82F6]/50 transition-all flex flex-col items-center gap-3">
+          <CardContent className="p-4 sm:p-8 space-y-6">
+            <div className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl p-4 sm:p-6 max-w-md mx-auto relative group hover:border-[#3B82F6]/50 transition-all flex flex-col items-center gap-3">
               <span className="text-[12px] font-semibold tracking-wider text-[#64748B] uppercase">Meeting Code</span>
-              <p className="text-3xl font-mono tracking-widest text-[#0F172A] font-extrabold select-all">{created.meetingId}</p>
+              <p className="w-full text-2xl sm:text-3xl font-mono tracking-wider sm:tracking-widest text-[#0F172A] font-extrabold select-all break-all">{created.meetingId}</p>
               <Button
                 onClick={copyId}
-                className="mt-2 h-9 px-4 bg-[#3B82F6] hover:bg-[#2563EB] text-white rounded-lg flex items-center gap-2 text-xs font-semibold shadow-sm"
+                className="mt-2 h-10 sm:h-9 px-4 bg-[#3B82F6] hover:bg-[#2563EB] text-white rounded-lg flex items-center gap-2 text-xs font-semibold shadow-sm"
               >
                 {isCopiedId ? <ClipboardCheck className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                 {isCopiedId ? "Copied!" : "Copy Meeting Code"}
@@ -205,12 +208,12 @@ export function CreateMeetingPage() {
 
             <div className="max-w-md mx-auto space-y-2">
               <label className="block text-left text-xs font-semibold text-[#64748B] uppercase">Invitation Link</label>
-              <div className="flex items-center gap-2">
-                <Input readOnly value={meetingLink(created.meetingId)} className="font-mono text-sm bg-[#F8FAFC]" />
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                <Input readOnly value={meetingLink(created.meetingId)} className="h-11 sm:h-10 font-mono text-[16px] sm:text-sm bg-[#F8FAFC] min-w-0" />
                 <Button
                   onClick={copyLink}
                   title="Copy Link"
-                  className="bg-[#EFF6FF] text-[#3B82F6] hover:bg-[#DBEAFE] h-10 px-4 rounded-lg shrink-0 flex items-center gap-1.5 font-semibold text-xs border border-[#BFDBFE]"
+                  className="bg-[#EFF6FF] text-[#3B82F6] hover:bg-[#DBEAFE] h-11 sm:h-10 px-4 rounded-lg shrink-0 flex items-center justify-center gap-1.5 font-semibold text-xs border border-[#BFDBFE]"
                 >
                   {isCopiedLink ? <ClipboardCheck className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                   {isCopiedLink ? "Copied!" : "Copy"}
@@ -219,7 +222,7 @@ export function CreateMeetingPage() {
             </div>
 
             <div className="pt-6 flex flex-col sm:flex-row justify-center gap-4">
-              <Button variant="ghost" onClick={() => navigate("/dashboard")} className="text-[#64748B] hover:text-[#0F172A] font-medium">Go to Dashboard</Button>
+              <Button variant="ghost" onClick={() => navigate("/dashboard")} className="h-11 sm:h-10 text-[#64748B] hover:text-[#0F172A] font-medium">Go to Dashboard</Button>
               <Button size="lg" onClick={() => navigate(`/meet/${created.meetingId}`)} className="bg-[#3B82F6] text-white hover:bg-[#2563EB] font-semibold px-6 rounded-lg">
                 Start Meeting Now
               </Button>

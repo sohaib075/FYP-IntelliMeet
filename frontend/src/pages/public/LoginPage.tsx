@@ -84,22 +84,22 @@ export function LoginPage() {
     <div className="flex min-h-screen w-full bg-[#F8FAFC] font-body text-[#0F172A] overflow-hidden">
 
       {/* Left Column (Form) */}
-      <div className="flex-1 flex flex-col justify-between px-6 py-8 md:px-16 lg:px-20 bg-white relative z-10 shadow-2xl">
+      <div className="flex-1 flex flex-col justify-between px-5 py-6 sm:px-6 sm:py-8 md:px-16 lg:px-20 bg-white relative z-10 shadow-2xl">
         <Link to="/" className="flex items-center mb-6 self-start hover:opacity-85 transition-opacity">
           <Logo size={42} className="text-[#3B82F6]" />
         </Link>
 
-        <div className="my-auto max-w-[380px] w-full mx-auto space-y-6">
+        <div className="my-auto max-w-[380px] w-full mx-auto space-y-5 sm:space-y-6">
           <div className="space-y-2">
-            <h1 className="text-[32px] font-bold text-[#0F172A] font-display tracking-tight leading-tight">Welcome back</h1>
-            <p className="text-[15px] text-[#64748B]">Sign in to your account to continue connecting</p>
+            <h1 className="text-[26px] sm:text-[32px] font-bold text-[#0F172A] font-display tracking-tight leading-tight">Welcome back</h1>
+            <p className="text-[14px] sm:text-[15px] text-[#64748B]">Sign in to your account to continue connecting</p>
           </div>
 
           <form className="space-y-5" onSubmit={handleLogin}>
             {error && (
-              <div className="p-3.5 bg-red-50 text-red-600 rounded-xl text-sm border border-red-100 flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />
-                {error}
+              <div className="p-3.5 bg-red-50 text-red-600 rounded-xl text-sm border border-red-100 flex items-start sm:items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0 mt-1.5 sm:mt-0" />
+                <span className="min-w-0 break-words">{error}</span>
               </div>
             )}
 
@@ -145,7 +145,7 @@ export function LoginPage() {
                 changed nothing. Re-add it alongside a real session-only
                 storage mode. */}
             <div className="flex items-center justify-end pt-1">
-              <Link to="/forgot-password" className="text-[13px] text-[#3B82F6] hover:text-[#2563EB] font-semibold transition-colors">
+              <Link to="/forgot-password" className="inline-flex items-center min-h-[40px] sm:min-h-0 text-[13px] text-[#3B82F6] hover:text-[#2563EB] font-semibold transition-colors">
                 Forgot password?
               </Link>
             </div>
