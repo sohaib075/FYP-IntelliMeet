@@ -6,11 +6,13 @@ import { Button } from "@/components/ui/Button"
 import { authApi, ApiError } from "@/lib/api"
 import { useAuthStore, mapBackendUser } from "@/store/useAuthStore"
 import { useToastStore } from "@/store/useToastStore"
+import { usePostLoginRedirect } from "@/components/auth/usePostLoginRedirect"
 
 export function VerifyEmailPage() {
   const [searchParams] = useSearchParams()
   const email = searchParams.get("email") || ""
   const navigate = useNavigate()
+  const redirectAfterLogin = usePostLoginRedirect()
   const addToast = useToastStore((state) => state.addToast)
   const login = useAuthStore((state) => state.login)
 
@@ -89,7 +91,7 @@ export function VerifyEmailPage() {
       const mappedUser = mapBackendUser(data.user)
       login(data.token, mappedUser)
       addToast({ message: "Email verified successfully!", variant: "success" })
-      navigate("/dashboard")
+      redirectAfterLogin()
     } catch (err) {
       if (err instanceof ApiError) {
         setError(err.message)

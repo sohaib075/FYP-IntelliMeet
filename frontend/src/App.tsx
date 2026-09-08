@@ -5,6 +5,8 @@ import { PublicLayout } from "./layouts/PublicLayout"
 import { DashboardLayout } from "./layouts/DashboardLayout"
 
 import { ProtectedRoute } from "./components/auth/ProtectedRoute"
+import { PublicOnlyRoute } from "./components/auth/PublicOnlyRoute"
+import { useSessionBootstrap } from "./components/auth/useSessionBootstrap"
 import { ScrollToTop } from "./components/layout/ScrollToTop"
 
 // Public Pages
@@ -32,15 +34,25 @@ import { MeetingRoomPage } from "./pages/meeting/MeetingRoomPage"
 import { MeetingEndedPage } from "./pages/meeting/MeetingEndedPage"
 
 export function App() {
+  // Confirms a restored token with the server, and keeps the session honest
+  // across bfcache restores and other tabs. Must sit above <Routes> so the
+  // guards below never render against an unverified session.
+  useSessionBootstrap()
+
   return (
     <>
       <ScrollToTop />
       <Routes>
-      {/* Auth Routes (Standalone) */}
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/register" element={<RegisterPage />} />
-      <Route path="/verify-email" element={<VerifyEmailPage />} />
-      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      {/* Guest-only auth routes: a signed-in user is bounced to /dashboard. */}
+      <Route element={<PublicOnlyRoute />}>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/verify-email" element={<VerifyEmailPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      </Route>
+
+      {/* Reached from a one-time emailed link, so it must stay available even
+          if this browser still holds a stale session for that account. */}
       <Route path="/reset-password" element={<ResetPasswordPage />} />
 
       {/* Public Routes */}

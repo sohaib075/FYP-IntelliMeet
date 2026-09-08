@@ -1,15 +1,15 @@
 import { useState } from "react"
 import { GoogleLogin } from "@react-oauth/google"
-import { useNavigate } from "react-router-dom"
 import { useAuthStore, mapBackendUser } from "@/store/useAuthStore"
 import { authApi, ApiError } from "@/lib/api"
+import { usePostLoginRedirect } from "@/components/auth/usePostLoginRedirect"
 
 interface GoogleAuthButtonProps {
   onError?: (msg: string) => void
 }
 
 export function GoogleAuthButton({ onError }: GoogleAuthButtonProps) {
-  const navigate = useNavigate()
+  const redirectAfterLogin = usePostLoginRedirect()
   const login = useAuthStore((state) => state.login)
   const [isLoading, setIsLoading] = useState(false)
 
@@ -22,7 +22,7 @@ export function GoogleAuthButton({ onError }: GoogleAuthButtonProps) {
       const data = await authApi.googleAuth(token)
       const mappedUser = mapBackendUser(data.user)
       login(data.token, mappedUser)
-      navigate('/dashboard')
+      redirectAfterLogin()
     } catch (err) {
       console.error("[GoogleAuthButton] Authentication error:", err)
       if (err instanceof ApiError) {

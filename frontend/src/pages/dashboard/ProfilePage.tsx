@@ -101,7 +101,7 @@ export function ProfilePage() {
       await userApi.deleteAccount()
       logout()
       addToast({ message: "Your account has been deleted.", variant: "success" })
-      navigate("/login")
+      navigate("/login", { replace: true })
     } catch (err) {
       if (err instanceof ApiError) {
         addToast({ message: err.message, variant: "error" })

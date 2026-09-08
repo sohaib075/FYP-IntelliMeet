@@ -49,7 +49,10 @@ export function DashboardLayout() {
   
   const handleLogout = () => {
     logout()
-    navigate('/')
+    // `replace` drops the dashboard URL from history, so Back after signing
+    // out cannot even attempt to return to it. (ProtectedRoute would reject it
+    // anyway now the store is cleared — this just avoids the visible bounce.)
+    navigate('/login', { replace: true })
   }
   
   const navItems = [

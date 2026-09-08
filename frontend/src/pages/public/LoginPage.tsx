@@ -7,8 +7,10 @@ import { useAuthStore, mapBackendUser } from "@/store/useAuthStore"
 import { Logo } from "@/components/common/Logo"
 import { authApi, ApiError } from "@/lib/api"
 import { GoogleAuthButton } from "@/components/auth/GoogleAuthButton"
+import { usePostLoginRedirect } from "@/components/auth/usePostLoginRedirect"
 export function LoginPage() {
   const navigate = useNavigate()
+  const redirectAfterLogin = usePostLoginRedirect()
   const login = useAuthStore((state) => state.login)
 
   const [email, setEmail] = useState("")
@@ -64,7 +66,7 @@ export function LoginPage() {
       const data = await authApi.login({ email, password })
       const mappedUser = mapBackendUser(data.user)
       login(data.token, mappedUser)
-      navigate('/dashboard')
+      redirectAfterLogin()
     } catch (err) {
       if (err instanceof ApiError) {
         if (err.status === 403 && err.message.includes('not verified')) {

@@ -6,6 +6,7 @@ import { Lock } from "lucide-react"
 import { useToastStore } from "@/store/useToastStore"
 import { Logo } from "@/components/common/Logo"
 import { authApi, ApiError } from "@/lib/api"
+import { useAuthStore } from "@/store/useAuthStore"
 
 export function ResetPasswordPage() {
   const [isLoading, setIsLoading] = useState(false)
@@ -43,8 +44,13 @@ export function ResetPasswordPage() {
     
     try {
       await authApi.resetPassword(password, token as string)
+      // The password just changed, so any session this browser still holds is
+      // dead server-side (authMiddleware rejects tokens issued before
+      // passwordChangedAt). Clear it, otherwise the guest guard would bounce
+      // the /login below straight back to a dashboard that cannot load.
+      useAuthStore.getState().logout()
       addToast({ message: "Password reset successful! Please log in.", variant: "success" })
-      navigate("/login")
+      navigate("/login", { replace: true })
     } catch (err) {
       if (err instanceof ApiError) {
         setError(err.message)
