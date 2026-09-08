@@ -37,19 +37,19 @@ export function PublicLayout() {
           </PageTransition>
         </AnimatePresence>
       </main>
-      <footer className="border-t border-[#E2E8F0] dark:border-[#1E3A5F] bg-white dark:bg-[#0A0E1A] py-8 text-center text-sm text-[#64748B] dark:text-gray-400">
+      <footer className="border-t border-[#E2E8F0] dark:border-[#1E3A5F] bg-white dark:bg-[#0A0E1A] py-6 sm:py-8 text-center text-sm text-[#64748B] dark:text-gray-400">
         <div className="container mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-col sm:flex-row items-center gap-2">
             <Link to="/" className="flex items-center">
               <Logo size={32} className="text-[#0F172A] dark:text-white" />
             </Link>
             <span className="hidden md:inline-block">|</span>
-            <span>Break Language Barriers. Connect Intelligently.</span>
+            <span className="text-center sm:text-left">Break Language Barriers. Connect Intelligently.</span>
           </div>
-          <div className="flex gap-6">
-            <Link to="/privacy" className="hover:text-[#0F172A] dark:hover:text-white transition-colors">Privacy Policy</Link>
-            <Link to="/terms" className="hover:text-[#0F172A] dark:hover:text-white transition-colors">Terms of Service</Link>
-            <Link to="/contact" className="hover:text-[#0F172A] dark:hover:text-white transition-colors">Contact</Link>
+          <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-1 sm:gap-x-6">
+            <Link to="/privacy" className="py-2 sm:py-0 hover:text-[#0F172A] dark:hover:text-white transition-colors">Privacy Policy</Link>
+            <Link to="/terms" className="py-2 sm:py-0 hover:text-[#0F172A] dark:hover:text-white transition-colors">Terms of Service</Link>
+            <Link to="/contact" className="py-2 sm:py-0 hover:text-[#0F172A] dark:hover:text-white transition-colors">Contact</Link>
           </div>
         </div>
       </footer>

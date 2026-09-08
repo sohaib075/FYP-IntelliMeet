@@ -47,13 +47,13 @@ export function MyMeetingsPage() {
   )
 
   return (
-    <div className="w-full max-w-5xl mx-auto p-8 space-y-6">
+    <div className="w-full max-w-5xl mx-auto p-4 sm:p-8 space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold font-display tracking-tight text-[#0F172A]">My Meetings</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold font-display tracking-tight text-[#0F172A]">My Meetings</h1>
           <p className="text-[#64748B] text-sm mt-1">Meetings you host or have joined.</p>
         </div>
-        <Button asChild className="bg-[#3B82F6] text-white hover:bg-[#2563EB] border-0">
+        <Button asChild className="bg-[#3B82F6] text-white hover:bg-[#2563EB] border-0 w-full sm:w-auto shrink-0">
           <Link to="/meeting/create">
             <Video className="h-4 w-4 mr-2" />
             New Meeting
@@ -65,7 +65,7 @@ export function MyMeetingsPage() {
       <div className="flex items-center gap-6 border-b border-[#E2E8F0]">
         <button
           onClick={() => setActiveTab("upcoming")}
-          className={`pb-3 text-sm font-medium border-b-2 transition-colors ${
+          className={`pt-2 sm:pt-0 pb-3 text-sm font-medium border-b-2 transition-colors ${
             activeTab === "upcoming" ? "border-[#3B82F6] text-[#3B82F6]" : "border-transparent text-[#64748B] hover:text-[#0F172A]"
           }`}
         >
@@ -73,7 +73,7 @@ export function MyMeetingsPage() {
         </button>
         <button
           onClick={() => setActiveTab("past")}
-          className={`pb-3 text-sm font-medium border-b-2 transition-colors ${
+          className={`pt-2 sm:pt-0 pb-3 text-sm font-medium border-b-2 transition-colors ${
             activeTab === "past" ? "border-[#3B82F6] text-[#3B82F6]" : "border-transparent text-[#64748B] hover:text-[#0F172A]"
           }`}
         >
@@ -99,13 +99,13 @@ export function MyMeetingsPage() {
       <div className="space-y-3">
         {isLoading ? (
           <Card>
-            <CardContent className="p-12 text-center">
+            <CardContent className="p-8 sm:p-12 text-center">
               <Loader2 className="h-6 w-6 animate-spin text-[#3B82F6] mx-auto" />
             </CardContent>
           </Card>
         ) : filtered.length === 0 ? (
           <Card>
-            <CardContent className="p-12 text-center">
+            <CardContent className="p-8 sm:p-12 text-center">
               <Video className="h-10 w-10 text-[#94A3B8] mx-auto mb-3" />
               <p className="text-[#64748B] text-sm">
                 {search ? "No meetings match your search." : activeTab === "upcoming" ? "No upcoming meetings. Create one to get started." : "No past meetings yet."}
@@ -118,29 +118,29 @@ export function MyMeetingsPage() {
             const when = meeting.scheduledFor || meeting.startedAt || meeting.createdAt
             return (
               <Card key={meeting.meetingId} className="hover:shadow-md transition-shadow border-[#E2E8F0] bg-white">
-                <CardContent className="p-5">
+                <CardContent className="p-4 sm:p-5">
                   <div className="flex flex-col sm:flex-row sm:items-center gap-4">
                     {/* Left: Info */}
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="text-[15px] font-semibold text-[#0F172A] truncate">{meeting.title}</h3>
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-2">
+                        <h3 className="text-[15px] font-semibold text-[#0F172A] truncate max-w-full">{meeting.title}</h3>
                         <span className={`shrink-0 text-[11px] font-medium px-2.5 py-0.5 rounded-full ${status.bg} ${status.text}`}>
                           {status.label}
                         </span>
                       </div>
 
-                      <div className="flex flex-wrap items-center gap-x-5 gap-y-1 text-[13px] text-[#64748B]">
+                      <div className="flex flex-wrap items-center gap-x-3 sm:gap-x-5 gap-y-1.5 text-[13px] text-[#64748B]">
                         <span className="flex items-center gap-1.5">
-                          <Calendar className="h-3.5 w-3.5" />
+                          <Calendar className="h-3.5 w-3.5 shrink-0" />
                           {new Date(when).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
                         </span>
                         <span className="flex items-center gap-1.5">
-                          <Clock className="h-3.5 w-3.5" />
+                          <Clock className="h-3.5 w-3.5 shrink-0" />
                           {new Date(when).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}
                           {meeting.status === "ENDED" && ` · ${formatDuration(meeting)}`}
                         </span>
                         <span className="flex items-center gap-1.5">
-                          <Users className="h-3.5 w-3.5" />
+                          <Users className="h-3.5 w-3.5 shrink-0" />
                           {meeting.participantCount} {meeting.participantCount === 1 ? "participant" : "participants"}
                         </span>
                       </div>
@@ -150,7 +150,7 @@ export function MyMeetingsPage() {
                         <span className="text-[#E2E8F0]">·</span>
                         <button
                           type="button"
-                          className="text-[11px] font-mono bg-[#F8FAFC] text-[#3B82F6] font-semibold border border-[#E2E8F0] px-2 py-0.5 rounded cursor-pointer hover:bg-[#EFF6FF] transition-colors"
+                          className="max-w-full truncate text-[11px] font-mono bg-[#F8FAFC] text-[#3B82F6] font-semibold border border-[#E2E8F0] px-2 py-0.5 rounded cursor-pointer hover:bg-[#EFF6FF] transition-colors"
                           title="Click to copy code"
                           onClick={() => navigator.clipboard.writeText(meeting.meetingId).catch(() => {})}
                         >
@@ -160,14 +160,14 @@ export function MyMeetingsPage() {
                     </div>
 
                     {/* Right: Actions */}
-                    <div className="flex items-center gap-2 shrink-0">
+                    <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto">
                       {meeting.status === "CREATED" && (
-                        <Button onClick={() => navigate(`/meet/${meeting.meetingId}`)} className="bg-[#3B82F6] text-white hover:bg-[#2563EB] border-0" size="sm">
+                        <Button onClick={() => navigate(`/meet/${meeting.meetingId}`)} className="bg-[#3B82F6] text-white hover:bg-[#2563EB] border-0 w-full sm:w-auto h-10 sm:h-8" size="sm">
                           {meeting.isHost ? "Start" : "Join"}
                         </Button>
                       )}
                       {meeting.status === "ACTIVE" && (
-                        <Button onClick={() => navigate(`/meet/${meeting.meetingId}`)} className="bg-[#D97706] text-white hover:bg-[#B45309] border-0" size="sm">
+                        <Button onClick={() => navigate(`/meet/${meeting.meetingId}`)} className="bg-[#D97706] text-white hover:bg-[#B45309] border-0 w-full sm:w-auto h-10 sm:h-8" size="sm">
                           Rejoin
                         </Button>
                       )}

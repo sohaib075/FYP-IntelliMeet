@@ -50,34 +50,34 @@ export function LandingPage() {
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="fixed top-0 left-0 right-0 h-16 bg-[var(--color-dash-bg)]/80 dark:bg-[var(--color-bg-primary)]/80 backdrop-blur-md border-b border-[#E2E8F0] dark:border-[var(--color-border-default)] z-50 px-6 md:px-12 flex items-center justify-between"
+        className="fixed top-0 left-0 right-0 h-16 bg-[var(--color-dash-bg)]/80 dark:bg-[var(--color-bg-primary)]/80 backdrop-blur-md border-b border-[#E2E8F0] dark:border-[var(--color-border-default)] z-50 px-4 sm:px-6 md:px-12 flex items-center justify-between"
       >
-        <Link to="/" className="flex items-center gap-2">
+        <Link to="/" className="flex items-center gap-2 shrink-0">
           <Logo size={32} className="text-[var(--color-dash-text)] dark:text-white" />
         </Link>
-        <div className="flex items-center gap-4">
-          <Link to="/login" className="text-[14px] font-medium text-[#64748B] dark:text-[var(--color-text-secondary)] hover:text-[var(--color-dash-text)] dark:hover:text-white transition-colors">
+        <div className="flex items-center gap-3 sm:gap-4">
+          <Link to="/login" className="inline-flex items-center h-10 sm:h-auto text-[14px] font-medium text-[#64748B] dark:text-[var(--color-text-secondary)] hover:text-[var(--color-dash-text)] dark:hover:text-white transition-colors">
             Log In
           </Link>
-          <Link to="/register" className="bg-[var(--color-brand-blue)] hover:bg-[var(--color-brand-blue-hover)] text-white text-[13px] font-medium px-4 h-9 flex items-center justify-center rounded-[var(--radius-md)] transition-colors shadow-[var(--shadow-sm)]">
+          <Link to="/register" className="bg-[var(--color-brand-blue)] hover:bg-[var(--color-brand-blue-hover)] text-white text-[13px] font-medium px-4 h-10 sm:h-9 flex items-center justify-center rounded-[var(--radius-md)] transition-colors shadow-[var(--shadow-sm)] whitespace-nowrap">
             Sign Up
           </Link>
         </div>
       </motion.header>
 
       {/* Hero Section */}
-      <section className="relative pt-32 pb-20 px-4 flex flex-col items-center text-center overflow-hidden min-h-[90vh] justify-center">
+      <section className="relative pt-24 pb-14 sm:pt-32 sm:pb-20 px-4 flex flex-col items-center text-center overflow-hidden min-h-0 md:min-h-[90vh] justify-center">
         {/* Animated Background Blobs */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <motion.div 
             variants={blobAnimation}
             animate="animate"
-            className="absolute top-[10%] left-[20%] w-[500px] h-[500px] rounded-full bg-[var(--color-brand-blue)]/10 dark:bg-[var(--color-brand-blue)]/5 blur-[100px]"
+            className="absolute top-[10%] left-[20%] w-[260px] h-[260px] sm:w-[500px] sm:h-[500px] rounded-full bg-[var(--color-brand-blue)]/10 dark:bg-[var(--color-brand-blue)]/5 blur-[60px] sm:blur-[100px]"
           />
           <motion.div 
             variants={blobAnimation}
             animate="animate"
-            className="absolute bottom-[10%] right-[20%] w-[400px] h-[400px] rounded-full bg-[var(--color-accent-cyan)]/10 dark:bg-[var(--color-accent-cyan)]/5 blur-[100px]"
+            className="absolute bottom-[10%] right-[20%] w-[220px] h-[220px] sm:w-[400px] sm:h-[400px] rounded-full bg-[var(--color-accent-cyan)]/10 dark:bg-[var(--color-accent-cyan)]/5 blur-[60px] sm:blur-[100px]"
             style={{ animationDelay: '-10s' }}
           />
         </div>
@@ -89,13 +89,13 @@ export function LandingPage() {
           className="max-w-[800px] w-full flex flex-col items-center relative z-10"
         >
           {/* Eyebrow */}
-          <motion.div variants={fadeInUp} className="mb-8 flex items-center gap-2 bg-[var(--color-brand-blue)]/10 text-[var(--color-brand-blue)] px-4 py-1.5 rounded-full border border-[var(--color-brand-blue)]/20 shadow-sm backdrop-blur-sm">
-            <Sparkles className="h-4 w-4" />
-            <span className="text-[13px] font-bold tracking-wide uppercase">Seamless Video Meetings, Reimagined</span>
+          <motion.div variants={fadeInUp} className="max-w-full mb-6 sm:mb-8 flex items-center gap-2 bg-[var(--color-brand-blue)]/10 text-[var(--color-brand-blue)] px-3 sm:px-4 py-1.5 rounded-full border border-[var(--color-brand-blue)]/20 shadow-sm backdrop-blur-sm">
+            <Sparkles className="h-4 w-4 shrink-0" />
+            <span className="text-[11px] sm:text-[13px] font-bold tracking-wide uppercase">Seamless Video Meetings, Reimagined</span>
           </motion.div>
 
           {/* Headline */}
-          <motion.h1 className="text-[42px] md:text-[64px] font-bold text-[var(--color-dash-text)] dark:text-white font-display tracking-tight leading-[1.1] mb-6 overflow-hidden flex flex-wrap justify-center gap-x-4">
+          <motion.h1 className="text-[32px] sm:text-[42px] md:text-[64px] font-bold text-[var(--color-dash-text)] dark:text-white font-display tracking-tight leading-[1.1] mb-4 sm:mb-6 overflow-hidden flex flex-wrap justify-center gap-x-2 sm:gap-x-4">
             {["Break", "Language", "Barriers", "in", "Real-Time", "Meetings"].map((word, i) => (
               <motion.span
                 key={i}
@@ -110,42 +110,42 @@ export function LandingPage() {
           </motion.h1>
 
           {/* Subheadline */}
-          <motion.p variants={fadeInUp} className="text-[18px] md:text-[22px] text-[#64748B] dark:text-[var(--color-text-secondary)] max-w-[640px] leading-[1.6] mb-10">
+          <motion.p variants={fadeInUp} className="text-[15px] sm:text-[18px] md:text-[22px] text-[#64748B] dark:text-[var(--color-text-secondary)] max-w-[640px] leading-[1.6] mb-8 sm:mb-10">
             Speak in your native language and hear instant AI translations. IntelliMeet connects global teams seamlessly with zero friction.
           </motion.p>
 
           {/* Buttons */}
-          <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row gap-4 mb-12 w-full sm:w-auto">
-            <Link to="/register" className="group bg-[var(--color-brand-blue)] hover:bg-[var(--color-brand-blue-hover)] text-white text-[16px] font-medium px-8 h-14 flex items-center justify-center rounded-[var(--radius-lg)] transition-all hover:scale-105 shadow-[var(--shadow-glow)]">
+          <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-8 sm:mb-12 w-full sm:w-auto">
+            <Link to="/register" className="group bg-[var(--color-brand-blue)] hover:bg-[var(--color-brand-blue-hover)] text-white text-[16px] font-medium px-6 sm:px-8 h-14 flex items-center justify-center rounded-[var(--radius-lg)] transition-all hover:scale-105 shadow-[var(--shadow-glow)]">
               Get Started for Free
-              <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+              <ArrowRight className="ml-2 h-5 w-5 shrink-0 group-hover:translate-x-1 transition-transform" />
             </Link>
-            <a href="#how-it-works" className="bg-[var(--color-dash-card)] dark:bg-[var(--color-surface-card)] hover:bg-gray-50 dark:hover:bg-[var(--color-surface-light)] border border-[#E2E8F0] dark:border-[var(--color-border-default)] text-[var(--color-dash-text)] dark:text-white text-[16px] font-medium px-8 h-14 flex items-center justify-center rounded-[var(--radius-lg)] transition-all shadow-[var(--shadow-sm)]">
+            <a href="#how-it-works" className="bg-[var(--color-dash-card)] dark:bg-[var(--color-surface-card)] hover:bg-gray-50 dark:hover:bg-[var(--color-surface-light)] border border-[#E2E8F0] dark:border-[var(--color-border-default)] text-[var(--color-dash-text)] dark:text-white text-[16px] font-medium px-6 sm:px-8 h-14 flex items-center justify-center rounded-[var(--radius-lg)] transition-all shadow-[var(--shadow-sm)]">
               See How It Works
             </a>
           </motion.div>
 
           {/* Trust Badges */}
-          <motion.div variants={fadeInUp} className="flex flex-wrap items-center justify-center gap-6 text-[13px] text-[#64748B] dark:text-[var(--color-text-secondary)] font-medium">
-            <span className="flex items-center gap-2"><Lock className="h-4 w-4 text-[var(--color-success)]" /> Secure & Private</span>
-            <span className="flex items-center gap-2"><Zap className="h-4 w-4 text-[var(--color-warning)]" /> Instant Setup</span>
-            <span className="flex items-center gap-2"><Globe2 className="h-4 w-4 text-[var(--color-brand-blue)]" /> Multi-Language</span>
+          <motion.div variants={fadeInUp} className="flex flex-wrap items-center justify-center gap-x-4 gap-y-3 sm:gap-6 text-[13px] text-[#64748B] dark:text-[var(--color-text-secondary)] font-medium">
+            <span className="flex items-center gap-2 whitespace-nowrap"><Lock className="h-4 w-4 shrink-0 text-[var(--color-success)]" /> Secure & Private</span>
+            <span className="flex items-center gap-2 whitespace-nowrap"><Zap className="h-4 w-4 shrink-0 text-[var(--color-warning)]" /> Instant Setup</span>
+            <span className="flex items-center gap-2 whitespace-nowrap"><Globe2 className="h-4 w-4 shrink-0 text-[var(--color-brand-blue)]" /> Multi-Language</span>
           </motion.div>
         </motion.div>
       </section>
 
       {/* SECTION 1 - Features Grid */}
-      <section id="features" className="py-24 px-4 bg-[var(--color-dash-card)] dark:bg-[var(--color-bg-secondary)] relative">
+      <section id="features" className="py-14 sm:py-24 px-4 bg-[var(--color-dash-card)] dark:bg-[var(--color-bg-secondary)] relative">
         <div className="max-w-[1200px] mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-100px" }}
-            className="text-center mb-16 flex flex-col items-center"
+            className="text-center mb-10 sm:mb-16 flex flex-col items-center"
           >
-            <span className="text-[var(--color-brand-blue)] text-[13px] font-bold tracking-[2px] uppercase mb-3">Powerful Features</span>
-            <h2 className="text-[32px] md:text-[42px] font-bold text-[var(--color-dash-text)] dark:text-white font-display mb-4">Everything for Multilingual Collaboration</h2>
-            <p className="text-[#64748B] dark:text-[var(--color-text-secondary)] text-[18px] max-w-[600px]">One platform that handles translation, conferencing, and team collaboration natively.</p>
+            <span className="text-[var(--color-brand-blue)] text-[12px] sm:text-[13px] font-bold tracking-[2px] uppercase mb-3">Powerful Features</span>
+            <h2 className="text-[26px] sm:text-[32px] md:text-[42px] font-bold text-[var(--color-dash-text)] dark:text-white font-display mb-4">Everything for Multilingual Collaboration</h2>
+            <p className="text-[#64748B] dark:text-[var(--color-text-secondary)] text-[16px] sm:text-[18px] max-w-[600px]">One platform that handles translation, conferencing, and team collaboration natively.</p>
           </motion.div>
 
           <motion.div 
@@ -153,7 +153,7 @@ export function LandingPage() {
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, margin: "-100px" }}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6"
           >
             {features.map((feature, i) => (
               <motion.div
@@ -161,16 +161,16 @@ export function LandingPage() {
                 variants={fadeInUp}
                 whileHover={{ scale: 1.05, rotateY: 5, rotateX: 5, zIndex: 10, transition: { duration: 0.4, ease: "easeOut" } }}
                 style={{ perspective: 1000 }}
-                className="bg-[var(--color-dash-bg)] dark:bg-[var(--color-surface-card)] border border-[#E2E8F0] dark:border-[var(--color-border-default)] rounded-[var(--radius-lg)] p-8 hover:border-[var(--color-brand-blue)]/50 hover:shadow-2xl transition-colors group relative overflow-hidden"
+                className="bg-[var(--color-dash-bg)] dark:bg-[var(--color-surface-card)] border border-[#E2E8F0] dark:border-[var(--color-border-default)] rounded-[var(--radius-lg)] p-6 sm:p-8 hover:border-[var(--color-brand-blue)]/50 hover:shadow-2xl transition-colors group relative overflow-hidden"
               >
                 {/* Subtle gradient hover background */}
                 <div className="absolute inset-0 bg-gradient-to-br from-[var(--color-brand-blue)]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
                 
-                <div className={`h-12 w-12 rounded-[var(--radius-md)] ${feature.bg} flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 relative z-10`}>
+                <div className={`h-12 w-12 shrink-0 rounded-[var(--radius-md)] ${feature.bg} flex items-center justify-center mb-4 sm:mb-6 group-hover:scale-110 transition-transform duration-300 relative z-10`}>
                   <feature.icon className={`h-6 w-6 ${feature.color}`} />
                 </div>
-                <h3 className="text-[18px] font-bold text-[var(--color-dash-text)] dark:text-white mb-3 relative z-10">{feature.title}</h3>
-                <p className="text-[15px] text-[#64748B] dark:text-[var(--color-text-secondary)] leading-[1.6] relative z-10">{feature.desc}</p>
+                <h3 className="text-[18px] font-bold text-[var(--color-dash-text)] dark:text-white mb-2 sm:mb-3 relative z-10 break-words">{feature.title}</h3>
+                <p className="text-[15px] text-[#64748B] dark:text-[var(--color-text-secondary)] leading-[1.6] relative z-10 break-words">{feature.desc}</p>
               </motion.div>
             ))}
           </motion.div>
@@ -178,19 +178,19 @@ export function LandingPage() {
       </section>
 
       {/* SECTION 2 - How It Works */}
-      <section id="how-it-works" className="py-32 px-4 bg-[var(--color-dash-bg)] dark:bg-[var(--color-bg-primary)] overflow-hidden">
+      <section id="how-it-works" className="py-14 sm:py-24 md:py-32 px-4 bg-[var(--color-dash-bg)] dark:bg-[var(--color-bg-primary)] overflow-hidden">
         <div className="max-w-[1000px] mx-auto relative">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-100px" }}
-            className="text-center mb-20 flex flex-col items-center"
+            className="text-center mb-10 sm:mb-20 flex flex-col items-center"
           >
-            <span className="text-[var(--color-brand-blue)] text-[13px] font-bold tracking-[2px] uppercase mb-3">Simple Workflow</span>
-            <h2 className="text-[32px] md:text-[42px] font-bold text-[var(--color-dash-text)] dark:text-white font-display">From Prompt to Translation in Seconds</h2>
+            <span className="text-[var(--color-brand-blue)] text-[12px] sm:text-[13px] font-bold tracking-[2px] uppercase mb-3">Simple Workflow</span>
+            <h2 className="text-[26px] sm:text-[32px] md:text-[42px] font-bold text-[var(--color-dash-text)] dark:text-white font-display">From Prompt to Translation in Seconds</h2>
           </motion.div>
 
-          <div className="relative flex flex-col md:flex-row justify-between gap-12 md:gap-4">
+          <div className="relative flex flex-col md:flex-row justify-between gap-8 sm:gap-12 md:gap-4">
             {/* Connecting Line (Desktop) animated using motion */}
             <motion.div 
               initial={{ scaleX: 0 }}
@@ -212,11 +212,11 @@ export function LandingPage() {
                 <motion.div 
                   whileHover={{ scale: 1.2, rotate: 360 }}
                   transition={{ duration: 0.6, type: "spring", bounce: 0.5 }}
-                  className="h-14 w-14 rounded-full bg-[var(--color-brand-blue)] text-white flex items-center justify-center text-[20px] font-bold mb-6 shadow-[var(--shadow-md)] ring-8 ring-[var(--color-dash-bg)] dark:ring-[var(--color-bg-primary)] cursor-default"
+                  className="h-14 w-14 shrink-0 rounded-full bg-[var(--color-brand-blue)] text-white flex items-center justify-center text-[20px] font-bold mb-4 sm:mb-6 shadow-[var(--shadow-md)] ring-8 ring-[var(--color-dash-bg)] dark:ring-[var(--color-bg-primary)] cursor-default"
                 >
                   {step.num}
                 </motion.div>
-                <h3 className="text-[20px] font-bold text-[var(--color-dash-text)] dark:text-white mb-3">{step.title}</h3>
+                <h3 className="text-[18px] sm:text-[20px] font-bold text-[var(--color-dash-text)] dark:text-white mb-2 sm:mb-3">{step.title}</h3>
                 <p className="text-[15px] text-[#64748B] dark:text-[var(--color-text-secondary)] max-w-[280px] leading-[1.6]">{step.desc}</p>
               </motion.div>
             ))}
@@ -225,19 +225,19 @@ export function LandingPage() {
       </section>
 
       {/* SECTION 3 - CTA */}
-      <section className="py-24 px-4 bg-[var(--color-dash-card)] dark:bg-[var(--color-bg-secondary)] relative overflow-hidden">
+      <section className="py-14 sm:py-24 px-4 bg-[var(--color-dash-card)] dark:bg-[var(--color-bg-secondary)] relative overflow-hidden">
         {/* Background glow */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[var(--color-brand-blue)]/5 dark:bg-[var(--color-brand-blue)]/10 rounded-full blur-[120px] pointer-events-none" />
-        
-        <div className="max-w-[800px] mx-auto text-center relative z-10 bg-[var(--color-dash-bg)] dark:bg-[var(--color-surface-card)] rounded-[var(--radius-xl)] p-10 md:p-16 border border-[#E2E8F0] dark:border-[var(--color-border-default)] shadow-[var(--shadow-xl)]">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[320px] h-[320px] sm:w-[600px] sm:h-[600px] bg-[var(--color-brand-blue)]/5 dark:bg-[var(--color-brand-blue)]/10 rounded-full blur-[80px] sm:blur-[120px] pointer-events-none" />
+
+        <div className="max-w-[800px] mx-auto text-center relative z-10 bg-[var(--color-dash-bg)] dark:bg-[var(--color-surface-card)] rounded-[var(--radius-xl)] p-6 sm:p-10 md:p-16 border border-[#E2E8F0] dark:border-[var(--color-border-default)] shadow-[var(--shadow-xl)]">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
           >
-            <h2 className="text-[32px] md:text-[48px] font-bold text-[var(--color-dash-text)] dark:text-white font-display mb-6">Ready to transform your meetings?</h2>
-            <p className="text-[18px] text-[#64748B] dark:text-[var(--color-text-secondary)] mb-10 max-w-[500px] mx-auto">Join thousands of professionals breaking language barriers every day.</p>
+            <h2 className="text-[26px] sm:text-[32px] md:text-[48px] font-bold text-[var(--color-dash-text)] dark:text-white font-display mb-4 sm:mb-6">Ready to transform your meetings?</h2>
+            <p className="text-[16px] sm:text-[18px] text-[#64748B] dark:text-[var(--color-text-secondary)] mb-8 sm:mb-10 max-w-[500px] mx-auto">Join thousands of professionals breaking language barriers every day.</p>
             <motion.div
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -245,9 +245,9 @@ export function LandingPage() {
               transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
               className="inline-block rounded-[var(--radius-lg)]"
             >
-              <Link to="/register" className="inline-flex items-center gap-2 bg-[var(--color-brand-blue)] hover:bg-[var(--color-brand-blue-hover)] text-white text-[18px] font-semibold px-10 h-16 rounded-[var(--radius-lg)] transition-colors">
+              <Link to="/register" className="inline-flex items-center justify-center gap-2 bg-[var(--color-brand-blue)] hover:bg-[var(--color-brand-blue-hover)] text-white text-[16px] sm:text-[18px] font-semibold px-6 sm:px-10 h-14 sm:h-16 rounded-[var(--radius-lg)] transition-colors whitespace-nowrap">
                 Create Free Account
-                <ArrowRight className="h-5 w-5" />
+                <ArrowRight className="h-5 w-5 shrink-0" />
               </Link>
             </motion.div>
             <div className="mt-6 flex items-center justify-center gap-2 text-[13px] text-[#64748B] dark:text-[var(--color-text-secondary)] font-medium">

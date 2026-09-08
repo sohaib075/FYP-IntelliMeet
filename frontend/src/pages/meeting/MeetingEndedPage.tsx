@@ -38,20 +38,20 @@ export function MeetingEndedPage() {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] flex flex-col items-center justify-center p-4 font-body">
-      <div className="bg-white border border-[#E2E8F0] rounded-2xl p-8 max-w-md w-full text-center shadow-lg">
-        <div className="h-20 w-20 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6">
-          <Icon className="h-10 w-10 text-red-500" />
+      <div className="bg-white border border-[#E2E8F0] rounded-2xl p-6 sm:p-8 max-w-md w-full text-center shadow-lg">
+        <div className="h-16 w-16 sm:h-20 sm:w-20 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6">
+          <Icon className="h-8 w-8 sm:h-10 sm:w-10 text-red-500" />
         </div>
-        <h2 className="text-2xl font-bold text-[#0F172A] font-display mb-2">{copy.title}</h2>
-        <p className="text-[15px] text-[#64748B] mb-8 leading-relaxed">{copy.body}</p>
+        <h2 className="text-xl sm:text-2xl font-bold text-[#0F172A] font-display mb-2 break-words">{copy.title}</h2>
+        <p className="text-[15px] text-[#64748B] mb-6 sm:mb-8 leading-relaxed break-words">{copy.body}</p>
         <div className="flex flex-col gap-3">
-          <Link to="/dashboard">
+          <Link to="/dashboard" className="w-full">
             <Button size="lg" className="w-full bg-[#3B82F6] text-white hover:bg-[#2563EB]">
               Go to Dashboard
             </Button>
           </Link>
-          <Link to="/">
-            <Button variant="ghost" className="w-full text-[#64748B] hover:text-[#0F172A]">
+          <Link to="/" className="w-full">
+            <Button variant="ghost" className="w-full h-11 sm:h-10 text-[#64748B] hover:text-[#0F172A]">
               Return to Homepage
             </Button>
           </Link>

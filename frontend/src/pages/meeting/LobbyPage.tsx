@@ -185,33 +185,33 @@ export function LobbyPage() {
   // ── Error / loading screens ───────────────────────────────────────────
   if (lookup.kind !== "ready") {
     return (
-      <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center p-6 font-body text-[#0F172A]">
-        <div className="w-full max-w-md bg-white border border-[#E2E8F0] rounded-2xl p-8 shadow-lg text-center">
+      <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center p-4 sm:p-6 font-body text-[#0F172A]">
+        <div className="w-full max-w-md bg-white border border-[#E2E8F0] rounded-2xl p-6 sm:p-8 shadow-lg text-center">
           {lookup.kind === "loading" ? (
             <>
               <Loader2 className="h-8 w-8 animate-spin text-[#3B82F6] mx-auto mb-4" />
               <p className="text-[#64748B] text-sm">Checking meeting…</p>
-              {meetingId && <p className="font-mono text-[#3B82F6] mt-2">{meetingId}</p>}
+              {meetingId && <p className="font-mono text-[#3B82F6] mt-2 break-all">{meetingId}</p>}
             </>
           ) : (
             <>
               <div className="h-12 w-12 rounded-full bg-[#FEF2F2] text-[#DC2626] flex items-center justify-center mx-auto mb-4">
                 <AlertTriangle className="h-6 w-6" />
               </div>
-              <h1 className="text-xl font-bold font-display mb-2">
+              <h1 className="text-xl font-bold font-display mb-2 break-words">
                 {lookup.code === "MEETING_NOT_FOUND" ? "Meeting not found" :
                  lookup.code === "MEETING_ENDED" ? "This meeting has ended" :
                  lookup.code === "PARTICIPANT_BANNED" ? "You can't join this meeting" :
                  lookup.code === "MEETING_LOCKED" ? "Meeting is locked" :
                  "Can't open this meeting"}
               </h1>
-              <p className="text-[#64748B] text-sm mb-6">{lookup.message}</p>
-              {meetingId && <p className="font-mono text-xs text-[#94A3B8] mb-6">{meetingId}</p>}
+              <p className="text-[#64748B] text-sm mb-6 break-words">{lookup.message}</p>
+              {meetingId && <p className="font-mono text-xs text-[#94A3B8] mb-6 break-all">{meetingId}</p>}
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <Button variant="ghost" onClick={() => navigate("/join")} className="text-[#0F172A]">
+                <Button variant="ghost" onClick={() => navigate("/join")} className="h-11 sm:h-10 text-[#0F172A]">
                   <ArrowLeft className="h-4 w-4 mr-2" /> Try another code
                 </Button>
-                <Button onClick={() => navigate("/dashboard")} className="bg-[#3B82F6] text-white hover:bg-[#2563EB]">
+                <Button onClick={() => navigate("/dashboard")} className="h-11 sm:h-10 bg-[#3B82F6] text-white hover:bg-[#2563EB]">
                   Back to dashboard
                 </Button>
               </div>
@@ -227,10 +227,10 @@ export function LobbyPage() {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center p-4 md:p-8 font-body text-[#0F172A] relative">
-      <div className="max-w-5xl w-full grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
+      <div className="max-w-5xl w-full grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-8 items-center relative z-10">
 
         {/* Left/Main: Camera Preview */}
-        <div className="lg:col-span-7 space-y-4">
+        <div className="lg:col-span-7 space-y-4 min-w-0">
           <div className="relative aspect-video bg-[#0F172A] rounded-2xl border border-[#E2E8F0] shadow-md overflow-hidden flex flex-col items-center justify-center group">
             {videoOn && hasVideo ? (
               <div className="w-full h-full bg-[#0F172A] flex items-center justify-center relative">
@@ -242,8 +242,8 @@ export function LobbyPage() {
                 </div>
               </div>
             ) : (
-              <div className="flex flex-col items-center z-10">
-                <div className="h-24 w-24 rounded-full bg-[#EFF6FF] text-[#3B82F6] border border-[#BFDBFE] flex items-center justify-center text-3xl font-bold mb-4 shadow-sm">
+              <div className="flex flex-col items-center z-10 px-4 pb-14 text-center sm:pb-0">
+                <div className="h-16 w-16 sm:h-24 sm:w-24 rounded-full bg-[#EFF6FF] text-[#3B82F6] border border-[#BFDBFE] flex items-center justify-center text-2xl sm:text-3xl font-bold mb-3 sm:mb-4 shadow-sm">
                   {displayName.substring(0, 2).toUpperCase()}
                 </div>
                 <p className="text-white/60 font-medium text-sm">
@@ -311,12 +311,12 @@ export function LobbyPage() {
         </div>
 
         {/* Right/Sidebar: Meeting info + settings */}
-        <div className="lg:col-span-5 bg-white border border-[#E2E8F0] rounded-2xl p-6 shadow-lg flex flex-col justify-between min-h-[400px]">
+        <div className="lg:col-span-5 min-w-0 bg-white border border-[#E2E8F0] rounded-2xl p-4 sm:p-6 shadow-lg flex flex-col justify-between sm:min-h-[400px]">
           <div className="space-y-6">
             <div>
               <h2 className="text-2xl font-bold font-display text-[#0F172A] tracking-tight">Ready to join?</h2>
-              <p className="text-[15px] text-[#0F172A] mt-2 font-semibold">{meeting.title}</p>
-              <p className="text-[13px] text-[#64748B] mt-1 font-medium">
+              <p className="text-[15px] text-[#0F172A] mt-2 font-semibold break-words">{meeting.title}</p>
+              <p className="text-[13px] text-[#64748B] mt-1 font-medium break-words">
                 {meeting.isHost ? "You are the host" : `Hosted by ${meeting.host.name || "the organiser"}`} · <span className="font-mono text-[#3B82F6]">{meetingId}</span>
               </p>
               {meeting.status === "CREATED" && !meeting.isHost && (
@@ -327,8 +327,8 @@ export function LobbyPage() {
             <div className="space-y-5">
               <div>
                 <label className="block text-xs font-semibold text-[#64748B] uppercase tracking-wider mb-2">Joining as</label>
-                <div className="h-11 px-3 flex items-center rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] text-[#0F172A] text-[14px]">
-                  {displayName} <span className="ml-2 text-[#94A3B8] text-[12px]">({user?.email})</span>
+                <div className="h-11 px-3 flex items-center overflow-hidden rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] text-[#0F172A] text-[14px]">
+                  {displayName} <span className="ml-2 min-w-0 truncate text-[#94A3B8] text-[12px]">({user?.email})</span>
                 </div>
               </div>
 
@@ -351,7 +351,7 @@ export function LobbyPage() {
                         value={media.activeCameraId ?? ""}
                         onChange={(e) => select("videoinput", e.target.value)}
                         disabled={isJoining}
-                        className="w-full h-10 rounded-xl border border-[#E2E8F0] bg-white px-3 text-[13px] text-[#0F172A] focus:border-[#3B82F6] focus:outline-none"
+                        className="w-full h-11 sm:h-10 rounded-xl border border-[#E2E8F0] bg-white px-3 text-[16px] sm:text-[13px] text-[#0F172A] focus:border-[#3B82F6] focus:outline-none"
                       >
                         {cameras.map((d) => (
                           <option key={d.deviceId} value={d.deviceId}>
@@ -372,7 +372,7 @@ export function LobbyPage() {
                         value={media.activeMicrophoneId ?? ""}
                         onChange={(e) => select("audioinput", e.target.value)}
                         disabled={isJoining}
-                        className="w-full h-10 rounded-xl border border-[#E2E8F0] bg-white px-3 text-[13px] text-[#0F172A] focus:border-[#3B82F6] focus:outline-none"
+                        className="w-full h-11 sm:h-10 rounded-xl border border-[#E2E8F0] bg-white px-3 text-[16px] sm:text-[13px] text-[#0F172A] focus:border-[#3B82F6] focus:outline-none"
                       >
                         {microphones.map((d) => (
                           <option key={d.deviceId} value={d.deviceId}>
@@ -396,7 +396,7 @@ export function LobbyPage() {
                   <div>
                     <label className="block text-[11px] font-semibold text-[#64748B] uppercase tracking-wider mb-1.5">I speak</label>
                     <Select value={sourceLang} onValueChange={setSourceLang} disabled={isJoining}>
-                      <SelectTrigger className="bg-white border-[#E2E8F0] text-[#0F172A] rounded-xl"><SelectValue /></SelectTrigger>
+                      <SelectTrigger className="h-11 sm:h-10 bg-white border-[#E2E8F0] text-[#0F172A] rounded-xl"><SelectValue /></SelectTrigger>
                       <SelectContent className="bg-white border-[#E2E8F0] text-[#0F172A]">
                         <SelectItem value="en">🇬🇧 English</SelectItem>
                         <SelectItem value="ur">🇵🇰 Urdu</SelectItem>
@@ -407,7 +407,7 @@ export function LobbyPage() {
                   <div>
                     <label className="block text-[11px] font-semibold text-[#64748B] uppercase tracking-wider mb-1.5">I want to hear</label>
                     <Select value={targetLang} onValueChange={setTargetLang} disabled={isJoining}>
-                      <SelectTrigger className="bg-white border-[#E2E8F0] text-[#0F172A] rounded-xl"><SelectValue /></SelectTrigger>
+                      <SelectTrigger className="h-11 sm:h-10 bg-white border-[#E2E8F0] text-[#0F172A] rounded-xl"><SelectValue /></SelectTrigger>
                       <SelectContent className="bg-white border-[#E2E8F0] text-[#0F172A]">
                         <SelectItem value="en">🇬🇧 English</SelectItem>
                         <SelectItem value="ur">🇵🇰 Urdu</SelectItem>
@@ -422,7 +422,7 @@ export function LobbyPage() {
           </div>
 
           <div className="flex gap-3 mt-6">
-            <Button variant="ghost" onClick={() => navigate("/dashboard")} disabled={isJoining} className="text-[#64748B] hover:text-[#0F172A]">
+            <Button variant="ghost" onClick={() => navigate("/dashboard")} disabled={isJoining} className="h-11 sm:h-10 shrink-0 text-[#64748B] hover:text-[#0F172A]">
               Back
             </Button>
             <Button

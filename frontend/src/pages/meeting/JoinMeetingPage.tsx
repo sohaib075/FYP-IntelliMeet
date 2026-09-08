@@ -47,18 +47,18 @@ export function JoinMeetingPage() {
   }
 
   return (
-    <div className="w-full max-w-md mx-auto space-y-6 p-8 min-h-[calc(100vh-160px)] flex flex-col justify-center">
+    <div className="w-full max-w-md mx-auto space-y-6 p-4 sm:p-8 min-h-[calc(100vh-160px)] flex flex-col justify-center">
       <Card className="w-full shadow-xl">
-        <CardHeader className="text-center pb-4">
+        <CardHeader className="text-center p-4 pb-4 sm:p-6 sm:pb-4">
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#EFF6FF] text-[#3B82F6]">
             <Video className="h-8 w-8" />
           </div>
           <CardTitle className="text-2xl font-display">Join Meeting</CardTitle>
           <CardDescription>Enter a meeting code or paste an invite link.</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-4 pt-0 sm:p-6 sm:pt-0">
           {error && (
-            <div role="alert" className="mb-6 rounded-lg border border-red-200 bg-red-50 p-3 text-[14px] text-red-600 text-center">
+            <div role="alert" className="mb-6 rounded-lg border border-red-200 bg-red-50 p-3 text-[14px] text-red-600 text-center break-words">
               {error}
             </div>
           )}

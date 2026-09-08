@@ -64,14 +64,14 @@ export function ResetPasswordPage() {
       <Link to="/" className="mb-6 flex justify-center">
         <Logo size={42} className="text-[#0F172A] dark:text-white" />
       </Link>
-      <div className="w-full max-w-md rounded-[16px] border border-[#E2E8F0] dark:border-[#1E3A5F] bg-white dark:bg-[#161D35] p-8 shadow-xl">
-        <div className="mb-8 text-center">
-          <h2 className="text-[28px] font-bold text-[#0F172A] dark:text-white font-display tracking-tight">Create New Password</h2>
-          <p className="mt-2 text-[15px] text-[#64748B] dark:text-[#94A3B8]">Please enter your new password below</p>
+      <div className="w-full max-w-md rounded-[16px] border border-[#E2E8F0] dark:border-[#1E3A5F] bg-white dark:bg-[#161D35] p-6 sm:p-8 shadow-xl">
+        <div className="mb-6 sm:mb-8 text-center">
+          <h2 className="text-[24px] sm:text-[28px] font-bold text-[#0F172A] dark:text-white font-display tracking-tight">Create New Password</h2>
+          <p className="mt-2 text-[14px] sm:text-[15px] text-[#64748B] dark:text-[#94A3B8]">Please enter your new password below</p>
         </div>
 
         {error && (
-          <div className="mb-4 rounded-lg border border-[#EF4444]/30 bg-[#EF4444]/10 p-3 text-sm text-[#EF4444]">
+          <div className="mb-4 rounded-lg border border-[#EF4444]/30 bg-[#EF4444]/10 p-3 text-sm text-[#EF4444] break-words">
             {error}
           </div>
         )}
