@@ -1326,3 +1326,79 @@ the camera-off placeholder rather than live video. The video element itself is
 `object-cover` inside the same aspect-ratio box at every width, so the grid
 geometry is exercised either way, but a real handset check is still worth doing
 before the demo.
+
+---
+
+## AI real-time translation (8 September 2026)
+
+The AI layer the earlier phases deliberately deferred. Nothing in the existing
+meeting system was rebuilt: no LiveKit change, no auth change, no new database
+model, and no second audio capture.
+
+### Pipeline
+
+```
+Speaker's browser                            Listener's browser
+─────────────────                            ──────────────────
+existing LiveKit mic track
+  → read-only WebAudio tap (no 2nd getUserMedia)
+  → Azure Speech SDK, browser-side, short-lived token
+  → interim results → panel only (never translated)
+  → FINAL utterance
+  → publishData topic:"transcript" ────────→ {lang, text}
+                                               → POST /api/ai/translate
+                                               → render Original + Translation
+                                               → Azure Neural TTS → own <audio>
+```
+
+### Why translation and TTS are receiver-side
+
+Each participant recognises their own speech **once** and broadcasts plain
+text. Each listener translates that text into the single language they chose.
+Three listeners wanting three languages cost three translations, not nine, and
+nobody pays for a language nobody selected. It also means your own words are
+never spoken back at you, which removes the primary feedback path by
+construction rather than by mitigation.
+
+### Integration points found by inspection
+
+| Question | Answer | Evidence |
+|---|---|---|
+| Reach the mic without a second capture? | `localParticipant.getTrackPublication(Track.Source.Microphone)?.audioTrack?.mediaStreamTrack` | pattern already used by `useAudioLevel.ts:33` |
+| Does mute break the tap? | No — LiveKit only flips `.enabled` (`stopMicTrackOnMute` defaults false) | `livekit-client.esm.mjs:22392` |
+| Does a device switch break it? | **Yes** — the track is replaced and `TrackEvent.Restarted` fires; the tap must rebuild | `LiveKitMeetingRoom.tsx:250` |
+| Can a new data topic break chat? | No — the chat handler already guards `if (topic && topic !== "chat") return` | `LiveKitMeetingRoom.tsx:268` |
+| Can TTS be a LiveKit track? | **No** — `<RoomAudioRenderer/>` subscribes to `Track.Source.Unknown` and would play one listener's TTS to everyone | `LiveKitMeetingRoom.tsx:175` |
+
+### Feedback-loop prevention
+
+Three independent guards, because any one alone is insufficient:
+1. You never synthesise your own transcript (architectural).
+2. Recognition results arriving while local TTS is audible are discarded, plus
+   a 400 ms tail for room echo (`useTextToSpeech.isOutputAudible`).
+3. Echo cancellation is already on in `lib/livekit.ts:23-27`.
+
+### Cost control
+
+Only **final** recognition results reach the network. Interim results update
+the panel and nothing else. Same-language pairs short-circuit in the service
+without an API call, and utterances under 2 characters are dropped.
+
+### Verified
+
+- `tsc` 0 errors; production build succeeds. The Speech SDK is a **separate
+  459 kB chunk** loaded only when AI is switched on — the main bundle is
+  unchanged at 669 kB.
+- Backend 118/118 tests pass (108 pre-existing + 10 new in `tests/ai.test.js`).
+- Unconfigured deployment: `/api/ai/config` reports `false/false`, the panel
+  shows "not configured", the toggle is disabled, and the meeting is unaffected.
+- Chat, all eight meeting controls, join and leave verified working after the
+  change.
+- Preference chain verified end-to-end: saved profile
+  (`spokenLanguage`/`listeningLanguage`) → lobby → `useMeetingStore` → AI panel.
+
+### Not verified
+
+The live STT → translation → TTS path has **not** been run, because no Azure
+credentials exist in this environment yet. Everything up to the network call is
+tested; the calls themselves are not.

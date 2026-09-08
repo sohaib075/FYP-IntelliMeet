@@ -257,6 +257,41 @@ export const meetingApi = {
     ),
 }
 
+// ============================================================
+// AI API (real-time translation)
+// ============================================================
+
+export interface AiConfig {
+  /** Azure Speech credentials are present, so STT and TTS are usable. */
+  speechEnabled: boolean
+  /** A translation provider is configured. */
+  translationEnabled: boolean
+  languages: { code: string; label: string; rtl: boolean }[]
+}
+
+export interface SpeechToken {
+  /** Short-lived Azure authorisation token. Never the subscription key. */
+  token: string
+  region: string
+  /** Seconds until the client should fetch a fresh token. */
+  expiresIn: number
+}
+
+export const aiApi = {
+  /** What this deployment supports — used to disable the UI rather than fail on click. */
+  getConfig: () => request<AiConfig>('/ai/config', { method: 'GET' }),
+
+  /** Browser-safe Azure credential for streaming recognition and neural TTS. */
+  getSpeechToken: () => request<SpeechToken>('/ai/speech-token', { method: 'POST' }),
+
+  /** One call per FINALISED utterance. Never call this for interim results. */
+  translate: (body: { text: string; sourceLanguage: string; targetLanguage: string }) =>
+    request<{ translatedText: string; sourceLanguage: string; targetLanguage: string }>(
+      '/ai/translate',
+      { method: 'POST', body: JSON.stringify(body) }
+    ),
+}
+
 /** Human-readable copy for known error codes */
 export function describeApiError(err: unknown): string {
   const e = toApiError(err)
@@ -285,6 +320,16 @@ export function describeApiError(err: unknown): string {
       return 'Please sign in again.'
     case 'RATE_LIMITED':
       return 'Too many attempts. Wait a few minutes and try again.'
+    case 'SPEECH_NOT_CONFIGURED':
+      return 'Speech recognition is not configured on this server.'
+    case 'SPEECH_UNAVAILABLE':
+      return 'Speech recognition is unavailable. Please try again.'
+    case 'TRANSLATION_NOT_CONFIGURED':
+      return 'Translation is not configured on this server.'
+    case 'TRANSLATION_UNAVAILABLE':
+      return 'Translation temporarily unavailable.'
+    case 'LANGUAGE_UNSUPPORTED':
+      return 'That language is not supported.'
     case 'NETWORK':
       return 'Unable to connect to the server. Check your connection and try again.'
     default:

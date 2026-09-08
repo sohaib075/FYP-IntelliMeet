@@ -15,12 +15,14 @@ import { Track, RoomEvent, type RemoteParticipant } from "livekit-client"
 import {
   Mic, MicOff, Video, VideoOff, MonitorUp, MessageSquare, Users, PhoneOff,
   Copy, XCircle, AlertTriangle, Send, Crown, Volume2, Loader2, MoreVertical, UserX,
-  WifiOff, Settings,
+  WifiOff, Settings, Languages,
 } from "lucide-react"
 import { Logo } from "@/components/common/Logo"
 import { ParticipantTile } from "@/components/meeting/ParticipantTile"
 import { useLiveKitMeeting } from "@/hooks/useLiveKitMeeting"
 import { useMediaDevices } from "@/hooks/useMediaDevices"
+import { useAiTranslation } from "@/hooks/useAiTranslation"
+import { AiTranslationPanel } from "@/components/meeting/AiTranslationPanel"
 import { meetingApi, describeApiError, type MeetingDto } from "@/lib/api"
 import { meetingLink } from "@/lib/meetingId"
 import { roleOf, initialsOf, avatarColorOf } from "@/lib/livekit"
@@ -207,6 +209,9 @@ function MeetingStage({
   const room = useRoomContext()
   const addToast = useToastStore((s) => s.addToast)
   const leaveMeeting = useMeetingStore((s) => s.leaveMeeting)
+  // The lobby writes the chosen pair here; fall back to the app defaults.
+  const aiSourceSeed = useMeetingStore((s) => s.sourceLang) || "en"
+  const aiTargetSeed = useMeetingStore((s) => s.targetLang) || "en"
 
   const participants = useParticipants()
   const { localParticipant, isMicrophoneEnabled, isCameraEnabled, isScreenShareEnabled } =
@@ -226,7 +231,7 @@ function MeetingStage({
   // The sidebar is a full-screen overlay below `sm:`, so opening it by default
   // on a phone would bury the video the moment you join. Desktop, where it sits
   // beside the video rather than over it, still opens on chat.
-  const [sidebar, setSidebar] = useState<"chat" | "participants" | null>(() =>
+  const [sidebar, setSidebar] = useState<"chat" | "participants" | "ai" | null>(() =>
     typeof window !== "undefined" && window.matchMedia("(min-width: 640px)").matches ? "chat" : null
   )
   const [chatInput, setChatInput] = useState("")
@@ -243,6 +248,16 @@ function MeetingStage({
 
   // Device pickers for switching camera or microphone without leaving the call.
   const devices = useMediaDevices(true)
+
+  // ── AI translation ──
+  // Seeded from the language pair the user already chose in the lobby, which
+  // is stored in useMeetingStore. Everything else (recognition, translation,
+  // speech) lives in the hook; this component only renders it.
+  const ai = useAiTranslation({
+    room,
+    initialSourceLang: aiSourceSeed,
+    initialTargetLang: aiTargetSeed,
+  })
 
   const switchDevice = async (kind: "videoinput" | "audioinput", deviceId: string) => {
     devices.select(kind, deviceId)
@@ -533,7 +548,7 @@ function MeetingStage({
         {sidebar && (
           <aside className="absolute inset-0 z-30 flex w-full flex-col border-l border-[var(--color-border-default)] bg-[var(--color-bg-primary)] sm:static sm:z-auto sm:w-80 sm:shrink-0">
             <div className="flex border-b border-[var(--color-border-default)]">
-              {(["chat", "participants"] as const).map((tab) => (
+              {(["chat", "participants", "ai"] as const).map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setSidebar(tab)}
@@ -543,7 +558,7 @@ function MeetingStage({
                       : "text-[var(--color-text-secondary)] hover:text-white"
                   }`}
                 >
-                  {tab === "participants" ? `People (${participants.length})` : "Chat"}
+                  {tab === "participants" ? `People (${participants.length})` : tab === "ai" ? "AI" : "Chat"}
                 </button>
               ))}
             </div>
@@ -600,6 +615,25 @@ function MeetingStage({
                   </button>
                 </form>
               </>
+            ) : sidebar === "ai" ? (
+              <AiTranslationPanel
+                enabled={ai.enabled}
+                voiceEnabled={ai.voiceEnabled}
+                sourceLang={ai.sourceLang}
+                targetLang={ai.targetLang}
+                interim={ai.interim}
+                lines={ai.lines}
+                error={ai.error}
+                isSpeaking={ai.isSpeaking}
+                available={ai.available}
+                unavailableReason={ai.unavailableReason}
+                ready={ai.ready}
+                onToggle={ai.toggle}
+                onVoiceToggle={ai.setVoiceEnabled}
+                onSourceChange={ai.setSourceLang}
+                onTargetChange={ai.setTargetLang}
+                onClearError={ai.clearError}
+              />
             ) : (
               <div className="min-h-0 flex-1 overflow-y-auto p-2">
                 {participants.map((p) => {
@@ -715,6 +749,14 @@ function MeetingStage({
           label="Toggle participant list"
         >
           <Users className="h-5 w-5" />
+        </ControlButton>
+        <ControlButton
+          active
+          highlighted={sidebar === "ai"}
+          onClick={() => setSidebar(sidebar === "ai" ? null : "ai")}
+          label={ai.enabled ? "AI translation (on)" : "AI translation"}
+        >
+          <Languages className={`h-5 w-5 ${ai.enabled ? "text-[var(--color-brand-blue)]" : ""}`} />
         </ControlButton>
         <ControlButton active highlighted={showSettings} onClick={() => setShowSettings(true)} label="Audio and video settings">
           <Settings className="h-5 w-5" />

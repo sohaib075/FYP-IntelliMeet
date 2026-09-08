@@ -80,4 +80,35 @@ const tokenLimiter = rateLimit({
   },
 });
 
-module.exports = { authLimiter, generalLimiter, tokenLimiter };
+/**
+ * Live AI translation: one request per finished utterance, so this fires far
+ * more often than any other endpoint — roughly every few seconds per speaking
+ * participant.
+ *
+ * Keyed by authenticated user, like `tokenLimiter`. The IP-keyed
+ * `generalLimiter` (600 per 15 min, ~40/min for EVERY user behind one campus
+ * NAT) would otherwise throttle a normal multi-participant meeting.
+ *
+ * 120/minute is well above natural speech (an utterance every 2–5 seconds is
+ * 12–30/min) while still capping a runaway recogniser or a scripted abuser.
+ */
+const translationLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 120,
+  standardHeaders: true,
+  legacyHeaders: false,
+
+  keyGenerator: (req) => String(req.user?._id || 'anonymous'),
+
+  handler: (_req, res) => {
+    return sendError(
+      res,
+      429,
+      'Translation is receiving too many requests — please slow down',
+      [],
+      'RATE_LIMITED'
+    );
+  },
+});
+
+module.exports = { authLimiter, generalLimiter, tokenLimiter, translationLimiter };

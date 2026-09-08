@@ -34,6 +34,7 @@ const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const meetingRoutes = require('./routes/meetingRoutes');
 const livekitRoutes = require('./routes/livekitRoutes');
+const aiRoutes = require('./routes/aiRoutes');
 
 const app = express();
 
@@ -101,6 +102,9 @@ app.use('/api/users', userRoutes);
 
 /** Meeting routes (create, validate, list, token, host actions) — protected */
 app.use('/api/meetings', meetingRoutes);
+
+/** AI routes (speech token, translation) — protected */
+app.use('/api/ai', aiRoutes);
 
 // ============================================================
 // 404 Catch-All (for API routes only)

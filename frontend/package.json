@@ -29,6 +29,7 @@
     "framer-motion": "^12.40.0",
     "livekit-client": "^2.22.2",
     "lucide-react": "^1.17.0",
+    "microsoft-cognitiveservices-speech-sdk": "^1.42.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "react-router-dom": "^7.17.0",

@@ -78,6 +78,28 @@ module.exports = {
   LIVEKIT_API_KEY: process.env.LIVEKIT_API_KEY || null,
   LIVEKIT_API_SECRET: process.env.LIVEKIT_API_SECRET || null,
 
+  /**
+   * Azure AI Speech — powers both speech-to-text and neural text-to-speech.
+   * One Speech resource serves both, so there is a single key/region pair
+   * rather than separate STT and TTS credentials.
+   *
+   * Optional, exactly like LiveKit above: when absent the AI translation
+   * feature reports itself as unconfigured and the meeting runs as normal.
+   */
+  AZURE_SPEECH_KEY: process.env.AZURE_SPEECH_KEY || null,
+  AZURE_SPEECH_REGION: process.env.AZURE_SPEECH_REGION || null,
+
+  /**
+   * Translation provider. Azure Translator is preferred (same vendor and
+   * region as Speech); Google Cloud Translation is used instead when its key
+   * is the one present. See services/translationService.js.
+   */
+  AZURE_TRANSLATOR_KEY: process.env.AZURE_TRANSLATOR_KEY || null,
+  AZURE_TRANSLATOR_REGION: process.env.AZURE_TRANSLATOR_REGION || process.env.AZURE_SPEECH_REGION || null,
+  AZURE_TRANSLATOR_ENDPOINT:
+    process.env.AZURE_TRANSLATOR_ENDPOINT || 'https://api.cognitive.microsofttranslator.com',
+  GOOGLE_TRANSLATE_API_KEY: process.env.GOOGLE_TRANSLATE_API_KEY || null,
+
   /** Allowed CORS origins (parsed into an array) */
   CORS_ORIGIN: process.env.NODE_ENV === 'development' || !process.env.NODE_ENV
     ? [/^http:\/\/localhost:\d+$/, ...(process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',').map((origin) => origin.trim()) : [])]
