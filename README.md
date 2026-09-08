@@ -58,37 +58,65 @@
 
 ## 3. System Architecture (High-Level)
 
-IntelliMeet is a decoupled client-server architecture: a REST API for authentication and meeting records, and **LiveKit** for the media session. The Node API never carries audio or video; it authorises the join and mints a short-lived token, and the browser then connects straight to the LiveKit SFU. The diagram below shows the legacy peer-to-peer fallback, which is used only when LiveKit is not configured. See section 7a for the path that runs by default.
+IntelliMeet is a decoupled client-server architecture. The Node API is a **control plane only**: it authenticates the user, decides whether the join is allowed, and mints a short-lived LiveKit token. It never carries audio or video. Media flows directly between the browser and the **LiveKit SFU**, so each participant uploads their stream once no matter how many people are in the call.
 
 ```mermaid
 flowchart TD
-    subgraph Frontend Client
-        UI[React UI]
-        WebRTC[WebRTC API\nP2P Media]
-        Zustand[Zustand State]
+    subgraph client["Browser"]
+        UI["React SPA<br/>Lobby + Meeting Room"]
+        LKC["livekit-client<br/>Room, tracks, data chat"]
     end
 
-    subgraph Backend Server
-        Express[Express REST API]
-        Signaling[Socket.io Signaling Server]
+    subgraph server["Node Backend (control plane)"]
+        API["Express REST API<br/>never carries audio or video"]
+        LKS["livekitService<br/>sole holder of LIVEKIT_API_SECRET"]
+        HOOK["POST /api/livekit/webhook<br/>signature-verified"]
     end
 
-    subgraph External Services
-        DB[(MongoDB)]
-        STUNTURN((STUN / TURN\nServers))
+    subgraph ext["External"]
+        SFU["LiveKit SFU<br/>carries all media"]
+        DB[("MongoDB<br/>Meeting + User")]
     end
 
-    UI <-->|HTTP/REST| Express
-    UI <-->|WebSockets| Signaling
-    Express <-->|Mongoose| DB
-    WebRTC <..>|SDP / ICE| Signaling
-    WebRTC <-->|Media Streams| WebRTC
-    WebRTC <-->|Network Traversal| STUNTURN
+    UI -->|"POST /api/meetings/:id/token"| API
+    API -->|"assertJoinable: ended / locked / banned"| DB
+    API --> LKS
+    LKS -->|"180s token, roomAdmin false"| UI
+    LKC <==>|"WebRTC media + data-channel chat"| SFU
+    LKS -->|"mute / remove / end room"| SFU
+    SFU -->|"participant_joined, room_finished"| HOOK
+    HOOK --> DB
 ```
 
-1. **REST Request Flow:** The frontend hits `/api/auth` or `/api/users` to perform CRUD operations on the MongoDB database. 
-2. **Real-time Request Flow:** Users connect to the Socket.io signaling server to join abstract "rooms" in memory. 
-3. **WebRTC Media Flow:** Once the signaling server negotiates the connection via SDP offers and ICE candidates, media tracks (video/audio) flow directly Peer-to-Peer (P2P), alleviating server bandwidth.
+1. **Control flow:** the browser calls `POST /api/meetings/:id/token`. `assertJoinable` rejects the request if the user is banned (403), the meeting has ended (410), or it is locked and the caller is not the host (423), so an unknown or invalid meeting ID can never bring a room into existence. Only then is a token minted, scoped to one room, valid for 180 seconds, with `roomAdmin: false`.
+2. **Media flow:** the browser connects straight to the LiveKit SFU with that token. Camera, microphone, screen share and chat data messages all travel on this hop — never through the Node API.
+3. **Host actions are server-enforced:** because participant tokens carry no admin rights, mute/remove/end are performed by the backend through `RoomServiceClient`, after `requireHost` re-checks the caller against `Meeting.hostId`.
+4. **Reconciliation:** LiveKit posts `participant_joined` / `room_finished` webhooks back to the backend, which verifies the signature and updates the meeting record. This is what keeps MongoDB honest if a client disappears without leaving cleanly.
+
+### Legacy peer-to-peer fallback
+
+If `LIVEKIT_URL` / `LIVEKIT_API_KEY` / `LIVEKIT_API_SECRET` are not set, the token endpoint returns `503 LIVEKIT_NOT_CONFIGURED` and the app falls back to the original mesh. Here the backend does relay signalling, and media goes browser-to-browser. Note this path has **STUN only and no TURN server**, so it can fail entirely behind symmetric NAT or a strict firewall.
+
+```mermaid
+flowchart TD
+    subgraph clients["Two Browsers"]
+        A["Peer A<br/>MeshMeetingRoom"]
+        B["Peer B<br/>MeshMeetingRoom"]
+    end
+
+    SIG["Socket.IO signalling<br/>backend/server.js, relay only"]
+    STUN(("Google STUN<br/>no TURN"))
+    DB[("MongoDB")]
+
+    A <-->|"join-room, signal (SDP / ICE)"| SIG
+    B <-->|"join-room, signal (SDP / ICE)"| SIG
+    SIG -->|"findByMeetingId, assertJoinable"| DB
+    A <==>|"media, direct peer-to-peer"| B
+    A -->|"ICE gathering"| STUN
+    B -->|"ICE gathering"| STUN
+```
+
+See section 7a for the LiveKit path in detail and 7b for the mesh.
 
 ---
 
