@@ -14,6 +14,11 @@ const getSocketUrl = () => {
     }
   }
   if (typeof window !== 'undefined') {
+    // Development: the Vite dev server proxies /socket.io (websocket upgrades
+    // included) to the backend, so the page's own origin works from any device
+    // and over https. Pointing at <host>:3001 instead would try TLS against the
+    // plain-http backend whenever the page itself is served over https.
+    if (import.meta.env.DEV) return window.location.origin;
     return `${window.location.protocol}//${window.location.hostname}:3001`;
   }
   return 'http://localhost:3001';

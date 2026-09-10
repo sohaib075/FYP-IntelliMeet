@@ -370,6 +370,35 @@ node scripts/fix-meeting-indexes.js
 
 ---
 
+### Running on two devices (same Wi-Fi)
+
+Use this to hold a real meeting between, say, a laptop and a phone on the same network.
+
+1. Start the backend as usual (`cd backend && npm run dev`).
+2. Start the frontend in LAN mode:
+   ```bash
+   cd frontend && npm run dev:lan
+   ```
+   Vite prints two addresses. Use the **Network** one on every device, including the host machine:
+   ```
+   ➜  Network: https://192.168.x.x:5173/
+   ```
+3. On each device, open that address. The browser warns about the certificate once — choose **Advanced → Proceed**. The certificate is self-signed for local development, so this warning is expected.
+4. Sign in with a **different account** on each device and join the same meeting ID.
+
+**Why HTTPS is required:** browsers only grant camera and microphone access on `https://` or on `localhost`. Over plain `http://192.168.x.x` the second device would join with no audio or video at all. `dev:lan` issues a self-signed certificate for exactly this reason.
+
+**How the second device reaches the API:** the dev server proxies `/api` and `/socket.io` to the backend on the host machine (`vite.config.ts`), so the browser only ever talks to one origin. This is why the backend needs no extra configuration and never has to be exposed on the network itself.
+
+**Troubleshooting:**
+- *Page won't load on the other device* — both devices must be on the same network, and Windows Firewall must allow inbound connections for Node.js. If Windows asked when you first ran Node, allow it; otherwise check *Windows Defender Firewall → Allow an app*.
+- *No camera/mic on the other device* — you opened `http://` instead of `https://`, or skipped the certificate step.
+- *Invite link doesn't work on the other device* — copy the link while viewing the **Network** address, not `localhost`. Links are built from the address you are currently on.
+- *Google sign-in fails on the other device* — Google OAuth only accepts registered origins, and it does not allow raw IP addresses. Use email and password sign-in on the second device.
+- Both devices need internet access: media goes through LiveKit Cloud and the AI features through Azure.
+
+Plain `npm run dev` is unchanged: `http://localhost:5173`, this machine only.
+
 ## 12. Known Limitations & Future Improvements
 
 - **Two media layers ship side by side.** With LiveKit configured, media flows through an SFU with built-in TURN, simulcast, automatic reconnection and server-enforced mute/removal. Without it, the app falls back to the original peer-to-peer mesh (`MeshMeetingRoom.tsx` + Socket.IO signalling), which relies on a public STUN server only, scales poorly past ~4 participants, and may fail entirely behind symmetric NAT or strict campus firewalls. Once LiveKit is verified in your environment, delete `MeshMeetingRoom.tsx`, `hooks/useMeetingConnection.ts`, `lib/socket.ts` and the Socket.IO block in `server.js`.

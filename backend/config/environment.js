@@ -100,9 +100,23 @@ module.exports = {
     process.env.AZURE_TRANSLATOR_ENDPOINT || 'https://api.cognitive.microsofttranslator.com',
   GOOGLE_TRANSLATE_API_KEY: process.env.GOOGLE_TRANSLATE_API_KEY || null,
 
-  /** Allowed CORS origins (parsed into an array) */
+  /**
+   * Allowed CORS origins (parsed into an array).
+   *
+   * Development accepts this machine on any port, over http or https, plus
+   * private-network addresses (10.x, 172.16–31.x, 192.168.x) so a second
+   * device on the same Wi-Fi can use `npm run dev:lan`. Production never takes
+   * this branch — it uses the explicit CORS_ORIGIN list only.
+   */
   CORS_ORIGIN: process.env.NODE_ENV === 'development' || !process.env.NODE_ENV
-    ? [/^http:\/\/localhost:\d+$/, ...(process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',').map((origin) => origin.trim()) : [])]
+    ? [
+        /^https?:\/\/localhost(:\d+)?$/,
+        /^https?:\/\/127\.0\.0\.1(:\d+)?$/,
+        /^https?:\/\/10\.\d{1,3}\.\d{1,3}\.\d{1,3}(:\d+)?$/,
+        /^https?:\/\/172\.(1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3}(:\d+)?$/,
+        /^https?:\/\/192\.168\.\d{1,3}\.\d{1,3}(:\d+)?$/,
+        ...(process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',').map((origin) => origin.trim()) : []),
+      ]
     : process.env.CORS_ORIGIN
       ? process.env.CORS_ORIGIN.split(',').map((origin) => origin.trim())
       : ['http://localhost:5173', 'http://localhost:5174'],

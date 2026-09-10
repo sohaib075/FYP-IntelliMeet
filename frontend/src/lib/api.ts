@@ -14,7 +14,13 @@
 
 import { useAuthStore } from '@/store/useAuthStore'
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
+// In development the Vite dev server proxies /api to the backend (see
+// vite.config.ts), so a RELATIVE path works from any device on the network —
+// including over https in `npm run dev:lan`. An absolute
+// http://localhost:3001 would point a second device at itself.
+// Production builds keep the previous default; set VITE_API_URL to override.
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL || (import.meta.env.DEV ? '/api' : 'http://localhost:3001/api')
 
 // ---- Types ----
 
